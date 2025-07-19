@@ -78,8 +78,29 @@ const TheaterForm = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log("[TheaterForm] handleSubmit được gọi");
     if (validateForm()) {
-      onSubmit(formData);
+      const fd = new FormData();
+      // Chỉ append cinema_name nếu giá trị đã thay đổi hoặc đang tạo mới
+      if (!initialData || formData.cinema_name !== initialData.cinema_name) {
+        fd.append("cinema_name", formData.cinema_name);
+      }
+      fd.append("address", formData.address);
+      if (formData.map_address) {
+        fd.append("map_address", formData.map_address);
+      }
+      if (formData.district_id) {
+        fd.append("district_id", formData.district_id);
+      }
+      if (initialData && initialData.cinema_id) {
+        fd.append("cinema_id", initialData.cinema_id);
+      }
+      // Log lại để kiểm tra
+      console.log('[TheaterForm] Địa chỉ gửi lên:', formData.address);
+      for (let pair of fd.entries()) {
+        console.log('[TheaterForm][FormData gửi lên]', pair[0] + ':', pair[1]);
+      }
+      onSubmit(fd);
     }
   };
 
@@ -103,7 +124,8 @@ const TheaterForm = ({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 flex items-center justify-center bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+            className="flex-1 flex items-center justify-center bg-gray-200 text-gray-800 
+            py-2 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -123,7 +145,8 @@ const TheaterForm = ({
           </button>
           <button
             type="submit"
-            className="flex-1 flex items-center justify-center bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
+            className="flex-1 flex items-center justify-center bg-blue-500 text-white 
+            py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

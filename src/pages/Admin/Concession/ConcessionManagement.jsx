@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import ConcessionTable from "../../components/admin/Concession/ConcessionTable";
-import ConcessionForm from "../../components/admin/Concession/ConcessionForm";
+import ConcessionTable from "../../../components/admin/Concession/ConcessionTable";
+import ConcessionForm from "../../../components/admin/Concession/ConcessionForm";
 import { toast } from "react-toastify";
 import { FaPlus, FaSearch } from "react-icons/fa";
 import {
@@ -8,7 +8,7 @@ import {
   useCreateConcessionUS,
   useUpdateConcessionUS,
   useDeleteConcessionUS,
-} from "../../api/homePage/queries";
+} from "../../../api/homePage/queries";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -147,7 +147,7 @@ const ConcessionManagement = () => {
           <p>{error.message}</p>
           <button
             onClick={() => fetchConcessions()}
-            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 cursor-pointer"
           >
             Thử lại
           </button>
@@ -166,7 +166,10 @@ const ConcessionManagement = () => {
           <button
             onClick={handleAddConcession}
             disabled={isCreating}
-            className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600 hover:to-blue-800 font-semibold shadow-md transition-all text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2 bg-gradient-to-r 
+            from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600 
+            hover:to-blue-800 font-semibold shadow-md transition-all text-sm sm:text-base 
+            disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             <FaPlus className="mr-2" />
             {isCreating ? "Đang thêm..." : "Thêm dịch vụ mới"}

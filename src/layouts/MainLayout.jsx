@@ -9,7 +9,7 @@ function MainLayout() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-grow px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 md:pt-32 ">
+      <main className="flex-grow px-4 sm:px-6 lg:px-8 pt-16 sm:pt-16 md:pt-24 ">
         <Outlet context={{ footerRef }} />
       </main>
       <Footer ref={footerRef} />

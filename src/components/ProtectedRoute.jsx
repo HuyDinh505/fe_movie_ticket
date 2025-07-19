@@ -46,14 +46,20 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     console.log("=== ROLE COMPARISON DEBUG ===");
     console.log("User role (raw):", `"${userData.role}"`);
     console.log("User role (length):", userData.role?.length);
-    console.log("User role (char codes):", userData.role?.split('').map(c => c.charCodeAt(0)));
+    console.log(
+      "User role (char codes):",
+      userData.role?.split("").map((c) => c.charCodeAt(0))
+    );
     console.log("Allowed roles:", allowedRoles);
-    console.log("Allowed roles (detailed):", allowedRoles.map(role => ({
-      role: `"${role}"`,
-      length: role.length,
-      charCodes: role.split('').map(c => c.charCodeAt(0))
-    })));
-    
+    console.log(
+      "Allowed roles (detailed):",
+      allowedRoles.map((role) => ({
+        role: `"${role}"`,
+        length: role.length,
+        charCodes: role.split("").map((c) => c.charCodeAt(0)),
+      }))
+    );
+
     const hasRequiredRole = allowedRoles.includes(userData.role);
     console.log(
       `ProtectedRoute: Checking role access - User role: "${

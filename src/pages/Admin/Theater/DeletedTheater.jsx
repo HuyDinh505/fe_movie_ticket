@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { FaSearch } from "react-icons/fa";
-import TheaterTable from "../../components/admin/Theater/TheaterTable";
+import TheaterTable from "../../../components/admin/Theater/TheaterTable";
 import {
   useGetDeletedCinemasUS,
   useRestoreCinemaUS,
-} from "../../api/homePage/queries";
+} from "../../../api/homePage/queries";
 
 const ITEMS_PER_PAGE = 10;
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEye, FaEyeSlash, FaTimes, FaCalendarAlt } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
@@ -7,18 +7,39 @@ import authAPI from "../../api/auth";
 import { useAuth } from "../../contexts/AuthContext";
 import AuthLeftBanner from "../../components/Auth/AuthLeftBanner";
 import { imagePhim } from "../../Utilities/common";
+import { useGetPhimUS } from "../../api/homePage/queries";
 
-const posters = [
-  `${imagePhim}/uploads/posters/phim1.jpg`,
-  `${imagePhim}/uploads/posters/phim2.jpg`,
-  `${imagePhim}/uploads/posters/phim3.jpg`,
-  `${imagePhim}/uploads/posters/phim4.jpg`,
-];
-const randomPoster = posters[Math.floor(Math.random() * posters.length)];
+const fallbackPoster = "/placeholder.jpg";
 
 function RegisterPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { data: moviesData, isLoading } = useGetPhimUS();
+  const movies = moviesData?.data?.movies || [];
+  const posters = movies
+    .filter((m) => m.poster_url)
+    .map((m) => `${imagePhim}${m.poster_url}`);
+
+  const [posterIndex, setPosterIndex] = useState(0);
+  useEffect(() => {
+    setPosterIndex(0);
+  }, [posters.length]);
+  useEffect(() => {
+    if (posters.length > 1) {
+      const interval = setInterval(() => {
+        setPosterIndex((prev) => {
+          let next = Math.floor(Math.random() * posters.length);
+          while (next === prev && posters.length > 1) {
+            next = Math.floor(Math.random() * posters.length);
+          }
+          return next;
+        });
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [posters.length]);
+  const currentPoster = posters[posterIndex] || fallbackPoster;
+
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -173,7 +194,7 @@ function RegisterPage() {
 
         setTimeout(() => {
           navigate("/");
-        }, 1000);
+        }, 3000);
       }
     } catch (error) {
       console.error("Register error:", error);
@@ -205,10 +226,24 @@ function RegisterPage() {
         pauseOnHover
         theme="light"
       />
-      <div className="flex w-full bg-white rounded-2xl shadow-lg overflow-hidden">
-        <AuthLeftBanner image={randomPoster} />
+      <div className="flex w-[60%] bg-white rounded-2xl shadow-lg overflow-hidden">
+        {isLoading || movies.length === 0 ? (
+          <div
+            className="w-1/2 flex items-center justify-center"
+            style={{ background: "var(--color-primary)" }}
+          >
+            <span className="text-xl font-bold text-white">
+              Đang tải phim...
+            </span>
+          </div>
+        ) : (
+          <AuthLeftBanner image={currentPoster} />
+        )}
         <div className="w-1/2 flex flex-col justify-center p-16">
-          <h2 className="text-4xl font-bold mb-8 text-center" style={{ color: "var(--color-blue)" }}>
+          <h2
+            className="text-4xl font-bold mb-8 text-center"
+            style={{ color: "var(--color-blue)" }}
+          >
             Đăng ký tài khoản
           </h2>
           <form onSubmit={handleRegister}>

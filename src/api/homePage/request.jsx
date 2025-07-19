@@ -13,6 +13,7 @@ const END_POINT = {
   USERS: "users",
   CINEMA: "cinema",
   GENRE: "genre",
+  SCREENTYPE: "screentype",
   CONCESSION: "concession",
   THEATER_ROOMS: "room",
   SHOWTIME: "showtime",
@@ -22,6 +23,7 @@ const END_POINT = {
   // MOMO_STATUS: "payment/momo/status",
   PAYMENT_INITIATE: "payment/initiate",
   PAYMENT_STATUS: "payment/status",
+  PROMOTION: "promotion",
 };
 
 // =====================
@@ -32,34 +34,34 @@ const createFormData = (data) => {
   const formData = new FormData();
 
   // Log để debug
-  console.log("Creating FormData with:", data);
+  // console.log("Creating FormData with:", data);
 
   // Xử lý từng trường dữ liệu
   Object.keys(data).forEach((key) => {
     if (key === "poster" && data[key] instanceof File) {
-      console.log("Adding poster file:", data[key]);
+      // console.log("Adding poster file:", data[key]);
       formData.append("poster", data[key], data[key].name);
     } else if (key === "avatar" && data[key] instanceof File) {
       // Chỉ thêm avatar nếu là File mới
-      console.log("Adding avatar file:", data[key]);
+      // console.log("Adding avatar file:", data[key]);
       formData.append("avatar", data[key], data[key].name);
     } else if (key === "avatar" && data[key] === null) {
       // Nếu avatar là null, không thêm vào FormData để giữ ảnh cũ
-      console.log("Keeping existing avatar");
+      // console.log("Keeping existing avatar");
     } else if (key === "genres_ids" && Array.isArray(data[key])) {
       data[key].forEach((id) => {
-        console.log("Adding genre_id:", id);
+        // console.log("Adding genre_id:", id);
         formData.append("genres_ids[]", id);
       });
     } else if (key === "actor") {
-      console.log("Adding actor:", data[key]);
+      // console.log("Adding actor:", data[key]);
       formData.append("actor", data[key]);
     } else if (key === "screening_type") {
-      console.log("Adding screening_type:", data[key]);
+      // console.log("Adding screening_type:", data[key]);
       formData.append("screening_type", data[key]);
     } else if (key === "screenin_type_ids" && Array.isArray(data[key])) {
       data[key].forEach((type) => {
-        console.log("Adding screenin_type_id:", type);
+        // console.log("Adding screenin_type_id:", type);
         formData.append("screenin_type_ids[]", type);
       });
     } else {
@@ -214,32 +216,8 @@ export const getMovieWithShowtimesAPI = async (movieId) => {
   }
 };
 
-export const createPhimAPI = async (movieData) => {
+export const createPhimAPI = async (formData) => {
   try {
-    // Kiểm tra dữ liệu trước khi gửi
-    console.log("Validating movie data before sending:");
-    const requiredFields = [
-      "movie_name",
-      "description",
-      "duration",
-      "release_date",
-      "derector",
-      "status",
-      "age_rating",
-      "country",
-      "genres_ids",
-      "screening_type",
-    ];
-
-    requiredFields.forEach((field) => {
-      if (!movieData[field]) {
-        console.warn(`Missing required field: ${field}`);
-      }
-    });
-
-    console.log("Movie data before FormData:", movieData);
-    const formData = createFormData(movieData);
-
     // Log toàn bộ FormData trước khi gửi
     console.log("Final FormData contents:");
     for (let [key, value] of formData.entries()) {
@@ -262,13 +240,7 @@ export const createPhimAPI = async (movieData) => {
   } catch (error) {
     console.error("Error in createPhimAPI:", error);
     if (error.response) {
-      console.error("Error response data:", error.response.data);
-      console.error("Error response status:", error.response.status);
-      console.error("Full error response:", error.response);
-
-      // Log chi tiết lỗi validation nếu có
       if (error.response.data.errors) {
-        console.error("Validation errors:", error.response.data.errors);
         Object.entries(error.response.data.errors).forEach(
           ([field, messages]) => {
             console.error(`Field ${field}:`, messages);
@@ -280,31 +252,21 @@ export const createPhimAPI = async (movieData) => {
   }
 };
 
-export const updatePhimAPI = async (ma_phim, movieData) => {
+export const updatePhimAPI = async (ma_phim, formData) => {
   try {
-    const formData = createFormData(movieData);
-    formData.append("_method", "PUT"); // Thêm _method=PUT để Laravel xử lý như PUT request
-    console.log("Sending PATCH request to:", `${END_POINT.PHIM}/${ma_phim}`);
-    console.log("FormData:", Object.fromEntries(formData));
+    formData.append("_method", "PATCH"); // hoặc PATCH nếu backend yêu cầu
     const response = await axios({
       url: `${END_POINT.PHIM}/${ma_phim}`,
-      method: "POST", // Vẫn giữ là POST nhưng thêm _method=PUT
+      method: "POST",
       data: formData,
       headers: {
         "Content-Type": "multipart/form-data",
       },
       transformRequest: [(data) => data],
     });
-    console.log("Response from update:", response.data);
-    return response;
+    return response.data;
   } catch (error) {
-    console.error(
-      "Lỗi khi cập nhật phim:",
-      error.response?.data || error.message
-    );
-    // Log chi tiết lỗi validation nếu có
     if (error.response?.data?.errors) {
-      console.error("Validation errors:", error.response.data.errors);
       Object.entries(error.response.data.errors).forEach(
         ([field, messages]) => {
           console.error(`Field ${field}:`, messages);
@@ -506,9 +468,8 @@ export const getCinemaByIdAPI = async (cinemaId) => {
   }
 };
 
-export const createCinemaAPI = async (cinemaData) => {
+export const createCinemaAPI = async (formData) => {
   try {
-    const formData = createFormData(cinemaData);
     const response = await axios({
       url: END_POINT.CINEMA,
       method: "POST",
@@ -525,13 +486,12 @@ export const createCinemaAPI = async (cinemaData) => {
   }
 };
 
-export const updateCinemaAPI = async (cinemaId, cinemaData) => {
+export const updateCinemaAPI = async (cinemaId, formData) => {
   try {
-    const formData = createFormData(cinemaData);
-    formData.append("_method", "PUT"); // Thêm _method=PUT để Laravel xử lý như PUT request
+    formData.append("_method", "PATCH");
     const response = await axios({
       url: `${END_POINT.CINEMA}/${cinemaId}`,
-      method: "POST", // Vẫn giữ là POST nhưng thêm _method=PUT
+      method: "POST",
       data: formData,
       headers: {
         "Content-Type": "multipart/form-data",
@@ -788,10 +748,16 @@ export const getShowtimeByIdAPI = async (showtimeId) => {
 
 export const updateShowtimeAPI = async (showtimeId, showtimeData) => {
   try {
+    const formData = createFormData(showtimeData);
+    formData.append("_method", "PUT"); // Thêm _method=PUT để Laravel xử lý như PUT request
     const response = await axios({
       url: `${END_POINT.SHOWTIME}/${showtimeId}`,
-      method: "PUT",
-      data: showtimeData,
+      method: "POST", // Vẫn giữ là POST nhưng thêm _method=PUT
+      data: formData,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      transformRequest: [(data) => data],
     });
     return response;
   } catch (error) {
@@ -1023,6 +989,7 @@ export const createGenreAPI = async (genreData) => {
 export const updateGenreAPI = async (genreId, genreData) => {
   try {
     const formData = createFormData(genreData);
+    formData.append("_method", "PUT");
     const response = await axios({
       url: `${END_POINT.GENRE}/${genreId}`,
       method: "POST",
@@ -1107,13 +1074,13 @@ export const getUserByIdAPI = async (userId) => {
   }
 };
 
+// request.jsx
 export const createUserAPI = async (userData) => {
   try {
-    const formData = createFormData(userData);
     const response = await axios({
       url: END_POINT.USERS,
       method: "POST",
-      data: formData,
+      data: userData, // userData ở đây đã là FormData được gửi từ UserForm
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -1121,43 +1088,52 @@ export const createUserAPI = async (userData) => {
     });
     return response;
   } catch (error) {
-    console.error("Lỗi khi tạo người dùng:", error);
+    console.error("Lỗi khi tạo người dùng (toàn bộ đối tượng error):", error); // Log toàn bộ đối tượng lỗi
     if (error.response) {
-      console.error("Error response data:", error.response.data);
-      console.error("Error response status:", error.response.status);
-      console.error("Full error response:", error.response);
+      console.error("Error response exists.");
+      console.error("Error response data:", error.response.data); // Nội dung phản hồi từ server
+      console.error("Error response status:", error.response.status); // Mã trạng thái HTTP (ví dụ: 500)
+      console.error("Error response headers:", error.response.headers); // Headers của phản hồi
+      console.error("Full error response object:", error.response); // Log toàn bộ đối tượng response của Axios
+    } else if (error.request) {
+      // Yêu cầu đã được tạo nhưng không nhận được phản hồi (ví dụ: không có kết nối mạng, CORS block)
+      console.error("Error request exists, no response received.");
+      console.error("Error request:", error.request);
+    } else {
+      // Có lỗi xảy ra trong quá trình thiết lập yêu cầu trước khi nó được gửi
+      console.error("Error message (trước khi gửi request):", error.message);
     }
     throw error;
   }
 };
 
-export const updateUserAPI = async (userId, userData) => {
+export const updateUserAPI = async (userId, formDataFromUserForm) => {
+  // Đổi tên tham số để rõ ràng hơn
+  console.log("[updateUserAPI] Nhận vào:", { userId, formDataFromUserForm });
   try {
-    if (!userData.avatar || !(userData.avatar instanceof File)) {
-      userData.avatar = null;
-    }
+    // formDataFromUserForm ĐÃ LÀ một đối tượng FormData được tạo từ UserForm.
+    // Bạn KHÔNG cần tạo FormData mới ở đây và sao chép lại dữ liệu.
 
-    const formData = createFormData(userData);
-    formData.append("_method", "PATCH");
-    console.log("Sending FormData for user update:", formData);
-    console.log("User ID for update:", userId);
+    // Chỉ cần thêm _method vào đối tượng FormData đã có
+    formDataFromUserForm.append("_method", "PATCH");
 
     const response = await axios({
-      url: `${END_POINT.USERS}/${userId}`,
-      method: "POST",
-      data: formData,
+      url: `${END_POINT.USERS}/${userId}`, // userId này dùng cho URL API
+      method: "POST", // Phương thức là POST khi sử dụng _method: PATCH
+      data: formDataFromUserForm, // Truyền trực tiếp đối tượng FormData đã nhận và đã thêm _method
       headers: {
         "Content-Type": "multipart/form-data",
       },
-      transformRequest: [(data) => data],
+      // transformRequest: [(data) => data], // Nên bỏ dòng này vì axios tự xử lý FormData
     });
     return response;
   } catch (error) {
-    console.error("Lỗi khi cập nhật thông tin người dùng:", error);
-    if (error.response) {
-      console.error("Error response data:", error.response.data);
-      console.error("Error response status:", error.response.status);
-      console.error("Full error response:", error.response);
+    if (error.response?.data?.errors) {
+      Object.entries(error.response.data.errors).forEach(
+        ([field, messages]) => {
+          console.error(`Field ${field}:`, messages);
+        }
+      );
     }
     throw error;
   }
@@ -1185,23 +1161,6 @@ export const getCurrentUserAPI = async () => {
     return response;
   } catch (error) {
     console.error("Lỗi khi lấy thông tin cá nhân user:", error);
-    throw error;
-  }
-};
-
-// =====================
-// Booking APIs (Đặt vé)
-// =====================
-export const postBooKingAPI = async (bookingData) => {
-  try {
-    const response = await axios({
-      url: END_POINT.BOOKING,
-      method: "POST",
-      data: bookingData,
-    });
-    return response;
-  } catch (error) {
-    console.error("Lỗi khi đặt vé:", error);
     throw error;
   }
 };
@@ -1317,6 +1276,19 @@ export const deleteMovieScheduleAPI = async (id) => {
 // =====================
 // Booking APIs (Đặt vé)
 // =====================
+export const postBooKingAPI = async (bookingData) => {
+  try {
+    const response = await axios({
+      url: END_POINT.BOOKING,
+      method: "POST",
+      data: bookingData,
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi đặt vé:", error);
+    throw error;
+  }
+};
 export const getAllBookingsAPI = async () => {
   try {
     const response = await axios({
@@ -1394,6 +1366,131 @@ export const getManagedMoviesAPI = async () => {
     return response;
   } catch (error) {
     console.error("Lỗi khi lấy danh sách phim quản lý:", error);
+    throw error;
+  }
+};
+
+// =====================
+// Promotion APIs (Khuyến mãi)
+// =====================
+export const getAllPromotionsAPI = async () => {
+  try {
+    const response = await axios({
+      url: END_POINT.PROMOTION,
+      method: "GET",
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách khuyến mãi:", error);
+    throw error;
+  }
+};
+
+export const getPromotionByIdAPI = async (id) => {
+  try {
+    const response = await axios({
+      url: `${END_POINT.PROMOTION}/${id}`,
+      method: "GET",
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi lấy chi tiết khuyến mãi:", error);
+    throw error;
+  }
+};
+
+export const createPromotionAPI = async (data) => {
+  try {
+    const formData = new FormData();
+    Object.keys(data).forEach((key) => {
+      formData.append(key, data[key]);
+    });
+    const response = await axios({
+      url: END_POINT.PROMOTION,
+      method: "POST",
+      data: formData,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      transformRequest: [(data) => data],
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi tạo khuyến mãi:", error);
+    throw error;
+  }
+};
+
+export const updatePromotionAPI = async (id, data) => {
+  try {
+    const formData = createFormData(data);
+    formData.append("_method", "PATCH");
+    const response = await axios({
+      url: `${END_POINT.PROMOTION}/${id}`,
+      method: "POST",
+      data: formData,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      transformRequest: [(data) => data],
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi cập nhật khuyến mãi:", error);
+    throw error;
+  }
+};
+
+export const deletePromotionAPI = async (id) => {
+  try {
+    const response = await axios({
+      url: `${END_POINT.PROMOTION}/${id}`,
+      method: "DELETE",
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi xóa khuyến mãi:", error);
+    throw error;
+  }
+};
+
+export const getUserPromotionsAPI = async () => {
+  try {
+    const response = await axios({
+      url: `${END_POINT.PROMOTION}/user`,
+      method: "GET",
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi lấy khuyến mãi cho user:", error);
+    throw error;
+  }
+};
+
+export const calculatePromotionAPI = async (data) => {
+  try {
+    const response = await axios({
+      url: `${END_POINT.PROMOTION}/apply`,
+      method: "POST",
+      data,
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi tính toán khuyến mãi:", error);
+    throw error;
+  }
+};
+
+// ScreenType
+export const getScreenTypeAPI = async () => {
+  try {
+    const response = await axios({
+      url: END_POINT.SCREENTYPE,
+      method: "GET",
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách loại chiếu:", error);
     throw error;
   }
 };

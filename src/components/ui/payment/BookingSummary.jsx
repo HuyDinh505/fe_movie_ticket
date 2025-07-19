@@ -10,7 +10,6 @@ const BookingSummary = forwardRef(
     const { refetch: refreshSeatMap } = useGetSeatMapUS(
       bookingData?.showtime?.show_time_id
     );
-
     useImperativeHandle(ref, () => ({
       refreshSeatMap,
     }));
@@ -59,11 +58,30 @@ const BookingSummary = forwardRef(
           <p>{bookingDetails.combo}</p>
         </div>
 
-        <div className="pt-3 border-t-2 border-dashed border-white text-white text-lg font-bold flex justify-between items-center">
-          <span style={{ color: "var(--color-text)" }}>
-            SỐ TIỀN CẦN THANH TOÁN
-          </span>
-          <span>{bookingDetails.total.toLocaleString()} VND</span>
+        <div className="pt-3 border-t-2 border-dashed border-white text-white text-lg font-bold flex flex-col gap-1 justify-between items-end">
+          <div className="flex justify-between w-full items-center">
+            <span style={{ color: "var(--color-text)" }}>
+              SỐ TIỀN CẦN THANH TOÁN
+            </span>
+            <span>{bookingDetails.total.toLocaleString()} VND</span>
+          </div>
+          {bookingDetails.discountAmount > 0 && (
+            <div className="flex justify-between w-full items-center text-green-400 text-base font-semibold">
+              <span>Khuyến mãi ({bookingDetails.appliedPromotion?.name}):</span>
+              <span style={{ color: "#fff" }}>
+                - {bookingDetails.discountAmount.toLocaleString()} VND
+              </span>
+            </div>
+          )}
+          <div className="flex justify-between w-full items-center text-xl font-bold">
+            <span>TỔNG THANH TOÁN</span>
+            <span style={{ color: "#fff" }}>
+              {(
+                bookingDetails.finalTotal || bookingDetails.total
+              ).toLocaleString()}{" "}
+              VND
+            </span>
+          </div>
         </div>
       </div>
     );

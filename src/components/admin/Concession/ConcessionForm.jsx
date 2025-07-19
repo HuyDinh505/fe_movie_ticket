@@ -99,7 +99,8 @@ const ConcessionForm = ({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 flex items-center justify-center bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+            className="flex-1 flex items-center justify-center bg-gray-200 text-gray-800 
+            py-2 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -119,7 +120,8 @@ const ConcessionForm = ({
           </button>
           <button
             type="submit"
-            className="flex-1 flex items-center justify-center bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
+            className="flex-1 flex items-center justify-center bg-blue-500 text-white 
+            py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

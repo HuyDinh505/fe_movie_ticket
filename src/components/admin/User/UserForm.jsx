@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { imagePhim } from "../../../Utilities/common";
+import { useGetAllCinemasUS } from "../../../api/homePage/queries";
 
 const UserForm = ({ onSubmit, initialData, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -14,21 +15,56 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
     role: "user",
     birth_date: "",
     gender: "",
+    district_ids: [],
+    cinema_id: "",
   });
 
   const [errors, setErrors] = useState({});
   const [avatarPreview, setAvatarPreview] = useState("");
 
+  // Lấy danh sách rạp
+  const { data: cinemasData } = useGetAllCinemasUS();
+  const cinemas = cinemasData?.data || [];
+
+  // Lọc danh sách district duy nhất từ danh sách rạp
+  const districts = [];
+  const districtMap = {};
+  cinemas.forEach((cinema) => {
+    if (cinema.district && !districtMap[cinema.district.district_id]) {
+      districtMap[cinema.district.district_id] = true;
+      districts.push({
+        district_id: cinema.district.district_id,
+        district_name: cinema.district.district_name,
+      });
+    }
+  });
+
   useEffect(() => {
     if (initialData) {
-      // Tạo một bản sao của initialData
+      console.log("[UserForm] initialData nhận được khi sửa:", initialData);
+      // Đảm bảo district_ids luôn là mảng
+      let districtIds = [];
+      if (initialData.district_ids) {
+        if (Array.isArray(initialData.district_ids)) {
+          districtIds = initialData.district_ids.map((id) => Number(id));
+        } else {
+          districtIds = [Number(initialData.district_ids)];
+        }
+      }
+
       const formDataInit = {
+        user_id: initialData.user_id || null,
         ...initialData,
         password: "",
         password_confirmation: "",
         role: Array.isArray(initialData.roles)
           ? initialData.roles[0]
           : initialData.role || "user",
+        district_ids: districtIds,
+        cinema_id: initialData.cinema_id || "",
+        birth_date: initialData.birth_date
+          ? initialData.birth_date.slice(0, 10)
+          : "",
       };
 
       // Không set avatar: null khi có dữ liệu cũ
@@ -36,6 +72,7 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
         formDataInit.avatar = null;
       }
 
+      console.log("[UserForm] formDataInit truyền vào state:", formDataInit);
       setFormData(formDataInit);
 
       if (initialData.avatar_url) {
@@ -55,6 +92,8 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
         role: "user",
         birth_date: "",
         gender: "",
+        district_ids: [],
+        cinema_id: "",
       });
       setAvatarPreview("");
     }
@@ -101,6 +140,20 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
       newErrors.gender = "Vui lòng chọn giới tính";
     }
 
+    if (
+      formData.role === "district_manager" &&
+      (!formData.district_ids || formData.district_ids.length === 0)
+    ) {
+      newErrors.district_ids = "Vui lòng chọn ít nhất một cụm rạp quản lý";
+    }
+    if (
+      (formData.role === "showtime_manager" ||
+        formData.role === "booking_manager") &&
+      !formData.cinema_id
+    ) {
+      newErrors.cinema_id = "Vui lòng chọn rạp quản lý";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -131,31 +184,85 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
         ...prev,
         avatar: file,
       }));
+    }
+  };
 
-      // Log để kiểm tra
-      console.log("Selected file:", file);
-      console.log("Preview URL:", previewUrl);
+  const handleDistrictChange = (e) => {
+    // Đảm bảo luôn trả về mảng số
+    const selected = Array.from(e.target.selectedOptions, (opt) =>
+      Number(opt.value)
+    );
+    setFormData((prev) => ({ ...prev, district_ids: selected }));
+    if (errors.district_ids) {
+      setErrors((prev) => ({ ...prev, district_ids: "" }));
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log("[UserForm] Đã bấm nút Cập nhật!");
     if (validateForm()) {
-      const dataToSend = { ...formData };
+      // Sử dụng FormData để gửi dữ liệu, luôn append birth_date
+      const formDataToSend = new FormData();
+      formDataToSend.append("full_name", formData.full_name || "");
+      formDataToSend.append("email", formData.email || "");
+      formDataToSend.append("phone", formData.phone || "");
+      formDataToSend.append("role", formData.role || "user");
+      formDataToSend.append("birth_date", formData.birth_date || "");
+      formDataToSend.append("gender", formData.gender || "");
 
-      // Nếu đang chỉnh sửa và không nhập mật khẩu mới, loại bỏ trường mật khẩu
-      if (initialData && !dataToSend.password) {
-        delete dataToSend.password;
-        delete dataToSend.password_confirmation;
+      // Thêm user_id nếu đang edit
+      if (initialData && formData.user_id) {
+        formDataToSend.append("user_id", formData.user_id);
       }
 
-      // Nếu không chọn file mới, loại bỏ trường avatar
-      if (!dataToSend.avatar) {
-        delete dataToSend.avatar;
+      // Xử lý password - chỉ thêm khi có giá trị
+      if (!initialData || formData.password) {
+        if (formData.password) {
+          formDataToSend.append("password", formData.password);
+          formDataToSend.append(
+            "password_confirmation",
+            formData.password_confirmation
+          );
+        }
       }
 
-      onSubmit(dataToSend);
+      // Xử lý avatar file
+      if (formData.avatar && formData.avatar instanceof File) {
+        formDataToSend.append("avatar", formData.avatar);
+      }
+
+      // Xử lý district_ids cho district_manager
+      if (formData.role === "district_manager") {
+        if (
+          Array.isArray(formData.district_ids) &&
+          formData.district_ids.length > 0
+        ) {
+          formData.district_ids.forEach((id, index) => {
+            formDataToSend.append(`district_ids[${index}]`, Number(id));
+          });
+        }
+      }
+
+      // Xử lý cinema_id cho showtime_manager và booking_manager
+      if (["showtime_manager", "booking_manager"].includes(formData.role)) {
+        if (formData.cinema_id) {
+          formDataToSend.append("cinema_id", Number(formData.cinema_id));
+        }
+      }
+      console.log("[UserForm] Dữ liệu gửi lên khi submit:", formData);
+      // Đã sửa lỗi ở dòng này:
+      console.log(
+        "[UserForm] user_id trong formDataToSend:",
+        formDataToSend.get("user_id")
+      ); // CHỈNH SỬA Ở ĐÂY
+      // Log toàn bộ FormData thực tế gửi lên để debug
+      for (let pair of formDataToSend.entries()) {
+        console.log("[UserForm][FormData gửi lên]", pair[0] + ':', pair[1]);
+      }
+      onSubmit(formDataToSend);
     } else {
+      console.log("[UserForm] Validate lỗi, không submit!");
       toast.error("Vui lòng kiểm tra lại thông tin");
     }
   };
@@ -296,11 +403,66 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
             <option value="user">Người dùng</option>
             <option value="admin">Quản trị viên</option>
             <option value="district_manager">Quản lý cụm rạp</option>
+            <option value="booking_manager">Quản lý đơn hàng</option>
+            <option value="showtime_manager">Quản lý suất chiếu</option>
           </select>
           {errors.role && (
             <p className="text-red-500 text-sm mt-1">{errors.role}</p>
           )}
         </div>
+
+        {/* Chọn cụm rạp quản lý cho district_manager */}
+        {formData.role === "district_manager" && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Chọn cụm rạp quản lý (có thể chọn nhiều)
+            </label>
+            <select
+              multiple
+              name="district_ids"
+              value={formData.district_ids}
+              onChange={handleDistrictChange}
+              className="w-full border border-gray-300 rounded p-2 h-32"
+            >
+              {districts.map((district) => (
+                <option key={district.district_id} value={district.district_id}>
+                  {district.district_name}
+                </option>
+              ))}
+            </select>
+            <p className="text-sm text-gray-500 mt-1">
+              Giữ Ctrl (hoặc Cmd) để chọn nhiều cụm rạp
+            </p>
+            {errors.district_ids && (
+              <p className="text-red-500 text-sm mt-1">{errors.district_ids}</p>
+            )}
+          </div>
+        )}
+
+        {/* Chọn rạp quản lý cho showtime_manager và booking_manager */}
+        {["showtime_manager", "booking_manager"].includes(formData.role) && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Chọn rạp quản lý
+            </label>
+            <select
+              name="cinema_id"
+              value={formData.cinema_id}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded p-2"
+            >
+              <option value="">Chọn rạp</option>
+              {cinemas.map((cinema) => (
+                <option key={cinema.cinema_id} value={cinema.cinema_id}>
+                  {cinema.cinema_name}
+                </option>
+              ))}
+            </select>
+            {errors.cinema_id && (
+              <p className="text-red-500 text-sm mt-1">{errors.cinema_id}</p>
+            )}
+          </div>
+        )}
 
         <div>
           <input

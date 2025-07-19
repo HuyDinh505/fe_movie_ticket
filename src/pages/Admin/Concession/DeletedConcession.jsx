@@ -3,10 +3,10 @@ import { FaSearch } from "react-icons/fa";
 import {
   useGetDeletedConcessionUS,
   useRestoreConcessionUS,
-} from "../../api/homePage";
+} from "../../../api/homePage";
 import { toast } from "react-toastify";
-import ConcessionTable from "../../components/admin/Concession/ConcessionTable";
-import Modal from "../../components/ui/Modal";
+import ConcessionTable from "../../../components/admin/Concession/ConcessionTable";
+import Modal from "../../../components/ui/Modal";
 
 const ITEMS_PER_PAGE = 10;
 

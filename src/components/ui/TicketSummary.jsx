@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const TicketSummary = ({
   movieTitle,
@@ -15,7 +16,19 @@ const TicketSummary = ({
 }) => {
   const navigate = useNavigate();
 
+  const totalTicketsCount = tickets?.reduce((sum, t) => sum + t.count, 0) || 0;
+  const canBook =
+    showtime &&
+    tickets &&
+    tickets.some((t) => t.count > 0) &&
+    seats &&
+    seats.length === totalTicketsCount;
+
   const handleBookTicket = () => {
+    if (!canBook) {
+      toast.error("Vui lòng chọn suất chiếu, loại vé, số lượng vé và đủ ghế trước khi đặt vé!");
+      return;
+    }
     const bookingData = {
       movieTitle,
       cinema,
@@ -61,8 +74,9 @@ const TicketSummary = ({
           {movieTitle}
         </h3>
         <p className="text-sm text-gray-600">
-          {showtime.time} - {showtime.day} - {cinema} - {seatsName.join(", ")}
+          {showtime.time} - {showtime.day} - {cinema}
         </p>
+        <p className="text-sm text-gray-600">Ghế : {seatsName.join(", ")}</p>
         <p className="text-sm text-gray-600">{formatTickets()}</p>
         {combos && Object.values(combos).some((q) => q > 0) && (
           <p className="text-sm text-gray-600">{formatCombos()}</p>
@@ -86,16 +100,22 @@ const TicketSummary = ({
             onClick={handleBookTicket}
             className="px-6 py-2 rounded-lg transition-colors w-full font-semibold cursor-pointer"
             style={{
-              backgroundColor: "var(--color-primary)",
-              color: "black",
+              backgroundColor: canBook ? "var(--color-primary)" : "#eee",
+              color: canBook ? "black" : "#aaa",
+              cursor: canBook ? "pointer" : "not-allowed",
             }}
+            disabled={!canBook}
             onMouseEnter={(e) => {
-              e.target.style.backgroundColor = "var(--color-hover)";
-              e.target.style.color = "white";
+              if (canBook) {
+                e.target.style.backgroundColor = "var(--color-hover)";
+                e.target.style.color = "white";
+              }
             }}
             onMouseLeave={(e) => {
-              e.target.style.backgroundColor = "var(--color-primary)";
-              e.target.style.color = "black";
+              if (canBook) {
+                e.target.style.backgroundColor = "var(--color-primary)";
+                e.target.style.color = "black";
+              }
             }}
           >
             ĐẶT VÉ

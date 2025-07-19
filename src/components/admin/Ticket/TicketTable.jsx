@@ -118,7 +118,7 @@ const TicketTable = ({ orders, onRowClick, onEditClick }) => {
         </tbody>
       </table>
       {/* Phân trang thực */}
-      <div className="flex justify-between items-center mt-4">
+      {/* <div className="flex justify-between items-center mt-4">
         <div></div>
         <div className="flex items-center gap-2">
           <button
@@ -154,7 +154,7 @@ const TicketTable = ({ orders, onRowClick, onEditClick }) => {
             <option>10 / page</option>
           </select>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

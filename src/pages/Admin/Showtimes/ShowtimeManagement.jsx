@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
-import ShowtimeForm from "../../components/admin/Showtime/ShowtimeForm";
-import ShowtimeTable from "../../components/admin/Showtime/ShowtimeTable";
+import ShowtimeForm from "../../../components/admin/Showtime/ShowtimeForm";
+import ShowtimeTable from "../../../components/admin/Showtime/ShowtimeTable";
 import {
   FaPlus,
   FaSearch,
   FaExclamationTriangle,
   FaExclamationCircle,
 } from "react-icons/fa";
-import Modal from "../../components/ui/Modal";
-import { useGetSeatMapUS } from "../../api/homePage/queries";
-import Seat from "../../components/admin/Room/Seat";
+import Modal from "../../../components/ui/Modal";
+import { useGetSeatMapUS } from "../../../api/homePage";
+import Seat from "../../../components/admin/Room/Seat";
 import {
   useGetAllCinemasUS,
   useGetTheaterRoomsByCinemaUS,
@@ -19,18 +19,18 @@ import {
   useUpdateShowtimeUS,
   useReactivateShowtimeUS,
   useDeleteShowtimeUS,
-} from "../../api/homePage/queries";
+} from "../../../api/homePage";
 import { toast } from "react-toastify";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const ShowtimeManagement = () => {
   const { userData } = useAuth();
-  
+
   // Debug log để kiểm tra user data
   console.log("ShowtimeManagement - userData:", userData);
   console.log("ShowtimeManagement - userData.role:", userData.role);
   console.log("ShowtimeManagement - userData.cinema_id:", userData.cinema_id);
-  
+
   const [cinemas, setCinemas] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [selectedCinema, setSelectedCinema] = useState("");
@@ -72,30 +72,36 @@ const ShowtimeManagement = () => {
   useEffect(() => {
     if (cinemasData?.data) {
       let cinemasList = cinemasData.data;
-      
+
       console.log("ShowtimeManagement - All cinemas from API:", cinemasList);
       console.log("ShowtimeManagement - User role:", userData.role);
       console.log("ShowtimeManagement - User cinema_id:", userData.cinema_id);
-      
+
       // Nếu là showtime_manager, chỉ hiển thị rạp của họ
       if (userData.role === "showtime_manager" && userData.cinema_id) {
         cinemasList = cinemasList.filter(
-          cinema => cinema.cinema_id == userData.cinema_id
+          (cinema) => cinema.cinema_id == userData.cinema_id
         );
         console.log("ShowtimeManager - User cinema_id:", userData.cinema_id);
-        console.log("ShowtimeManager - Filtered cinemas for user:", cinemasList);
-        
+        console.log(
+          "ShowtimeManager - Filtered cinemas for user:",
+          cinemasList
+        );
+
         // Tự động chọn rạp của showtime_manager
         if (cinemasList.length > 0) {
           setSelectedCinema(userData.cinema_id);
-          console.log("ShowtimeManager - Auto-selected cinema:", userData.cinema_id);
+          console.log(
+            "ShowtimeManager - Auto-selected cinema:",
+            userData.cinema_id
+          );
         }
       } else if (cinemasList.length > 0 && !selectedCinema) {
         // Chỉ set cinema đầu tiên nếu không phải showtime_manager
         const firstCinemaId = cinemasList[0].cinema_id;
         setSelectedCinema(firstCinemaId);
       }
-      
+
       setCinemas(cinemasList);
     }
   }, [cinemasData, userData.role, userData.cinema_id]);
@@ -135,6 +141,17 @@ const ShowtimeManagement = () => {
     // eslint-disable-next-line
   }, [selectedCinema, selectedRoom, selectedDate]);
 
+  // Hàm xác định trạng thái động dựa vào thời gian
+  const getShowtimeStatus = (showtime) => {
+    const now = new Date();
+    const start = new Date(showtime.start_time);
+    const end = new Date(showtime.end_time);
+    if (now < start) return "Sắp chiếu";
+    if (now >= start && now <= end) return "Đang chiếu";
+    if (now > end) return "Đã chiếu";
+    return "N/A";
+  };
+
   // Xử lý tìm kiếm suất chiếu
   const handleSearch = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
@@ -144,34 +161,45 @@ const ShowtimeManagement = () => {
         cinema_id: selectedCinema,
         room_id: selectedRoom,
         date: selectedDate,
-        status: statusFilter,
+        // status: statusFilter, // Không gửi status cho backend nữa
       };
       const res = await filteredShowtimesMutation.mutateAsync(filter);
-      const mappedShowtimes = (res.data || []).map((item) => ({
-        id: item.showtime_id,
-        movie_id: item.movie_id,
-        movie_name: item.movie?.movie_name || "",
-        screen_type: item.screen_type || "2D",
-        translation_type: item.translation_type || "Phụ đề",
-        time_range:
-          item.start_time && item.end_time
-            ? `${new Date(item.start_time).toLocaleTimeString("vi-VN", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })} - ${new Date(item.end_time).toLocaleTimeString("vi-VN", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}`
-            : "",
-        show_type: item.show_type || "",
-        status: item.status || "",
-        room_name: `${item.room?.room_name || ""} - ${
-          item.room?.cinema?.cinema_name || ""
-        }`,
-        start_time: item.start_time,
-        end_time: item.end_time,
-        duration: item.movie?.duration || 0,
-      }));
+      console.log("Raw API response:", res.data); // Debug log
+      let mappedShowtimes = (res.data || []).map((item) => {
+        console.log("Mapping item:", item); // Debug log
+        return {
+          id: item.showtime_id,
+          movie_id: item.movie_id || item.movie?.movie_id, // Thử lấy từ cả 2 nơi
+          movie_name: item.movie?.movie_name || "",
+          screen_type: item.screen_type || "2D",
+          translation_type: item.translation_type || "Phụ đề",
+          time_range:
+            item.start_time && item.end_time
+              ? `${new Date(item.start_time).toLocaleTimeString("vi-VN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })} - ${new Date(item.end_time).toLocaleTimeString("vi-VN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}`
+              : "",
+          show_type: item.show_type || "",
+          status: item.status || "",
+          room_name: `${item.room?.room_name || ""} - ${
+            item.room?.cinema?.cinema_name || ""
+          }`,
+          start_time: item.start_time,
+          end_time: item.end_time,
+          duration: item.movie?.duration || 0,
+        };
+      });
+      // Lọc theo trạng thái động nếu có chọn filter
+      if (statusFilter) {
+        mappedShowtimes = mappedShowtimes.filter(
+          (showtime) => getShowtimeStatus(showtime) === statusFilter
+        );
+      }
+      console.log("Mapped showtimes:", mappedShowtimes); // Debug log
       setShowtimes(mappedShowtimes);
     } catch (error) {
       console.error("Error fetching showtimes:", error);
@@ -189,6 +217,7 @@ const ShowtimeManagement = () => {
   };
 
   const handleEdit = (showtime) => {
+    console.log("handleEdit - Full showtime object:", showtime); // Debug log
     let date = "";
     let startTime = "";
     let endTime = "";
@@ -201,13 +230,16 @@ const ShowtimeManagement = () => {
     }
     console.log("showtime.start_time:", showtime.start_time);
     console.log("showtime.end_time:", showtime.end_time);
-    setEditingShowtime({
+    console.log("showtime.movie_id:", showtime.movie_id); // Debug log
+    const editingData = {
       ...showtime,
       movieId: showtime.movie_id,
       date,
       startTime,
       endTime,
-    });
+    };
+    console.log("editingData being set:", editingData); // Debug log
+    setEditingShowtime(editingData);
     setIsFormVisible(true);
   };
 
@@ -274,12 +306,17 @@ const ShowtimeManagement = () => {
       return;
     }
 
-    // Tính toán end_time dựa trên thời lượng phim
+    // Tính toán thời gian thực tế
     const startDateTime = new Date(`${formData.date} ${formData.startTime}`);
-    const endDateTime = new Date(
-      startDateTime.getTime() + selectedMovie.duration * 60000
-    ); // duration * 60 * 1000 ms
-    const endTime = endDateTime.toTimeString().slice(0, 5); // Lấy HH:mm
+    const endDateTime = new Date(`${formData.date} ${formData.endTime}`);
+    const durationMinutes = (endDateTime - startDateTime) / 60000;
+
+    if (durationMinutes < selectedMovie.duration) {
+      toast.error(
+        `Thời gian kết thúc phải lớn hơn hoặc bằng thời lượng phim (${selectedMovie.duration} phút)!`
+      );
+      return;
+    }
 
     // Validation room_id
     if (!selectedRoom) {
@@ -292,7 +329,9 @@ const ShowtimeManagement = () => {
       movie_id: parseInt(formData.movieId),
       room_id: parseInt(selectedRoom),
       start_time: `${formData.date} ${formData.startTime}`,
-      end_time: `${formData.date} ${endTime}`,
+      end_time: `${formData.date} ${formData.endTime}`, // Dùng giá trị user nhập
+      screen_type: formData.screenType,
+      translation_type: formData.translationType,
     };
 
     console.log("Form data:", formData);
@@ -300,14 +339,20 @@ const ShowtimeManagement = () => {
     console.log("Payload being sent:", payload);
     console.log("Selected room:", selectedRoom);
     console.log("Start time:", `${formData.date} ${formData.startTime}`);
-    console.log("End time:", `${formData.date} ${endTime}`);
+    console.log("End time:", `${formData.date} ${formData.endTime}`);
     try {
       if (editingShowtime && editingShowtime.id) {
         const res = await updateShowtime.mutateAsync({
           showtimeId: editingShowtime.id,
           showtimeData: payload,
         });
-        if (res?.data?.status === false || res?.data?.code !== 200) {
+        // console.log("Update showtime response:", res);
+        if (res?.data?.status === false) {
+          const msg = res?.data?.message || "Cập nhật suất chiếu thất bại";
+          toast.error(msg);
+          return;
+        }
+        if (res?.data?.code && res?.data?.code >= 400) {
           const msg = res?.data?.message || "Cập nhật suất chiếu thất bại";
           toast.error(msg);
           return;
@@ -394,7 +439,8 @@ const ShowtimeManagement = () => {
           <label className="block font-semibold mb-1">Rạp chiếu:</label>
           {userData.role === "showtime_manager" ? (
             <div className="block w-full px-3 py-2 border border-gray-200 rounded-xl bg-gray-100 text-gray-700 font-medium">
-              {cinemas.find(c => c.cinema_id == selectedCinema)?.cinema_name || "Đang tải..."}
+              {cinemas.find((c) => c.cinema_id == selectedCinema)
+                ?.cinema_name || "Đang tải..."}
             </div>
           ) : (
             <select

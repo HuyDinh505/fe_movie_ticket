@@ -62,7 +62,7 @@ const QuickBookingSection = () => {
       enabled: !!selectedMovie,
     });
   const cinemasWithShowtimes =
-    movieDetailData?.data?.movie?.cinemas_with_showtimes || [];
+    movieDetailData?.data?.cinemas_with_showtimes || [];
 
   const movieOptions = movies.map((movie) => ({
     value: movie.movie_id,
@@ -181,183 +181,151 @@ const QuickBookingSection = () => {
   const showtimeSelectRef = React.useRef();
 
   return (
-    <div className="w-[84%] mx-auto bg-white p-4 shadow-md rounded-lg flex flex-col md:flex-row items-center justify-around gap-4">
-      {/* Step 1 */}
-      <div className="flex items-center gap-2 w-full md:w-auto flex-grow">
-        <span
-          className={`text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold ${
-            !selectedMovie ? "cursor-pointer" : ""
+    <div className="w-full max-w-screen-xl mx-auto bg-white p-2 sm:p-4 shadow-md rounded-lg flex flex-col gap-3 sm:gap-4">
+      <div className="flex flex-col md:flex-row gap-3 md:gap-4 w-full">
+        {/* Step 1 */}
+        <div className="flex items-center gap-2 w-full">
+          <span className="text-black bg-yellow-300 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-2">
+            1
+          </span>
+          <div className="flex-grow">
+            <Select
+              ref={movieSelectRef}
+              inputId="select-movie"
+              styles={{
+                ...customSelectStyles,
+                control: (provided, state) => ({
+                  ...customSelectStyles.control(provided, state),
+                  width: "100%",
+                }),
+              }}
+              options={movieOptions}
+              placeholder="Chọn Phim"
+              value={selectedMovie}
+              onChange={setSelectedMovie}
+              isLoading={isLoadingMovies}
+              isClearable
+              menuPortalTarget={
+                typeof window !== "undefined" ? window.document.body : null
+              }
+            />
+          </div>
+        </div>
+        {/* Step 2 */}
+        <div className="flex items-center gap-2 w-full">
+          <span className="text-black bg-yellow-300 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-2">
+            2
+          </span>
+          <div className="flex-grow">
+            <Select
+              ref={cinemaSelectRef}
+              inputId="select-cinema"
+              styles={{
+                ...customSelectStyles,
+                control: (provided, state) => ({
+                  ...customSelectStyles.control(provided, state),
+                  width: "100%",
+                }),
+              }}
+              options={cinemaOptions}
+              placeholder="Chọn Rạp"
+              value={selectedCinema}
+              onChange={setSelectedCinema}
+              isLoading={isLoadingDetail}
+              isDisabled={!selectedMovie}
+              isClearable
+              menuPortalTarget={
+                typeof window !== "undefined" ? window.document.body : null
+              }
+            />
+          </div>
+        </div>
+        {/* Step 3 */}
+        <div className="flex items-center gap-2 w-full">
+          <span className="text-black bg-yellow-300 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-2">
+            3
+          </span>
+          <div className="flex-grow">
+            <Select
+              ref={dateSelectRef}
+              inputId="select-date"
+              styles={{
+                ...customSelectStyles,
+                control: (provided, state) => ({
+                  ...customSelectStyles.control(provided, state),
+                  width: "100%",
+                }),
+              }}
+              options={dateOptions}
+              placeholder="Chọn Ngày"
+              value={selectedDate}
+              onChange={setSelectedDate}
+              isLoading={isLoadingDetail}
+              isDisabled={!selectedCinema}
+              isClearable
+              menuPortalTarget={
+                typeof window !== "undefined" ? window.document.body : null
+              }
+            />
+          </div>
+        </div>
+        {/* Step 4 */}
+        <div className="flex items-center gap-2 w-full">
+          <span className="text-black bg-yellow-300 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-2">
+            4
+          </span>
+          <div className="flex-grow">
+            <Select
+              ref={showtimeSelectRef}
+              inputId="select-showtime"
+              styles={{
+                ...customSelectStyles,
+                control: (provided, state) => ({
+                  ...customSelectStyles.control(provided, state),
+                  width: "100%",
+                }),
+              }}
+              options={showtimeOptions}
+              placeholder="Chọn Suất"
+              value={selectedShowtime}
+              onChange={setSelectedShowtime}
+              isLoading={isLoadingDetail}
+              isDisabled={!selectedDate}
+              isClearable
+              menuPortalTarget={
+                typeof window !== "undefined" ? window.document.body : null
+              }
+            />
+          </div>
+        </div>
+        <button
+          onClick={handleQuickBook}
+          className={`px-6 py-3 rounded-lg transition-colors duration-300 w-full md:w-auto flex-shrink-0 text-base font-semibold mt-2 md:mt-0 ${
+            selectedShowtime
+              ? "cursor-pointer"
+              : "cursor-not-allowed opacity-50"
           }`}
           style={{
-            backgroundColor: "var(--color-primary)",
-            color: "black",
+            backgroundColor: selectedShowtime ? "var(--color-primary)" : "#ccc",
+            color: selectedShowtime ? "black" : "#666",
           }}
-          onClick={() => {
-            if (!selectedMovie && movieSelectRef.current) {
-              movieSelectRef.current.focus();
+          onMouseEnter={(e) => {
+            if (selectedShowtime) {
+              e.target.style.backgroundColor = "var(--color-hover)";
+              e.target.style.color = "white";
             }
           }}
+          onMouseLeave={(e) => {
+            if (selectedShowtime) {
+              e.target.style.backgroundColor = "var(--color-primary)";
+              e.target.style.color = "black";
+            }
+          }}
+          disabled={!selectedShowtime}
         >
-          1
-        </span>
-        <div className="flex-grow">
-          <Select
-            ref={movieSelectRef}
-            inputId="select-movie"
-            styles={customSelectStyles}
-            options={movieOptions}
-            placeholder="Chọn Phim"
-            value={selectedMovie}
-            onChange={setSelectedMovie}
-            isLoading={isLoadingMovies}
-            isClearable
-            menuPortalTarget={
-              typeof window !== "undefined" ? window.document.body : null
-            }
-          />
-        </div>
+          Mua vé nhanh
+        </button>
       </div>
-
-      {/* Step 2 */}
-      <div className="flex items-center gap-2 w-full md:w-auto flex-grow">
-        <span
-          className={`text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold ${
-            selectedMovie && !selectedCinema ? "cursor-pointer" : ""
-          }`}
-          style={{
-            backgroundColor: "var(--color-primary)",
-            color: "black",
-          }}
-          onClick={() => {
-            if (selectedMovie && !selectedCinema && cinemaSelectRef.current) {
-              cinemaSelectRef.current.focus();
-            }
-          }}
-        >
-          2
-        </span>
-        <div className="flex-grow">
-          <Select
-            ref={cinemaSelectRef}
-            inputId="select-cinema"
-            styles={customSelectStyles}
-            options={cinemaOptions}
-            placeholder="Chọn Rạp"
-            value={selectedCinema}
-            onChange={setSelectedCinema}
-            isLoading={isLoadingDetail}
-            isDisabled={!selectedMovie}
-            isClearable
-            menuPortalTarget={
-              typeof window !== "undefined" ? window.document.body : null
-            }
-          />
-        </div>
-      </div>
-
-      {/* Step 3 */}
-      <div className="flex items-center gap-2 w-full md:w-auto flex-grow">
-        <span
-          className={`text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold ${
-            selectedCinema && !selectedDate ? "cursor-pointer" : ""
-          }`}
-          style={{
-            backgroundColor: "var(--color-primary)",
-            color: "black",
-          }}
-          onClick={() => {
-            if (selectedCinema && !selectedDate && dateSelectRef.current) {
-              dateSelectRef.current.focus();
-            }
-          }}
-        >
-          3
-        </span>
-        <div className="flex-grow">
-          <Select
-            ref={dateSelectRef}
-            inputId="select-date"
-            styles={customSelectStyles}
-            options={dateOptions}
-            placeholder="Chọn Ngày"
-            value={selectedDate}
-            onChange={setSelectedDate}
-            isLoading={isLoadingDetail}
-            isDisabled={!selectedCinema}
-            isClearable
-            menuPortalTarget={
-              typeof window !== "undefined" ? window.document.body : null
-            }
-          />
-        </div>
-      </div>
-
-      {/* Step 4 */}
-      <div className="flex items-center gap-2 w-full md:w-auto flex-grow">
-        <span
-          className={`text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold ${
-            selectedDate && !selectedShowtime ? "cursor-pointer" : ""
-          }`}
-          style={{
-            backgroundColor: "var(--color-primary)",
-            color: "black",
-          }}
-          onClick={() => {
-            if (
-              selectedDate &&
-              !selectedShowtime &&
-              showtimeSelectRef.current
-            ) {
-              showtimeSelectRef.current.focus();
-            }
-          }}
-        >
-          4
-        </span>
-        <div className="flex-grow">
-          <Select
-            ref={showtimeSelectRef}
-            inputId="select-showtime"
-            styles={customSelectStyles}
-            options={showtimeOptions}
-            placeholder="Chọn Suất"
-            value={selectedShowtime}
-            onChange={setSelectedShowtime}
-            isLoading={isLoadingDetail}
-            isDisabled={!selectedDate}
-            isClearable
-            menuPortalTarget={
-              typeof window !== "undefined" ? window.document.body : null
-            }
-          />
-        </div>
-      </div>
-
-      <button
-        onClick={handleQuickBook}
-        className={`px-6 py-3 rounded-lg transition-colors duration-300 w-full md:w-auto text-base font-semibold ${
-          selectedShowtime ? "cursor-pointer" : "cursor-not-allowed opacity-50"
-        }`}
-        style={{
-          backgroundColor: selectedShowtime ? "var(--color-primary)" : "#ccc",
-          color: selectedShowtime ? "black" : "#666",
-        }}
-        onMouseEnter={(e) => {
-          if (selectedShowtime) {
-            e.target.style.backgroundColor = "var(--color-hover)";
-            e.target.style.color = "white";
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (selectedShowtime) {
-            e.target.style.backgroundColor = "var(--color-primary)";
-            e.target.style.color = "black";
-          }
-        }}
-        disabled={!selectedShowtime}
-      >
-        Mua vé nhanh
-      </button>
     </div>
   );
 };

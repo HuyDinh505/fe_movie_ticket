@@ -63,7 +63,7 @@ const TicketTypeTable = ({
                       <button
                         onClick={() => onDelete(type.ticket_type_id)}
                         disabled={isDeleting}
-                        className={`p-2 text-green-600 hover:text-green-800 transition-colors ${
+                        className={`p-2 text-green-600 hover:text-green-800 transition-colors cursor-pointer ${
                           isDeleting ? "opacity-50 cursor-not-allowed" : ""
                         }`}
                         title={isDeleting ? "Đang hoàn tác..." : "Hoàn tác"}
@@ -74,7 +74,7 @@ const TicketTypeTable = ({
                       <>
                         <button
                           onClick={() => onEdit(type)}
-                          className="p-2 text-blue-600 hover:text-blue-800 transition-colors"
+                          className="p-2 text-blue-600 hover:text-blue-800 transition-colors cursor-pointer"
                           title="Chỉnh sửa"
                         >
                           <FaEdit />
@@ -82,7 +82,7 @@ const TicketTypeTable = ({
                         <button
                           onClick={() => onDelete(type.ticket_type_id)}
                           disabled={isDeleting}
-                          className={`p-2 text-red-600 hover:text-red-800 transition-colors ${
+                          className={`p-2 text-red-600 hover:text-red-800 transition-colors cursor-pointer ${
                             isDeleting ? "opacity-50 cursor-not-allowed" : ""
                           }`}
                           title={isDeleting ? "Đang xóa..." : "Xóa"}

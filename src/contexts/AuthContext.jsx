@@ -16,15 +16,15 @@ export const AuthProvider = ({ children }) => {
   });
   const [isLoading, setIsLoading] = useState(true); // Add isLoading state
 
-  console.log(
-    "AuthContext (initial render): isLoading=",
-    isLoading,
-    ", isLoggedIn=",
-    isLoggedIn
-  );
+  // console.log(
+  //   "AuthContext (initial render): isLoading=",
+  //   isLoading,
+  //   ", isLoggedIn=",
+  //   isLoggedIn
+  // );
 
   useEffect(() => {
-    console.log("AuthContext (useEffect): Running checkLoginStatus...");
+    // console.log("AuthContext (useEffect): Running checkLoginStatus...");
     checkLoginStatus();
   }, []);
 
@@ -32,8 +32,8 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem("token");
     const userInfo = localStorage.getItem("user");
 
-    console.log("Checking login status - Token:", token);
-    console.log("Checking login status - User info:", userInfo);
+    // console.log("Checking login status - Token:", token);
+    // console.log("Checking login status - User info:", userInfo);
 
     if (token && userInfo) {
       setIsLoggedIn(true);
@@ -147,13 +147,13 @@ export const AuthProvider = ({ children }) => {
 
   const isAdmin = () => {
     const adminStatus = userData.role === "admin";
-    console.log(
-      "Checking admin status:",
-      adminStatus,
-      "Current role:",
-      userData.role
-    );
-    console.log("Current full userData state:", userData);
+    // console.log(
+    //   "Checking admin status:",
+    //   adminStatus,
+    //   "Current role:",
+    //   userData.role
+    // );
+    // console.log("Current full userData state:", userData);
     return adminStatus;
   };
 

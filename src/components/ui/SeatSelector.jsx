@@ -21,6 +21,7 @@ const SeatSelector = forwardRef(
     const [selectedSeats, setSelectedSeats] = useState(
       initialSelectedSeats || []
     );
+    const [lastBookedSeats, setLastBookedSeats] = useState([]);
 
     console.log(
       "SeatSelector - selectedShowtime prop received:",
@@ -68,8 +69,11 @@ const SeatSelector = forwardRef(
         }
       });
 
-      // Nếu có ghế đã bị đặt, loại bỏ khỏi selectedSeats và thông báo
-      if (bookedSeats.length > 0) {
+      // Nếu có ghế mới bị đặt mất, báo toast và loại bỏ khỏi selectedSeats
+      if (
+        bookedSeats.length > 0 &&
+        JSON.stringify(bookedSeats) !== JSON.stringify(lastBookedSeats)
+      ) {
         const bookedSeatNames = bookedSeats
           .map((seat) => seat.seat_display_name)
           .join(", ");
@@ -84,7 +88,7 @@ const SeatSelector = forwardRef(
             draggable: true,
           }
         );
-
+        setLastBookedSeats(bookedSeats);
         // Loại bỏ ghế đã bị đặt khỏi selectedSeats
         setSelectedSeats((prev) =>
           prev.filter((seatId) => {
@@ -98,7 +102,12 @@ const SeatSelector = forwardRef(
           })
         );
       }
-    }, [seatMapData, selectedSeats]);
+      // Nếu số ghế đã đặt vượt quá số vé, báo lỗi ngay
+      if (selectedSeats.length > totalTicketsCount && totalTicketsCount > 0) {
+        toast.error(`Bạn chỉ được chọn tối đa ${totalTicketsCount} ghế!`);
+        setSelectedSeats((prev) => prev.slice(0, totalTicketsCount));
+      }
+    }, [seatMapData, selectedSeats, totalTicketsCount, lastBookedSeats]);
 
     // Hàm refresh danh sách ghế
     const handleRefreshSeats = () => {

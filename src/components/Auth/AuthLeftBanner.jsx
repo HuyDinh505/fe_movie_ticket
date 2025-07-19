@@ -8,10 +8,10 @@ const AuthLeftBanner = ({ image, children }) => (
     <img
       src={image}
       alt="movie"
-      className="w-full object-cover rounded-2xl mb-10 shadow-lg"
+      className="w-full h-full object-cover shadow-lg"
     />
     {children}
   </div>
 );
 
-export default AuthLeftBanner; 
+export default AuthLeftBanner;

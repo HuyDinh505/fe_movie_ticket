@@ -231,7 +231,7 @@ const ShowtimeForm = ({
         </div>
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 font-semibold"
+          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 font-semibold cursor-pointer"
         >
           {initialData && initialData.id
             ? "Cập nhật lịch chiếu"
@@ -241,7 +241,7 @@ const ShowtimeForm = ({
           <button
             type="button"
             onClick={onCancel}
-            className="w-full bg-gray-300 text-gray-800 py-2 rounded mt-2 hover:bg-gray-400"
+            className="w-full bg-gray-300 text-gray-800 py-2 rounded mt-2 hover:bg-gray-400 cursor-pointer"
           >
             Hủy
           </button>

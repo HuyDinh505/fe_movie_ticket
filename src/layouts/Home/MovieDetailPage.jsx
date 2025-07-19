@@ -3,7 +3,7 @@ import { imagePhim } from "../../Utilities/common";
 
 function MovieDetailPage({ movie }) {
   return (
-    <div className="max-w-screen-xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10">
+    <div className="max-w-screen-xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 mt-2">
       {/* Trailer + Poster */}
       <div className="relative bg-black h-[400px] flex justify-center items-center overflow-visible rounded-lg">
         {/* Trailer */}

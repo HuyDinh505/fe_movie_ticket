@@ -57,10 +57,10 @@ const GenreManagement = () => {
 
   const handleAddOrUpdateGenre = (genreData) => {
     if (genreData) {
-      if (genreData.id) {
+      if (genreData.genre_id) {
         // Update existing genre
         updateGenre.mutate(
-          { genreId: genreData.id, genreData: genreData },
+          { genreId: genreData.genre_id, genreData: genreData },
           {
             onSuccess: () => {
               toast.success("Cập nhật thể loại thành công!");
@@ -148,7 +148,9 @@ const GenreManagement = () => {
         {!isFormVisible && (
           <button
             onClick={handleAddGenre}
-            className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600 hover:to-blue-800 font-semibold shadow-md transition-all text-sm sm:text-base"
+            className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2 bg-gradient-to-r 
+            from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600 
+            hover:to-blue-800 font-semibold shadow-md transition-all text-sm sm:text-base cursor-pointer"
           >
             <FaPlus className="mr-2" />
             Thêm thể loại mới
@@ -181,13 +183,16 @@ const GenreManagement = () => {
             onDelete={handleDelete}
             onRestore={handleRestore}
             loading={isLoading}
+            currentPage={currentPage}
+            itemsPerPage={ITEMS_PER_PAGE}
           />
           {totalPages > 1 && (
             <div className="flex justify-center items-center space-x-2 py-4 border-t">
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 
+                disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 Trước
               </button>
@@ -195,7 +200,7 @@ const GenreManagement = () => {
                 <button
                   key={index + 1}
                   onClick={() => handlePageChange(index + 1)}
-                  className={`px-3 py-1 rounded-lg ${
+                  className={`px-3 py-1 rounded-lg cursor-pointer ${
                     currentPage === index + 1
                       ? "bg-blue-500 text-white"
                       : "border border-gray-300 hover:bg-gray-50"
@@ -207,7 +212,8 @@ const GenreManagement = () => {
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 
+                disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 Sau
               </button>
@@ -235,13 +241,13 @@ const GenreManagement = () => {
             <div className="flex justify-end gap-2 mt-6">
               <button
                 onClick={() => setConfirmDelete({ open: false, genreId: null })}
-                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 cursor-pointer"
               >
                 Hủy
               </button>
               <button
                 onClick={handleConfirmDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer"
               >
                 Xóa
               </button>

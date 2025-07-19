@@ -10,8 +10,12 @@ import GradientModal from "../components/ui/GradientModal";
 import {
   usePostBookingUS,
   useInitiatePaymentUS,
+  useCalculatePromotionUS,
+  useGetUserPromotionsUS,
 } from "../api/homePage/queries";
 import { useAuth } from "../contexts/AuthContext";
+import PromotionCodeInput from "../components/ui/payment/PromotionCodeInput";
+import { getApiMessage } from "../Utilities/apiMessage";
 
 function calculateTotalPrice(bookingData) {
   let total = 0;
@@ -52,10 +56,8 @@ function PaymentPage() {
     agreeTerms: false,
   });
 
-  // Payment method state
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("momo");
 
-  // Use actual booking data from navigation state
   const bookingDetails = {
     movieTitle: bookingData.movieTitle || "Chưa có thông tin phim",
     age_rating:
@@ -67,7 +69,7 @@ function PaymentPage() {
           bookingData.showtime.day || ""
         }`.trim() || "Chưa chọn suất chiếu"
       : "Chưa chọn suất chiếu",
-    room: "01", // This should come from theater data
+    room: bookingData.showtime.room_name || "01", // This should come from theater data
     ticketCount:
       bookingData.tickets?.reduce((sum, ticket) => sum + ticket.count, 0) || 0,
     ticketType:
@@ -90,10 +92,17 @@ function PaymentPage() {
     total: calculateTotalPrice(bookingData),
     holdTime: 180, // Dummy hold time in seconds (3 minutes)
   };
-
+  // console.log(bookingData);
   const [timeLeft, setTimeLeft] = useState(bookingDetails.holdTime);
   const [currentStep, setCurrentStep] = useState(1);
   const [showTimeoutModal, setShowTimeoutModal] = useState(false);
+  const [appliedPromotion, setAppliedPromotion] = useState(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [finalTotal, setFinalTotal] = useState(bookingDetails.total);
+  const { mutate: calculatePromotion, isLoading: isCalculatingPromotion } =
+    useCalculatePromotionUS();
+  const { data: promotionsData } = useGetUserPromotionsUS();
+  const allPromotions = promotionsData?.data || [];
 
   const {
     mutate: bookTicket,
@@ -123,23 +132,25 @@ function PaymentPage() {
       seatMapRef.current.refreshSeatMap();
     }
   }, []);
-
+  //Hiển thị modal khi hết thời gian giữ vé
   useEffect(() => {
     if (timeLeft <= 0) {
       setShowTimeoutModal(true);
     }
   }, [timeLeft]);
 
+  //Đếm ngược thời gian giữ vé
   useEffect(() => {
     if (timeLeft <= 0) return;
     const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  // Handle payment success for all methods (MoMo, Onepay, ...)
+  //Xử lý khi thanh toán thành công (MoMo, Onepay...)
   useEffect(() => {
     if (isPaymentSuccess && paymentResponse) {
       const payUrl = paymentResponse.data?.payment_details?.payUrl;
+      //đúng chuyển sang trang thanh toán
       if (payUrl) {
         window.location.href = payUrl;
       } else {
@@ -181,7 +192,7 @@ function PaymentPage() {
     }
   }, [isPaymentSuccess, paymentResponse]);
 
-  // Handle payment errors
+  // xử lý các trường hợp lỗi khi khởi tạo thanh toán
   useEffect(() => {
     if (isPaymentError && paymentError) {
       console.error("MoMo payment error:", paymentError);
@@ -203,10 +214,10 @@ function PaymentPage() {
           draggable: true,
         });
 
-        // Chuyển về trang chọn ghế sau 2 giây
+        // Chuyển về trang chọn ghế sau 3 giây
         setTimeout(() => {
           navigate(-1); // Quay lại trang trước (trang chọn ghế)
-        }, 2000);
+        }, 3000);
       } else {
         // Lỗi khác
         toast.error("Có lỗi xảy ra khi tạo thanh toán. Vui lòng thử lại.", {
@@ -262,7 +273,7 @@ function PaymentPage() {
   const handleFormSubmit = (e) => {
     e.preventDefault();
     // Xử lý submit form (validate, gửi data, chuyển bước...)
-    console.log("Customer Info:", formData);
+    // console.log("Customer Info:", formData);
     setCurrentStep(2); // Chuyển sang bước thanh toán
   };
 
@@ -284,7 +295,6 @@ function PaymentPage() {
     if (seatMapRef.current && seatMapRef.current.refreshSeatMap) {
       await seatMapRef.current.refreshSeatMap();
     }
-    // TODO: Kiểm tra lại trạng thái ghế, nếu có ghế đã bị đặt thì show modal và điều hướng về trang chọn ghế
 
     // Xử lý concessions
     let concessions = [];
@@ -328,20 +338,20 @@ function PaymentPage() {
       });
     }
 
-    console.log("Booking payload:", bookingPayload);
-    console.log("User logged in:", isLoggedIn);
-    console.log("Token:", localStorage.getItem("token"));
+    // console.log("Booking payload:", bookingPayload);
+    // console.log("User logged in:", isLoggedIn);
+    // console.log("Token:", localStorage.getItem("token"));
 
     // Sử dụng MoMo API thật
     if (
       selectedPaymentMethod === "momo" ||
       selectedPaymentMethod === "onepay"
     ) {
-      console.log("Đang gọi initiatePayment với payload:", bookingPayload);
+      // console.log("Đang gọi initiatePayment với payload:", bookingPayload);
       initiatePayment(bookingPayload, {
         onSuccess: (data) => {
-          console.log("Onepay response:", data);
-          console.log("initiatePayment gọi thành công, dữ liệu trả về:", data);
+          // console.log("Onepay response:", data);
+          // console.log("initiatePayment gọi thành công, dữ liệu trả về:", data);
           // ... các xử lý khác của bạn (ví dụ: cập nhật state, chuyển hướng)
         },
         // ... các callbacks onError hoặc onSettled khác nếu có
@@ -351,16 +361,64 @@ function PaymentPage() {
       bookTicket(bookingPayload);
     }
   };
-
+  // Điều hướng về MovieDetailPage của phim hiện tại
   const handleTimeoutOk = () => {
     setShowTimeoutModal(false);
-    // Điều hướng về MovieDetailPage của phim hiện tại
     const movieId = bookingData.movie?.movie_id;
     if (movieId) {
       navigate(`/movie/${movieId}`);
     } else {
       navigate("/");
     }
+  };
+
+  // Handler khi áp dụng mã khuyến mãi
+  const handleApplyPromotion = (code) => {
+    // console.log("Danh sách khuyến mãi user:", allPromotions);
+    const promo = allPromotions.find((p) => p.code === code);
+    if (!promo) {
+      toast.error("Mã khuyến mãi không hợp lệ hoặc không tồn tại.");
+      setAppliedPromotion(null);
+      setDiscountAmount(0);
+      setFinalTotal(bookingDetails.total);
+      return;
+    }
+    // Lưu lại object promo gốc để lấy tên
+    setAppliedPromotion(promo);
+    calculatePromotion(
+      {
+        promotion_id: promo.promotion_id,
+        total_price: bookingDetails.total,
+        order_product_type: "TICKET",
+      },
+      {
+        onSuccess: (res) => {
+          const promoData = res?.data;
+          const message = getApiMessage(res, "Áp dụng khuyến mãi thành công!");
+          if (!promoData || typeof promoData.discount_amount === "undefined") {
+            toast.error(message);
+            setDiscountAmount(0);
+            setFinalTotal(bookingDetails.total);
+            return;
+          }
+          setDiscountAmount(promoData.discount_amount || 0);
+          setFinalTotal(promoData.final_amount || bookingDetails.total);
+          toast.success(
+            `${message} Giảm ${promoData.discount_amount.toLocaleString()} VND`
+          );
+        },
+        onError: (err) => {
+          const message = getApiMessage(
+            err,
+            "Mã khuyến mãi không hợp lệ hoặc không áp dụng được."
+          );
+          setAppliedPromotion(null);
+          setDiscountAmount(0);
+          setFinalTotal(bookingDetails.total);
+          toast.error(message);
+        },
+      }
+    );
   };
 
   return (
@@ -384,6 +442,13 @@ function PaymentPage() {
           )}
           {currentStep === 2 && (
             <div className="space-y-6">
+              {/* Nhập mã khuyến mãi */}
+              <PromotionCodeInput
+                onApply={handleApplyPromotion}
+                isLoading={isCalculatingPromotion}
+                appliedPromotion={appliedPromotion}
+              />
+
               <h2 className="text-xl font-semibold">
                 Chọn phương thức thanh toán
               </h2>
@@ -414,10 +479,15 @@ function PaymentPage() {
           )}
         </div>
 
-        {/* Right Section: Booking Summary */}
+        {/* màn hình bên phải: Booking Summary */}
         <BookingSummary
           ref={seatMapRef}
-          bookingDetails={bookingDetails}
+          bookingDetails={{
+            ...bookingDetails,
+            discountAmount,
+            appliedPromotion, // object gốc có name
+            finalTotal: finalTotal || bookingDetails.total,
+          }}
           bookingData={bookingData}
           timeLeft={timeLeft}
         />

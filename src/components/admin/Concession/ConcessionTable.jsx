@@ -122,7 +122,8 @@ const ConcessionTable = ({
                     {!isDeletedView && (
                       <button
                         onClick={() => onEdit(item)}
-                        className="p-2 text-blue-600 hover:text-blue-800 transition-colors rounded-lg hover:bg-blue-100"
+                        className="p-2 text-blue-600 hover:text-blue-800 transition-colors 
+                        rounded-lg hover:bg-blue-100 cursor-pointer"
                         title="Chỉnh sửa"
                       >
                         <FaEdit />
@@ -132,7 +133,7 @@ const ConcessionTable = ({
                       onClick={() =>
                         onDelete(item.concession_id, item.concession_name)
                       }
-                      className={`p-2 ${
+                      className={`p-2 cursor-pointer ${
                         isDeletedView
                           ? "text-green-600 hover:text-green-800 hover:bg-green-100"
                           : "text-red-600 hover:text-red-800 hover:bg-red-100"

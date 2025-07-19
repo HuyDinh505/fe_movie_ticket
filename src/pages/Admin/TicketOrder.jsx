@@ -19,6 +19,9 @@ const TicketOrder = () => {
   const [editingOrder, setEditingOrder] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
 
+  const ITEMS_PER_PAGE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+
   // API hooks
   const { data: bookingsData, isLoading, refetch } = useGetAllBookingsUS();
   const createBooking = useCreateBookingUS();
@@ -109,7 +112,15 @@ const TicketOrder = () => {
     }
 
     setFilteredOrders(filtered);
+    setCurrentPage(1); // Reset về trang 1 khi filter thay đổi
   }, [bookingsData, searchTerm, statusFilter]);
+
+  // Phân trang
+  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
+  const paginatedOrders = filteredOrders.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   const handleAddOrder = () => {
     setShowForm(true);
@@ -216,11 +227,47 @@ const TicketOrder = () => {
                 <p className="mt-4 text-gray-600">Đang tải dữ liệu...</p>
               </div>
             ) : (
-              <TicketTable
-                orders={filteredOrders}
-                onRowClick={setSelectedOrder}
-                onEditClick={handleEditOrder}
-              />
+              <>
+                <TicketTable
+                  orders={paginatedOrders}
+                  onRowClick={setSelectedOrder}
+                  onEditClick={handleEditOrder}
+                />
+                {/* Pagination controls */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center mt-4 mb-4">
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="cursor-pointer px-3 py-1 mx-1 rounded bg-gray-200 disabled:opacity-50"
+                    >
+                      Trước
+                    </button>
+                    {[...Array(totalPages)].map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentPage(idx + 1)}
+                        className={`cursor-pointer px-3 py-1 mx-1 rounded ${
+                          currentPage === idx + 1
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-200"
+                        }`}
+                      >
+                        {idx + 1}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      disabled={currentPage === totalPages}
+                      className="cursor-pointer px-3 py-1 mx-1 rounded bg-gray-200 disabled:opacity-50"
+                    >
+                      Sau
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         ) : (

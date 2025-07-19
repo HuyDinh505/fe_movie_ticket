@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from "react";
-import TheaterForm from "../../components/admin/Theater/TheaterForm";
-import TheaterTable from "../../components/admin/Theater/TheaterTable";
-import RoomTable from "../../components/admin/Room/RoomTable";
-import RoomForm from "../../components/admin/Room/RoomForm";
+import TheaterForm from "../../../components/admin/Theater/TheaterForm";
+import TheaterTable from "../../../components/admin/Theater/TheaterTable";
+import RoomTable from "../../../components/admin/Room/RoomTable";
+import RoomForm from "../../../components/admin/Room/RoomForm";
 import { FaPlus, FaSearch } from "react-icons/fa";
 import {
   useGetAllCinemasUS,
@@ -13,10 +13,10 @@ import {
   useUpdateTheaterRoomUS,
   useDeleteTheaterRoomUS,
   useRestoreTheaterRoomUS,
-} from "../../api/homePage/queries";
+} from "../../../api/homePage/queries";
 import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
-import Modal from "../../components/ui/Modal";
+import Modal from "../../../components/ui/Modal";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -44,7 +44,6 @@ const TheaterManagement = () => {
   const updateRoom = useUpdateTheaterRoomUS();
   const deleteRoom = useDeleteTheaterRoomUS();
   const restoreRoom = useRestoreTheaterRoomUS();
-
   const queryClient = useQueryClient();
 
   // Handle Google Maps loading error
@@ -62,10 +61,14 @@ const TheaterManagement = () => {
 
   const handleAddOrUpdateTheater = (theaterData) => {
     if (theaterData) {
-      if (theaterData.cinema_id) {
-        // Update existing theater
+      // Lấy id từ FormData nếu là FormData, hoặc từ object nếu là object
+      let cinemaId = theaterData.get ? theaterData.get('cinema_id') : theaterData.cinema_id;
+      console.log('[TheaterManagement] handleAddOrUpdateTheater - cinemaId:', cinemaId);
+      console.log('[TheaterManagement] handleAddOrUpdateTheater - theaterData:', theaterData);
+      if (cinemaId) {
+        console.log(`[TheaterManagement] Gọi updateCinema với endpoint: /cinema/${cinemaId}`);
         updateCinema.mutate(
-          { cinemaId: theaterData.cinema_id, cinemaData: theaterData },
+          { cinemaId: cinemaId, cinemaData: theaterData },
           {
             onSuccess: () => {
               toast.success("Cập nhật rạp chiếu thành công!");
@@ -82,6 +85,7 @@ const TheaterManagement = () => {
           }
         );
       } else {
+        console.log('[TheaterManagement] Gọi createCinema');
         // Create new theater
         createCinema.mutate(theaterData, {
           onSuccess: () => {
@@ -281,7 +285,9 @@ const TheaterManagement = () => {
         {!isFormVisible && (
           <button
             onClick={handleAddTheater}
-            className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600 hover:to-blue-800 font-semibold shadow-md transition-all text-sm sm:text-base"
+            className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2 bg-gradient-to-r 
+            from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600 
+            hover:to-blue-800 font-semibold shadow-md transition-all text-sm sm:text-base cursor-pointer"
           >
             <FaPlus className="mr-2" />
             Thêm rạp chiếu mới

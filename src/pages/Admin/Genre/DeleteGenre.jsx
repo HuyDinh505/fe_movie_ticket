@@ -9,7 +9,7 @@ import GenreTable from "../../../components/admin/Genre/GenreTable";
 import Modal from "../../../components/ui/Modal";
 
 const DeleteGenre = () => {
-  const { data, isLoading } = useGetDeletedGenresUS();
+  const { data, isLoading } = useGetDeletedGenresUS({ staleTime: 0 });
   const restoreGenre = useRestoreGenreUS();
   const queryClient = useQueryClient();
 

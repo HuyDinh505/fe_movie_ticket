@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useGetAllTicketTypesUS } from "../../api/homePage/queries";
+import { getApiMessage } from "../../Utilities/apiMessage";
+import { toast } from "react-toastify";
 
 function TicketTypeSelector({ onTicketSelect, selectedTickets }) {
   const { data: ticketTypesData, isLoading, error } = useGetAllTicketTypesUS();
@@ -43,10 +45,31 @@ function TicketTypeSelector({ onTicketSelect, selectedTickets }) {
     }
   }, [counts, onTicketSelect, ticketTypes]);
 
+  const MAX_TOTAL_TICKETS = 10;
+
   const handleChange = (index, delta) => {
-    setCounts((prev) =>
-      prev.map((count, i) => (i === index ? Math.max(count + delta, 0) : count))
-    );
+    setCounts((prev) => {
+      const totalTickets = prev.reduce((sum, c) => sum + c, 0);
+      const newCount = prev[index] + delta;
+      // Nếu tăng và tổng vượt quá 10, không cho phép
+      if (delta > 0 && totalTickets >= MAX_TOTAL_TICKETS) {
+        toast.error(`Bạn chỉ được chọn tối đa ${MAX_TOTAL_TICKETS} vé!`);
+        return prev;
+      }
+      // Nếu giảm dưới 0, giữ ở 0
+      if (newCount < 0) return prev.map((c, i) => (i === index ? 0 : c));
+      // Nếu tăng vượt quá 10 cho 1 loại vé, cũng không cho phép
+      if (newCount > MAX_TOTAL_TICKETS) {
+        toast.error(`Bạn chỉ được chọn tối đa ${MAX_TOTAL_TICKETS} vé cho mỗi loại!`);
+        return prev;
+      }
+      // Nếu tổng vượt quá 10 sau khi tăng, không cho phép
+      if (delta > 0 && totalTickets + 1 > MAX_TOTAL_TICKETS) {
+        toast.error(`Bạn chỉ được chọn tối đa ${MAX_TOTAL_TICKETS} vé!`);
+        return prev;
+      }
+      return prev.map((count, i) => (i === index ? newCount : count));
+    });
   };
 
   if (isLoading) {
@@ -61,6 +84,8 @@ function TicketTypeSelector({ onTicketSelect, selectedTickets }) {
   }
 
   if (error) {
+    // Hiển thị toast lỗi khi có lỗi từ API
+    toast.error(getApiMessage(error, "Lỗi khi tải danh sách loại vé!"));
     return (
       <section className="max-w-screen-xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 sm:py-8 md:py-10">
         <h2 className="text-center text-xl sm:text-2xl font-bold text-orange-400 mb-6">
@@ -74,6 +99,8 @@ function TicketTypeSelector({ onTicketSelect, selectedTickets }) {
   }
 
   if (!ticketTypes || ticketTypes.length === 0) {
+    // Hiển thị toast lỗi khi không có loại vé nào khả dụng
+    toast.error(getApiMessage(null, "Không có loại vé nào khả dụng!"));
     return (
       <section className="max-w-screen-xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 sm:py-8 md:py-10">
         <h2 className="text-center text-xl sm:text-2xl font-bold text-orange-400 mb-6">

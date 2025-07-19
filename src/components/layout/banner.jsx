@@ -13,32 +13,36 @@ import hinh7 from "../../assets/img/mua-lua.jpg";
 
 const banner = () => {
   return (
-    <div className="max-w-screen-xl w-full mx-auto px-4 sm:px-6 lg:px-8">
-      <Swiper
-        navigation={true}
-        effect="fade" // Thêm hiệu ứng fade
-        modules={[Navigation, Autoplay, EffectFade]}
-        autoplay={{
-          delay: 3000,
-          disableOnInteraction: false,
-        }}
-        loop={true}
-        slidesPerView={1}
-        spaceBetween={0}
-        className="rounded-lg overflow-hidden shadow-lg"
-      >
-        {[hinh1, hinh2, hinh3, hinh4, hinh5, hinh6, hinh7].map(
-          (hinh, index) => (
-            <SwiperSlide key={index}>
-              <img
-                src={hinh}
-                alt={`slide-${index}`}
-                className="object-cover w-full h-[200px] sm:h-[250px] md:h-[300px] lg:h-[350px] xl:h-[400px]"
-              />
-            </SwiperSlide>
-          )
-        )}
-      </Swiper>
+    <div className="w-full bg-gray-100 py-4 md:py-6">
+      <div className="max-w-screen-xl w-full mx-auto px-2 sm:px-4 lg:px-8">
+        <Swiper
+          navigation={true}
+          effect="fade"
+          modules={[Navigation, Autoplay, EffectFade]}
+          autoplay={{
+            delay: 4000,
+            disableOnInteraction: false,
+          }}
+          loop={true}
+          slidesPerView={1}
+          spaceBetween={0}
+          className="rounded-xl overflow-hidden shadow-2xl"
+        >
+          {[hinh1, hinh2, hinh3, hinh4, hinh5, hinh6, hinh7].map(
+            (hinh, index) => (
+              <SwiperSlide key={index}>
+                <div className="w-full aspect-[16/16] sm:aspect-[16/9] md:aspect-[16/8] lg:aspect-[16/7] xl:aspect-[16/6] 2xl:aspect-[16/5]">
+                  <img
+                    src={hinh}
+                    alt={`slide-${index}`}
+                    className="object-cover w-full h-full"
+                  />
+                </div>
+              </SwiperSlide>
+            )
+          )}
+        </Swiper>
+      </div>
     </div>
   );
 };

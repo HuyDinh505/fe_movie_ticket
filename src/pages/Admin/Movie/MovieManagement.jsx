@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
-import MovieTable from "../../components/admin/Movie/MovieTable";
-import MovieForm from "../../components/admin/Movie/MovieForm";
+import MovieTable from "../../../components/admin/Movie/MovieTable";
+import MovieForm from "../../../components/admin/Movie/MovieForm";
 import { toast } from "react-toastify";
 import { FaPlus, FaSearch } from "react-icons/fa";
 import {
@@ -9,11 +9,12 @@ import {
   useCreatePhimUS,
   useUpdatePhimUS,
   useDeletePhimUS,
-} from "../../api/homePage/queries";
-import Modal from "../../components/ui/Modal";
-import MovieDetailModalContent from "../../components/ui/MovieDetailModalContent";
-import ModalPhim from "../../components/ui/Modal_phim";
-import { AuthContext } from "../../contexts/AuthContext";
+  useGetScreenTypeUS,
+} from "../../../api/homePage/queries";
+import Modal from "../../../components/ui/Modal";
+import MovieDetailModalContent from "../../../components/ui/MovieDetailModalContent";
+import ModalPhim from "../../../components/ui/Modal_phim";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -50,6 +51,15 @@ const MovieManagement = () => {
     refetch: fetchManagedMovies,
   } = useGetManagedMoviesUS();
 
+  // Lấy danh sách hình thức chiếu
+  const { data: screenTypeData } = useGetScreenTypeUS();
+  const screenTypes = Array.isArray(screenTypeData?.data?.screentype)
+    ? screenTypeData.data.screentype.map((s) => ({
+        id: s.screening_type_id,
+        name: s.screening_type_name,
+      }))
+    : [];
+  // console.log("Danh sách screen:", screenTypes);
   // Chọn data phù hợp theo role
   const moviesData =
     role === "district_manager" ? managedMoviesData : allMoviesData;
@@ -59,7 +69,11 @@ const MovieManagement = () => {
     role === "district_manager" ? fetchManagedMovies : fetchAllMovies;
 
   const { mutate: createMovie, isLoading: isCreating } = useCreatePhimUS({
-    onSuccess: () => {
+    onSuccess: (data) => {
+      if (data?.status === false) {
+        toast.error(data?.message || "Thêm phim mới thất bại");
+        return;
+      }
       toast.success("Thêm phim mới thành công");
       setIsFormVisible(false);
       fetchMovies();
@@ -70,7 +84,11 @@ const MovieManagement = () => {
   });
 
   const { mutate: updateMovie, isLoading: isUpdating } = useUpdatePhimUS({
-    onSuccess: () => {
+    onSuccess: (data) => {
+      if (data?.status === false) {
+        toast.error(data?.message || "Cập nhật phim thất bại");
+        return;
+      }
       toast.success("Cập nhật phim thành công");
       setIsFormVisible(false);
       fetchMovies();
@@ -106,9 +124,17 @@ const MovieManagement = () => {
 
   const handleSaveMovie = async (movieData) => {
     try {
-      if (movieData.id) {
-        updateMovie({ ma_phim: movieData.id, movieData });
+      // Lấy id từ FormData
+      const id = movieData.get("id") || movieData.get("movie_id");
+      console.log("[MovieManagement] handleSaveMovie - id:", id);
+      console.log("[MovieManagement] handleSaveMovie - movieData:", movieData);
+      if (id) {
+        console.log(
+          `[MovieManagement] Gọi updateMovie với endpoint: /movie/${id}`
+        );
+        updateMovie({ ma_phim: id, movieData });
       } else {
+        console.log("[MovieManagement] Gọi createMovie");
         createMovie(movieData);
       }
     } catch (error) {
@@ -180,7 +206,10 @@ const MovieManagement = () => {
           <button
             onClick={handleAddMovie}
             disabled={isCreating}
-            className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600 hover:to-blue-800 font-semibold shadow-md transition-all text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2 bg-gradient-to-r 
+            from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600 
+            hover:to-blue-800 font-semibold shadow-md transition-all text-sm sm:text-base 
+            disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             <FaPlus className="mr-2" />
             {isCreating ? "Đang thêm..." : "Thêm phim mới"}
@@ -198,14 +227,18 @@ const MovieManagement = () => {
                 placeholder="Tìm kiếm phim..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-gray-50 transition"
+                className="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl 
+                focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent 
+                bg-gray-50 transition"
               />
             </div>
             <div className="flex-1">
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-gray-50 transition"
+                className="block w-full px-3 py-2 border border-gray-200 rounded-xl 
+                focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent 
+                bg-gray-50 transition cursor-pointer"
               >
                 <option value="">Tất cả trạng thái</option>
                 <option value="Đang chiếu">Đang chiếu</option>
@@ -225,6 +258,7 @@ const MovieManagement = () => {
               onSave={handleSaveMovie}
               onCancel={handleCancelEdit}
               isSubmitting={isCreating || isUpdating}
+              screenTypes={screenTypes}
             />
           </div>
         ) : (
@@ -245,7 +279,8 @@ const MovieManagement = () => {
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 
+                  disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   Trước
                 </button>
@@ -253,7 +288,7 @@ const MovieManagement = () => {
                   <button
                     key={index + 1}
                     onClick={() => handlePageChange(index + 1)}
-                    className={`px-3 py-1 rounded-lg ${
+                    className={`px-3 py-1 rounded-lg cursor-pointer ${
                       currentPage === index + 1
                         ? "bg-blue-500 text-white"
                         : "border border-gray-300 hover:bg-gray-50"
@@ -265,7 +300,8 @@ const MovieManagement = () => {
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 
+                  disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   Sau
                 </button>

@@ -37,7 +37,7 @@ function Header() {
       draggable: true,
     });
     setShowUserDropdown(false);
-    navigate("/login");
+    navigate("/");
   };
 
   const handleUserToggleDropdown = () => {
@@ -100,7 +100,7 @@ function Header() {
     },
   ];
   return (
-    <header className="bg-white py-8 px-4 w-full fixed top-0 left-0 z-[10000] shadow-md">
+    <header className="bg-gradient-to-tr from-blue-300 to-blue-500 py-8 px-4 w-full fixed top-0 left-0 z-[10000] shadow-md">
       <ToastContainer />
       <div className="w-full lg:w-[80%] mx-auto flex items-center justify-between px-4">
         {/* Logo */}
@@ -121,21 +121,25 @@ function Header() {
               onMouseEnter={() => setActiveDropdown(item.name)}
               onMouseLeave={() => setActiveDropdown(null)}
             >
-              <button className="text-black hover:text-orange-500 flex items-center gap-1">
+              <button
+                className="text-black hover:text-orange-500 flex items-center gap-1 cursor-pointer
+              font-semibold"
+              >
                 {item.name} <FaChevronDown className="w-3 h-3" />
               </button>
               <div
-                className={`absolute left-0 mt-0 w-48 bg-white shadow-lg rounded-md py-2 z-50 transition-opacity duration-300 ${
-                  activeDropdown === item.name
-                    ? "opacity-100 visible"
-                    : "opacity-0 invisible"
-                }`}
+                className={`absolute left-0 mt-0 w-48 bg-white shadow-lg rounded-md py-2 z-50 transition-opacity 
+                  duration-300 cursor-pointer ${
+                    activeDropdown === item.name
+                      ? "opacity-100 visible"
+                      : "opacity-0 invisible"
+                  }`}
               >
                 {item.dropdown.map((subItem, subIndex) => (
                   <Link
                     key={subIndex}
                     to={subItem.path}
-                    className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                    className="block px-4 py-2 text-gray-800 hover:bg-gray-100 cursor-pointer"
                   >
                     {subItem.label}
                   </Link>

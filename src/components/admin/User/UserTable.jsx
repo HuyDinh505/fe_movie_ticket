@@ -9,11 +9,11 @@ const UserTable = ({
   loading,
   currentLoggedInUserId,
 }) => {
-  const getAvatarUrl = (avatar_url) => {
-    if (!avatar_url) return "/placeholder-avatar.jpg";
-    if (avatar_url.startsWith("/storage/")) return avatar_url;
-    return `${imagePhim}${avatar_url}`;
-  };
+  // const getAvatarUrl = (avatar_url) => {
+  //   if (!avatar_url) return "/placeholder-avatar.jpg";
+  //   if (avatar_url.startsWith("/storage/")) return avatar_url;
+  //   return `${imagePhim}${avatar_url}`;
+  // };
 
   return (
     <div className="overflow-x-auto bg-white rounded-xl shadow-md p-6">
@@ -21,7 +21,7 @@ const UserTable = ({
         <thead className="bg-gradient-to-r from-blue-100 to-blue-200">
           <tr>
             <th className="py-3 px-4 text-left text-xs font-bold text-blue-700 uppercase tracking-wider">
-              ID
+              STT
             </th>
             <th className="py-3 px-4 text-left text-xs font-bold text-blue-700 uppercase tracking-wider">
               Ảnh đại diện
@@ -68,17 +68,21 @@ const UserTable = ({
               </td>
             </tr>
           ) : (
-            users.map((user) => (
+            users.map((user, index) => (
               <tr
                 key={user.user_id}
                 className="hover:bg-blue-50 transition-colors duration-150"
               >
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {user.user_id}
+                  {index + 1}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <img
-                    src={getAvatarUrl(user.avatar_url)}
+                    src={
+                      user.avatar_url
+                        ? `${imagePhim}${user.avatar_url}`
+                        : "/placeholder.jpg"
+                    }
                     alt={user.full_name}
                     className="w-10 h-10 rounded-full object-cover border border-gray-200"
                   />
@@ -103,6 +107,10 @@ const UserTable = ({
                               ? "bg-purple-100 text-purple-800"
                               : role === "district_manager"
                               ? "bg-yellow-100 text-yellow-800"
+                              : role === "booking_manager"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : role === "showtime_manager"
+                              ? "bg-yellow-100 text-yellow-800"
                               : "bg-green-100 text-green-800"
                           }
                         `}
@@ -111,6 +119,10 @@ const UserTable = ({
                           ? "Quản trị viên"
                           : role === "district_manager"
                           ? "Quản lý cụm rạp"
+                          : role === "booking_manager"
+                          ? "Quản lý đơn hàng"
+                          : role === "showtime_manager"
+                          ? "Quản lý suất chiếu"
                           : "Người dùng"}
                       </span>
                     ))
@@ -130,7 +142,7 @@ const UserTable = ({
                   <div className="flex justify-center space-x-3">
                     <button
                       onClick={() => onEdit(user)}
-                      className="text-blue-600 hover:text-blue-900 transition-colors"
+                      className="text-blue-600 hover:text-blue-900 transition-colors cursor-pointer"
                       title="Chỉnh sửa"
                     >
                       <FaEdit className="w-5 h-5" />
@@ -138,7 +150,7 @@ const UserTable = ({
                     {user.user_id !== currentLoggedInUserId && (
                       <button
                         onClick={() => onDelete(user.user_id)}
-                        className="text-red-600 hover:text-red-900 transition-colors"
+                        className="text-red-600 hover:text-red-900 transition-colors cursor-pointer"
                         title="Xóa"
                       >
                         <FaTrash className="w-5 h-5" />

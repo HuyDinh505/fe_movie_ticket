@@ -13,9 +13,9 @@ const styles = {
     "w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-gray-50 font-medium transition-all duration-200",
   button: {
     primary:
-      "w-full sm:w-auto px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-md hover:from-blue-700 hover:to-blue-900 transition-all duration-200 transform hover:scale-[1.02]",
+      "w-full sm:w-auto px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-md hover:from-blue-700 hover:to-blue-900 transition-all duration-200 transform hover:scale-[1.02] cursor-pointer",
     secondary:
-      "w-full sm:w-auto px-6 py-2.5 text-sm font-semibold text-blue-700 bg-white border border-blue-300 rounded-xl hover:bg-blue-50 transition-all duration-200",
+      "w-full sm:w-auto px-6 py-2.5 text-sm font-semibold text-blue-700 bg-white border border-blue-300 rounded-xl hover:bg-blue-50 transition-all duration-200 cursor-pointer",
   },
 };
 
@@ -36,16 +36,24 @@ const initialMovieState = {
   screening_types: [],
   trailer_url: "",
 };
-
-// Thêm danh sách loại chiếu
-const screeningTypes = [
-  { id: 1, name: "2D" },
-  { id: 2, name: "3D" },
-  { id: 3, name: "4D" },
-  { id: 4, name: "IMAX" },
-];
-
-const MovieForm = ({ movieToEdit, onSave, onCancel, isSubmitting }) => {
+// console.log("jahsdj", initialMovieState);
+const MovieForm = ({
+  movieToEdit,
+  onSave,
+  onCancel,
+  isSubmitting,
+  screenTypes: propScreenTypes,
+}) => {
+  // Nếu có propScreenTypes thì dùng, không thì fallback về mảng cứng
+  const screeningTypes =
+    Array.isArray(propScreenTypes) && propScreenTypes.length > 0
+      ? propScreenTypes
+      : [
+          { id: 1, name: "2D" },
+          { id: 2, name: "3D" },
+          { id: 3, name: "4D" },
+          { id: 4, name: "IMAX" },
+        ];
   const [movie, setMovie] = useState(initialMovieState);
   const [isGenresDropdownOpen, setIsGenresDropdownOpen] = useState(false);
   const [isScreeningTypesDropdownOpen, setIsScreeningTypesDropdownOpen] =
@@ -53,13 +61,13 @@ const MovieForm = ({ movieToEdit, onSave, onCancel, isSubmitting }) => {
   const [errors, setErrors] = useState({});
   const [selectedFile, setSelectedFile] = useState(null);
   const { data: genresData } = useGetAllGenresUS();
-  const movieGenres = Array.isArray(genresData?.data?.genres)
-    ? genresData.data.genres.map((g) => ({
+  const movieGenres = Array.isArray(genresData?.data)
+    ? genresData.data.map((g) => ({
         id: g.genre_id,
         name: g.genre_name,
       }))
     : [];
-
+  // console.log("Danh sách thể loại:", movieGenres);
   useEffect(() => {
     if (movieToEdit) {
       // Chuyển đổi dữ liệu từ API sang định dạng form
@@ -78,10 +86,13 @@ const MovieForm = ({ movieToEdit, onSave, onCancel, isSubmitting }) => {
         genres_ids:
           movieToEdit.genres?.map((genre) => genre.genre_id).filter(Boolean) ||
           [],
-        screening_types:
-          movieToEdit.screening_types
-            ?.map((type) => screeningTypes.find((s) => s.name === type)?.id)
-            .filter(Boolean) || [],
+        screening_types: Array.isArray(movieToEdit.screening_types)
+          ? movieToEdit.screening_types
+              .map((screen) =>
+                Number(screen.screening_type_id || screen["screening_type_id "])
+              )
+              .filter(Boolean)
+          : [],
         trailer_url: movieToEdit.trailer_url || "",
       };
       setMovie(formattedMovie);
@@ -175,29 +186,32 @@ const MovieForm = ({ movieToEdit, onSave, onCancel, isSubmitting }) => {
         age_rating: parseInt(movie.age_rating),
         country: movie.country,
         genres_ids: movie.genres_ids,
-        screenin_type_ids: movie.screening_types,
+        // Đổi tên trường đúng chuẩn và gửi mảng
+        screening_type_ids: movie.screening_types,
         trailer_url: movie.trailer_url,
       };
-
       // Thêm actor nếu có
       if (movie.actor) {
         movieData.actor = movie.actor;
       }
-
       // Thêm poster nếu có file mới
       if (selectedFile) {
         movieData.poster = selectedFile;
       } else if (movieToEdit) {
-        // If editing and no new file is selected, explicitly send null for poster
-        // This might be required by the backend to avoid validation errors if poster is optional.
         movieData.poster = null;
       }
-
-      // Log để kiểm tra dữ liệu
-      console.log("Form Data before onSave:", movieData);
-      console.log("Selected File before onSave:", selectedFile);
-
-      onSave(movieData);
+      // Tạo FormData đúng chuẩn cho array
+      const formData = new FormData();
+      Object.entries(movieData).forEach(([key, value]) => {
+        if (key === 'screening_type_ids' && Array.isArray(value)) {
+          value.forEach((id) => formData.append('screening_type_ids[]', id));
+        } else if (key === 'genres_ids' && Array.isArray(value)) {
+          value.forEach((id) => formData.append('genres_ids[]', id));
+        } else if (value !== undefined && value !== null) {
+          formData.append(key, value);
+        }
+      });
+      onSave(formData);
     }
   };
 

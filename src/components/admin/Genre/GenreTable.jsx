@@ -1,14 +1,14 @@
 import React from "react";
 import { FaEdit, FaTrash, FaRedo } from "react-icons/fa";
 
-const GenreTable = ({ genres, onEdit, onDelete, loading, isDeletedView }) => {
+const GenreTable = ({ genres, onEdit, onDelete, loading, isDeletedView, currentPage = 1, itemsPerPage = 10 }) => {
   return (
     <div className="overflow-x-auto bg-white rounded-xl shadow-md p-6">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gradient-to-r from-blue-100 to-blue-200">
           <tr>
             <th className="py-3 px-4 text-left text-xs font-bold text-blue-700 uppercase tracking-wider w-16">
-              ID
+              STT
             </th>
             <th className="py-3 px-4 text-left text-xs font-bold text-blue-700 uppercase tracking-wider w-1/2">
               Tên thể loại
@@ -52,13 +52,13 @@ const GenreTable = ({ genres, onEdit, onDelete, loading, isDeletedView }) => {
               </td>
             </tr>
           ) : (
-            genres.map((genre) => (
+            genres.map((genre, idx) => (
               <tr
                 key={genre.genre_id}
                 className="hover:bg-blue-50 transition-colors duration-150"
               >
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {genre.genre_id}
+                  {((currentPage - 1) * itemsPerPage) + idx + 1}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900">
                   <div className="truncate max-w-xs" title={genre.genre_name}>

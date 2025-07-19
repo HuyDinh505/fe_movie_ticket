@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import Header from "./components/layout/header";
 import LoginPage from "./pages/Auth/Login";
@@ -7,25 +7,25 @@ import HomePage from "./pages/HomePage";
 import DetailMoviePage from "./pages/DetailMoviePage";
 import PaymentPage from "./pages/PaymentPage";
 import MoMoRedirect from "./components/ui/payment/MoMoRedirect";
-import MovieManagement from "./pages/Admin/MovieManagement";
-import DeletedMovies from "./pages/Admin/DeletedMovies";
+import MovieManagement from "./pages/Admin/Movie/MovieManagement";
+import DeletedMovies from "./pages/Admin/Movie/DeletedMovies";
 import MainLayout from "./layouts/MainLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import ManageLayout from "./layouts/ManageLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AccountPage from "./pages/AccountPage";
-import UserManagement from "./pages/Admin/UserManagement";
-import ShowtimeManagement from "./pages/Admin/ShowtimeManagement";
-import TheaterManagement from "./pages/Admin/TheaterManagement";
+import UserManagement from "./pages/Admin/User/UserManagement";
+import ShowtimeManagement from "./pages/Admin/Showtimes/ShowtimeManagement";
+import TheaterManagement from "./pages/Admin/Theater/TheaterManagement";
 // import TheaterForm from "./components/admin/TheaterForm";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import GenreManagement from "./pages/Admin/Genre/GenreManagement";
-import DeletedTheater from "./pages/Admin/DeletedTheater";
+import DeletedTheater from "./pages/Admin/Theater/DeletedTheater";
 // import DeleteRoom from "./pages/Admin/DeleteRoom";
 import TicketOrder from "./pages/Admin/TicketOrder";
-import ConcessionManagement from "./pages/Admin/ConcessionManagement";
-import PromotionManagement from "./pages/Admin/PromotionManagement";
+import ConcessionManagement from "./pages/Admin/Concession/ConcessionManagement";
+import PromotionManagement from "./pages/Admin/Promotion/PromotionManagement";
 import ArticlesManagement from "./pages/Admin/ArticlesManagement";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import MovieRevenueByDate from "./pages/Dashboard/MovieRevenueByDate";
@@ -34,7 +34,7 @@ import ScrollToTop from "./components/ui/ScrollToTop";
 import BlogListPage from "./pages/Blog/BlogListPage";
 import BlogDetailPage from "./pages/Blog/BlogDetailPage";
 import DistrictManagerDashboard from "./layouts/DistrictManagerDashboard";
-import DeletedConcession from "./pages/Admin/DeletedConcession";
+import DeletedConcession from "./pages/Admin/Concession/DeletedConcession";
 import NowPlayingPage from "./pages/NowPlayingPage";
 import TheaterList from "./pages/TheaterList";
 import TheaterDetail from "./pages/TheaterDetail";
@@ -47,11 +47,19 @@ import DeleteGenre from "./pages/Admin/Genre/DeleteGenre";
 import TicketTypeManagement from "./pages/Admin/TicketType/TicketTypeManagement";
 import DeleteTicketType from "./pages/Admin/TicketType/DeleteTicketType";
 // import ConcessionManagement from "./pages/Admin/ConcessionManagement";
+import PromotionDetail from "./pages/Promotion";
+import React from "react";
 
 function App() {
+  const location = useLocation();
+  // Reset toast khi chuyển trang
+  React.useEffect(() => {
+    toast.dismiss();
+  }, [location.pathname]);
+
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen bg-stone-100">
         <ScrollToTop />
         <Routes>
           {/* Route for MainLayout (includes Header and Footer) */}
@@ -82,6 +90,7 @@ function App() {
             <Route path="/uu-dai-thanh-vien" element={<MemberOffers />} />
             <Route path="/uu-dai-thanh-vien/:slug" element={<OfferDetail />} />
             <Route path="/su-kien-dac-biet/:slug" element={<EventDetail />} />
+            <Route path="/promotion/:id" element={<PromotionDetail />} />
           </Route>
 
           {/* Admin Routes - Protected by admin role */}

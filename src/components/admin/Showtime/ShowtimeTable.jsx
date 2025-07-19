@@ -1,12 +1,6 @@
 import React from "react";
 import { FaEdit, FaTrash, FaCheck, FaTable } from "react-icons/fa";
 
-const statusColor = {
-  "Đã chiếu": "bg-red-100 text-red-500",
-  "Đang chiếu": "bg-green-100 text-green-600",
-  "Sắp chiếu": "bg-blue-100 text-blue-600",
-};
-
 // const showTypeColor = {
 //   "Theo lịch": "bg-green-100 text-green-600",
 // };
@@ -24,16 +18,27 @@ const ShowtimeTable = ({
   loading,
   handleViewSeats,
 }) => {
+  // Xác định trạng thái suất chiếu dựa vào thời gian hiện tại
+  const getShowtimeStatus = (showtime) => {
+    const now = new Date();
+    const start = new Date(showtime.start_time);
+    const end = new Date(showtime.end_time);
+    if (now < start) return "Sắp chiếu";
+    if (now >= start && now <= end) return "Đang chiếu";
+    if (now > end) return "Đã chiếu";
+    return "N/A";
+  };
+
   const getStatusBadgeClass = (status) => {
-    switch (status?.toLowerCase()) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "inactive":
-        return "bg-red-100 text-red-800";
-      case "cancelled":
-        return "bg-gray-100 text-gray-800";
+    switch (status) {
+      case "Đang chiếu":
+        return "bg-green-100 text-green-600";
+      case "Sắp chiếu":
+        return "bg-blue-100 text-blue-600";
+      case "Đã chiếu":
+        return "bg-red-100 text-red-500";
       default:
-        return "bg-blue-100 text-blue-800";
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -103,25 +108,23 @@ const ShowtimeTable = ({
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <span
-                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(
-                    showtime.status
-                  )}`}
+                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(getShowtimeStatus(showtime))}`}
                 >
-                  {showtime.status || "N/A"}
+                  {getShowtimeStatus(showtime)}
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div className="flex justify-end space-x-2">
                   <button
                     onClick={() => onEdit(showtime)}
-                    className="text-indigo-600 hover:text-indigo-900"
+                    className="text-indigo-600 hover:text-indigo-900 cursor-pointer"
                   >
                     <FaEdit className="w-5 h-5" />
                   </button>
                   {showtime.status?.toLowerCase() === "cancelled" && (
                     <button
                       onClick={() => onReactivate(showtime.id)}
-                      className="text-green-600 hover:text-green-900"
+                      className="text-green-600 hover:text-green-900 cursor-pointer"
                       title="Kích hoạt lại"
                     >
                       <FaCheck className="w-5 h-5" />
@@ -130,7 +133,7 @@ const ShowtimeTable = ({
                   {showtime.status?.toLowerCase() !== "cancelled" && (
                     <button
                       onClick={() => onDelete(showtime.id)}
-                      className="text-red-600 hover:text-red-900"
+                      className="text-red-600 hover:text-red-900 cursor-pointer"
                     >
                       <FaTrash className="w-5 h-5" />
                     </button>

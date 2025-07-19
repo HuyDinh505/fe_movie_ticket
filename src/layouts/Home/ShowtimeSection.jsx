@@ -51,39 +51,6 @@ function ShowtimeSection({ onShowtimeSelect, selectedShowtime, cinemas }) {
     }
   }, [cinemas]);
 
-  // Lọc suất chiếu theo ngày đã chọn
-  const getShowtimesForDate = (cinema, date) => {
-    const showtimes = [];
-    cinema.rooms.forEach((room) => {
-      room.showtimes_for_this_movie.forEach((showtime) => {
-        let showtimeDate = "";
-        if (showtime.start_time.includes("T")) {
-          showtimeDate = showtime.start_time.split("T")[0];
-        } else {
-          showtimeDate = showtime.start_time.split(" ")[0];
-        }
-        if (showtimeDate === date) {
-          // Lấy giờ chiếu
-          const d = new Date(showtime.start_time);
-          let timeString = d.toLocaleTimeString("vi-VN", {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-          });
-          showtimes.push({
-            ...showtime,
-            room_name: room.room_name,
-            room_type: room.room_type,
-            room_id: room.room_id,
-            time: timeString,
-            theater: cinema,
-          });
-        }
-      });
-    });
-    return showtimes;
-  };
-
   const toggleCinema = (index) => {
     setOpenCinemas((prev) => ({
       ...prev,
@@ -114,32 +81,57 @@ function ShowtimeSection({ onShowtimeSelect, selectedShowtime, cinemas }) {
             className="font-bold mb-4 text-center text-xl sm:text-2xl"
             style={{ color: "var(--color-text)" }}
           >
-            DANH SÁCH RẠP
+            DANH SÁCH PHÒNG CHIẾU
           </h2>
           {cinemas &&
-            cinemas.map((cinema, index) => {
-              const showtimes = selectedDate
-                ? getShowtimesForDate(cinema, selectedDate.fullDate)
-                : [];
-              if (showtimes.length === 0) {
-                return null;
-              }
-              return (
-                <TheaterShowtimeCard
-                  key={index}
-                  theater={{
-                    name: cinema.cinema_name,
-                    address: cinema.address,
-                    showtimes: showtimes,
-                  }}
-                  onSelectShowtime={onShowtimeSelect}
-                  selectedShowtime={selectedShowtime}
-                  selectedDate={selectedDate}
-                  isOpen={openCinemas[index]}
-                  onToggle={() => toggleCinema(index)}
-                />
-              );
-            })}
+            cinemas.map((cinema, cinemaIdx) =>
+              cinema.rooms.map((room, roomIdx) => {
+                // Lọc suất chiếu của phòng theo ngày
+                const showtimes = room.showtimes_for_this_movie
+                  .filter((showtime) => {
+                    let showtimeDate = showtime.start_time.includes("T")
+                      ? showtime.start_time.split("T")[0]
+                      : showtime.start_time.split(" ")[0];
+                    return showtimeDate === selectedDate.fullDate;
+                  })
+                  .map((showtime) => {
+                    const d = new Date(showtime.start_time);
+                    let timeString = d.toLocaleTimeString("vi-VN", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    });
+                    return {
+                      ...showtime,
+                      time: timeString,
+                      room_name: room.room_name,
+                      room_type: room.room_type,
+                      room_id: room.room_id,
+                      theater: cinema,
+                    };
+                  });
+
+                if (showtimes.length === 0) return null;
+
+                return (
+                  <TheaterShowtimeCard
+                    key={`${cinema.cinema_id}-${room.room_id}`}
+                    theater={{
+                      name: cinema.cinema_name,
+                      address: cinema.address,
+                      room_name: room.room_name,
+                      room_type: room.room_type,
+                      showtimes: showtimes,
+                    }}
+                    onSelectShowtime={onShowtimeSelect}
+                    selectedShowtime={selectedShowtime}
+                    selectedDate={selectedDate}
+                    isOpen={openCinemas[`${cinemaIdx}-${roomIdx}`]}
+                    onToggle={() => toggleCinema(`${cinemaIdx}-${roomIdx}`)}
+                  />
+                );
+              })
+            )}
         </div>
       )}
     </section>

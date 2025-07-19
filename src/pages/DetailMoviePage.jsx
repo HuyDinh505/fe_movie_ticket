@@ -49,7 +49,7 @@ const DetailMoviePage = () => {
 
   const { data: concessionsData } = useGetDVAnUongUS();
   const allCombos = concessionsData?.data?.concessions || [];
-  const movie = movieDetailData?.data?.movie || null;
+  const movie = movieDetailData?.data || null;
 
   const totalTicketsCount = selectedTickets
     ? selectedTickets.reduce((sum, ticket) => sum + ticket.count, 0)

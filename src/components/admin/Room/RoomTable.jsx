@@ -48,7 +48,7 @@ const RoomTable = ({
   } = useGetSeatMapByRoomIdUS(selectedRoomId, {
     enabled: showSeatMapModal && !!selectedRoomId,
   });
-
+  const seat = Array.isArray(seatMapData?.data) ? seatMapData.data : [];
   if (isLoading) {
     return <div>Đang tải dữ liệu phòng chiếu...</div>;
   }
@@ -67,7 +67,7 @@ const RoomTable = ({
           <h2 className="text-xl font-bold">Danh sách phòng chiếu</h2>
           <button
             onClick={() => setShowDeleted(!showDeleted)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
               showDeleted
                 ? "bg-green-100 text-green-700 hover:bg-green-500"
                 : "bg-red-100 text-gray-700 hover:bg-red-500"
@@ -78,7 +78,7 @@ const RoomTable = ({
         </div>
         {!showDeleted && (
           <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer"
             onClick={onAddRoom}
           >
             + Tạo phòng chiếu
@@ -132,21 +132,24 @@ const RoomTable = ({
                         <>
                           <button
                             onClick={() => onEditRoom(room)}
-                            className="p-2 text-blue-600 hover:text-blue-800 transition-colors rounded-lg hover:bg-blue-100"
+                            className="p-2 text-blue-600 hover:text-blue-800 transition-colors 
+                            rounded-lg hover:bg-blue-100 cursor-pointer"
                             title="Chỉnh sửa"
                           >
                             <FaEdit />
                           </button>
                           <button
                             onClick={() => onDeleteRoom(room.room_id)}
-                            className="p-2 text-red-600 hover:text-red-800 transition-colors rounded-lg hover:bg-red-100"
+                            className="p-2 text-red-600 hover:text-red-800 transition-colors 
+                            rounded-lg hover:bg-red-100 cursor-pointer"
                             title="Xóa"
                           >
                             <FaTrash />
                           </button>
                           <button
                             onClick={() => handleViewSeats(room.room_id)}
-                            className="p-2 text-green-600 hover:text-green-800 transition-colors rounded-lg hover:bg-green-100"
+                            className="p-2 text-green-600 hover:text-green-800 transition-colors 
+                            rounded-lg hover:bg-green-100 cursor-pointer"
                             title="Xem ghế"
                           >
                             <FaTable />
@@ -155,7 +158,8 @@ const RoomTable = ({
                       ) : (
                         <button
                           onClick={() => onRestoreRoom(room.room_id)}
-                          className="p-2 text-green-600 hover:text-green-800 transition-colors rounded-lg hover:bg-green-100"
+                          className="p-2 text-green-600 hover:text-green-800 transition-colors 
+                          rounded-lg hover:bg-green-100 cursor-pointer"
                           title="Khôi phục"
                         >
                           <FaRedo />
@@ -182,7 +186,8 @@ const RoomTable = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-lg p-4 max-w-4xl w-full max-h-[90vh] overflow-y-auto relative">
             <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-xl font-bold"
+              className="absolute top-2 right-2 text-gray-500 hover:text-red-500 
+              text-xl font-bold cursor-pointer"
               onClick={handleCloseSeatMap}
             >
               &times;
@@ -202,7 +207,7 @@ const RoomTable = ({
                   MÀN HÌNH
                 </div>
                 {(() => {
-                  let seats = seatMapData.data?.seat_map || [];
+                  let seats = seatMapData.data || [];
                   // Group seats by row letter
                   const seatRowsObj = {};
                   seats.forEach((seat) => {
@@ -252,6 +257,10 @@ const RoomTable = ({
                 })()}
                 {/* Chú thích */}
                 <div className="flex justify-center gap-6 mt-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded" />{" "}
+                    <span>Số ghế: {seat.length}</span>
+                  </div>
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded bg-purple-600" />{" "}
                     <span>Ghế thường</span>

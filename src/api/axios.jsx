@@ -4,10 +4,6 @@ import { toast } from "react-toastify";
 const baseUrl = import.meta.env.VITE_API_URL;
 const timeout = import.meta.env.VITE_API_TIMEOUT || 20000;
 
-// Debug: Log baseUrl để kiểm tra
-console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
-console.log("baseUrl:", baseUrl);
-
 const axiosInstance = axios.create({
   baseURL: baseUrl,
   timeout,
@@ -17,24 +13,24 @@ axiosInstance.interceptors.request.use(
   function (config) {
     config.headers["Content-Type"] = "application/json";
     const token = localStorage.getItem("token");
-    console.log("Current token:", token);
+    // console.log("Current token:", token);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log("Added Authorization header:", config.headers.Authorization);
+      // console.log("Added Authorization header:", config.headers.Authorization);
     } else {
       console.warn("No token found in localStorage");
     }
     return config;
   },
   function (error) {
-    console.error("Request interceptor error:", error);
+    // console.error("Request interceptor error:", error);
     return Promise.reject(error);
   }
 );
 
 axiosInstance.interceptors.response.use(
   function (response) {
-    console.log("Response from server:", response);
+    // console.log("Response from server:", response);
     // Kiểm tra nếu response.data có cấu trúc { data: {...} }
     if (response.data && response.data.data) {
       return response.data;
@@ -58,10 +54,10 @@ axiosInstance.interceptors.response.use(
             const response = await axiosInstance.post("/refresh-token", {
               refresh_token: refreshToken,
             });
-            console.log("Refresh token response:", response);
+            // console.log("Refresh token response:", response);
             if (response.data?.access_token) {
               localStorage.setItem("token", response.data.access_token);
-              console.log("New token stored:", response.data.access_token);
+              // console.log("New token stored:", response.data.access_token);
               // Retry the original request
               error.config.headers.Authorization = `Bearer ${response.data.access_token}`;
               return axiosInstance(error.config);
@@ -92,7 +88,7 @@ axiosInstance.interceptors.response.use(
       if (status === 422) {
         // Nếu có lỗi chi tiết từ server (Laravel validation)
         const errors = error.response.data?.errors;
-        if (errors && typeof errors === 'object') {
+        if (errors && typeof errors === "object") {
           Object.values(errors).forEach((errArr) => {
             if (Array.isArray(errArr)) {
               errArr.forEach((errMsg) => toast.error(errMsg));

@@ -35,7 +35,7 @@ const ScheduleForm = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Form data before submit:", form);
+    // console.log("Form data before submit:", form);
     if (onSubmit) onSubmit(form);
   };
 

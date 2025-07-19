@@ -1,11 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import authAPI from "../../api/auth";
 import { useAuth } from "../../contexts/AuthContext";
-import musicImg from "../../assets/img/doraemon-movie-44.jpg";
+import AuthLeftBanner from "../../components/Auth/AuthLeftBanner";
+import { imagePhim } from "../../Utilities/common";
+import { useGetPhimUS } from "../../api/homePage/queries";
+
+const fallbackPoster = "/placeholder.jpg";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -15,33 +19,86 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const { data: moviesData, isLoading } = useGetPhimUS();
+  const movies = moviesData?.data?.movies || [];
+  const posters = movies
+    .filter((m) => m.poster_url)
+    .map((m) => `${imagePhim}${m.poster_url}`);
+
+  const [posterIndex, setPosterIndex] = useState(0);
+  useEffect(() => {
+    setPosterIndex(0);
+  }, [posters.length]);
+  useEffect(() => {
+    if (posters.length > 1) {
+      const interval = setInterval(() => {
+        setPosterIndex((prev) => {
+          let next = Math.floor(Math.random() * posters.length);
+          while (next === prev && posters.length > 1) {
+            next = Math.floor(Math.random() * posters.length);
+          }
+          return next;
+        });
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [posters.length]);
+  const currentPoster = posters[posterIndex] || fallbackPoster;
+
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   const userRole = localStorage.getItem("role");
+
+  //   if (token && userRole === "admin") {
+  //     navigate("/admin");
+  //   }
+  // }, [navigate]);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     if (loading) return;
+
     setLoading(true);
     try {
       const response = await authAPI.login(email, password);
+      console.log("Login API response full:", response);
+
+      // Kiểm tra token trong response
       const token = response.data?.access_token;
       const refreshToken = response.data?.refresh_token;
+      console.log("Extracted token:", token);
+
       if (token) {
+        // Lưu token và refresh token vào localStorage
         localStorage.setItem("token", token);
         if (refreshToken) {
           localStorage.setItem("refreshToken", refreshToken);
         }
+
+        // Lưu thông tin user nếu cần
         if (response.data?.user) {
+          // Xử lý role từ mảng roles
           const userData = response.data.user;
           const userRole =
             userData.roles && userData.roles.length > 0
               ? userData.roles[0]
               : "user";
+
+          // Tạo object user với role đơn lẻ để tương thích với code hiện tại
           const userInfo = {
             ...userData,
             role: userRole,
           };
+
           localStorage.setItem("user", JSON.stringify(userInfo));
+          // Cập nhật trạng thái đăng nhập trong context
           login(userInfo);
+
+          // Chuyển trang dựa trên role
           const redirectPath = getRedirectPathByRole(userRole);
           navigate(redirectPath, { state: { loginSuccess: true } });
+
+          // Hiển thị thông báo thành công
           toast.success(
             `Đăng nhập thành công! Chào mừng ${
               userData.full_name || userData.name || "bạn"
@@ -57,41 +114,32 @@ function LoginPage() {
             }
           );
         } else {
+          // console.error("Token not found in response:", response);
           throw new Error("Không nhận được token từ server");
         }
       } else {
+        // console.error("Token not found in response:", response);
         throw new Error("Không nhận được token từ server");
       }
     } catch (error) {
-      setLoading(false);
-      let errorMessage = "Đăng nhập thất bại!";
-      if (error.response) {
-        const serverError = error.response.data;
-        if (serverError.message) {
-          errorMessage = serverError.message;
-        } else if (serverError.error) {
-          errorMessage = serverError.error;
-        } else if (typeof serverError === "string") {
-          errorMessage = serverError;
-        }
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
+      console.error("Login error details:", error);
+      // Hiển thị thông báo lỗi chi tiết
+      const errorMessage = error.message || "Đăng nhập thất bại!";
       toast.error(errorMessage, {
         position: "top-right",
-        autoClose: 4000,
+        autoClose: 2000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
       });
-      return;
     } finally {
       setLoading(false);
     }
   };
 
+  // Hàm xác định đường dẫn chuyển hướng dựa trên role
   const getRedirectPathByRole = (role) => {
     switch (role) {
       case "admin":
@@ -107,12 +155,12 @@ function LoginPage() {
       case "district_manager":
         return "/district_manager/dashboard";
       default:
-        return "/";
+        return "/"; // User thường
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-8 mb-4">
       <ToastContainer
         position="top-right"
         autoClose={5000}
@@ -125,68 +173,72 @@ function LoginPage() {
         pauseOnHover
         theme="light"
       />
-      <div className="flex w-full bg-white rounded-2xl shadow-lg overflow-hidden">
-        {/* Left: Image + Slogan */}
-        <div
-          className="w-1/2 flex flex-col justify-center items-center"
-          style={{ backgroundColor: "var(--color-primary)" }}
-        >
-          <img
-            src={musicImg}
-            alt="music"
-            className="w-full object-cover rounded-2xl mb-10 shadow-lg"
-          />
-          {/* <h2 className="text-white text-3xl font-extrabold mb-2 text-center">
-            Listen to your top musics <br />
-            <span className="text-[#fff] text-4xl font-black">FOR FREE</span>
-          </h2> */}
-        </div>
-        {/* Right: Login Form */}
-        <div className="w-1/2 flex flex-col justify-center p-16">
-          <h2
-            className="text-4xl font-bold mb-8 text-center"
-            style={{ color: "var(--color-blue)" }}
+      <div className="flex w-[60%] bg-white rounded-2xl shadow-lg overflow-hidden">
+        {isLoading || movies.length === 0 ? (
+          <div
+            className="w-1/2 flex items-center justify-center"
+            style={{ background: "var(--color-primary)" }}
           >
-            Sign In
+            <span className="text-xl font-bold text-white">
+              Đang tải phim...
+            </span>
+          </div>
+        ) : (
+          <AuthLeftBanner image={currentPoster} />
+        )}
+        <div className="w-1/2 flex flex-col justify-center p-16">
+          <h2 className="text-4xl font-bold text-[#6c63ff] mb-8 text-center">
+            Đăng nhập tài khoản
           </h2>
-          <form onSubmit={handleLogin} className="space-y-7">
-            <div>
+
+          {/* Role Information */}
+          {/* <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+            <h3 className="text-sm font-semibold text-blue-800 mb-2">
+              Hệ thống hỗ trợ các loại tài khoản:
+            </h3>
+            <ul className="text-xs text-blue-700 space-y-1">
+              <li>• <strong>Admin:</strong> Quản trị toàn bộ hệ thống</li>
+              <li>• <strong>Booking Manager:</strong> Quản lý đặt vé và đơn hàng</li>
+              <li>• <strong>Showtime Manager:</strong> Quản lý lịch chiếu và rạp phim</li>
+              <li>• <strong>Finance Manager:</strong> Quản lý tài chính và báo cáo</li>
+              <li>• <strong>Content Manager:</strong> Quản lý nội dung và bài viết</li>
+              <li>• <strong>District Manager:</strong> Quản lý theo khu vực</li>
+            </ul>
+          </div> */}
+
+          <form onSubmit={handleLogin}>
+            <div className="mb-4">
               <label
-                className="block text-sm mb-1"
-                style={{ color: "var(--color-blue)" }}
+                className="block text-gray-700 text-sm font-bold mb-2"
+                htmlFor="email"
               >
-                Email
+                Email:
               </label>
               <input
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="email"
                 type="email"
-                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 pr-10"
-                style={{
-                  borderColor: "var(--color-blue)",
-                  color: "var(--color-hover)",
-                  background: "#fff",
-                }}
+                placeholder="Nhập Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
               />
             </div>
-            <div>
+
+            <div className="mb-6 items-center">
               <label
-                className="block text-sm mb-1"
-                style={{ color: "var(--color-blue)" }}
+                className="block text-gray-700 text-sm font-bold mb-2"
+                htmlFor="password"
               >
-                Password
+                Mật khẩu:
               </label>
               <div className="relative">
                 <input
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline pr-10"
+                  id="password"
                   type={showPassword ? "text" : "password"}
-                  className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 pr-10"
-                  style={{
-                    borderColor: "var(--color-blue)",
-                    color: "var(--color-hover)",
-                    background: "#fff",
-                  }}
+                  placeholder="Nhập Mật Khẩu"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -194,122 +246,81 @@ function LoginPage() {
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
-                  style={{ color: "var(--color-hover)" }}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600"
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={loading}
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input type="checkbox" className="mr-2" />
-                <span
-                  className="text-xs"
-                  style={{ color: "var(--color-blue)" }}
-                >
-                  Remember me
-                </span>
-              </div>
               <a
+                className="inline-block align-baseline font-bold text-sm"
+                style={{
+                  color: "var(--color-hover)",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.color = "var(--color-primary)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.color = "var(--color-hover)";
+                }}
                 href="#"
-                className="text-xs hover:underline"
-                style={{ color: "var(--color-hover)" }}
               >
-                Forgot password?
+                Quên mật khẩu?
               </a>
             </div>
-            <button
-              type="submit"
-              className="w-full font-bold py-2 rounded transition cursor-pointer"
-              style={{
-                backgroundColor: "var(--color-primary)",
-                color: "black",
-                border: "2px solid var(--color-primary)",
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = "var(--color-hover)";
-                e.target.style.color = "white";
-                e.target.style.borderColor = "var(--color-hover)";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = "var(--color-primary)";
-                e.target.style.color = "black";
-                e.target.style.borderColor = "var(--color-primary)";
-              }}
-              disabled={loading}
-            >
-              {loading ? "ĐANG XỬ LÝ..." : "Sign In"}
-            </button>
-            <div className="flex items-center my-2">
-              <div
-                className="flex-grow h-px"
-                style={{ background: "var(--color-blue)" }}
-              ></div>
-              <span className="mx-2 text-gray-400 text-xs">OR</span>
-              <div
-                className="flex-grow h-px"
-                style={{ background: "var(--color-blue)" }}
-              ></div>
-            </div>
-            <div className="flex flex-col gap-2">
+
+            <div className="flex items-center justify-center mb-4">
               <button
-                type="button"
-                className="border py-2 rounded flex items-center justify-center gap-2 hover:bg-gray-100 cursor-pointer"
+                className={`text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full cursor-pointer ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
                 style={{
-                  borderColor: "var(--color-blue)",
-                  color: "var(--color-blue)",
+                  backgroundColor: "var(--color-primary)",
+                  color: "black",
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = "var(--color-hover)";
-                  e.target.style.color = "white";
-                  e.target.style.borderColor = "var(--color-hover)";
+                  if (!loading) {
+                    e.target.style.backgroundColor = "var(--color-hover)";
+                    e.target.style.color = "white";
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = "#fff";
-                  e.target.style.color = "var(--color-blue)";
-                  e.target.style.borderColor = "var(--color-blue)";
+                  if (!loading) {
+                    e.target.style.backgroundColor = "var(--color-primary)";
+                    e.target.style.color = "black";
+                  }
                 }}
+                type="submit"
+                disabled={loading}
               >
-                <span className="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center">
-                  G
-                </span>
-                Sign in with Google
-              </button>
-              <button
-                type="button"
-                className="border py-2 rounded flex items-center justify-center gap-2 hover:bg-gray-100 cursor-pointer"
-                style={{
-                  borderColor: "var(--color-blue)",
-                  color: "var(--color-blue)",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = "var(--color-hover)";
-                  e.target.style.color = "white";
-                  e.target.style.borderColor = "var(--color-hover)";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = "#fff";
-                  e.target.style.color = "var(--color-blue)";
-                  e.target.style.borderColor = "var(--color-blue)";
-                }}
-              >
-                <span className="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center">
-                  f
-                </span>
-                Sign in with Facebook
+                {loading ? "ĐANG XỬ LÝ..." : "ĐĂNG NHẬP"}
               </button>
             </div>
-            <div className="text-center text-sm mt-4">
-              Don't have an account?{" "}
+
+            <div className="text-center text-sm text-gray-600 mb-4">
+              Bạn chưa có tài khoản?
+            </div>
+
+            <div className="flex items-center justify-center">
               <Link
                 to="/register"
-                className="hover:underline"
-                style={{ color: "var(--color-hover)" }}
+                className="bg-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full text-center"
+                style={{
+                  color: "var(--color-hover)",
+                  borderColor: "var(--color-hover)",
+                  border: "2px solid var(--color-hover)",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = "var(--color-hover)";
+                  e.target.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = "white";
+                  e.target.style.color = "var(--color-hover)";
+                }}
               >
-                Sign up
+                ĐĂNG KÝ
               </Link>
             </div>
           </form>

@@ -82,8 +82,21 @@ import {
   updateBookingAPI,
   deleteBookingAPI,
   getManagedMoviesAPI,
+  getAllPromotionsAPI,
+  getPromotionByIdAPI,
+  createPromotionAPI,
+  updatePromotionAPI,
+  deletePromotionAPI,
+  getUserPromotionsAPI,
+  calculatePromotionAPI,
+  getScreenTypeAPI,
 } from "./request";
 import { optionsUseQuery } from "../../Utilities/common";
+
+// =====================
+// Movie APIs (Phim)
+// =====================
+
 export const useGetPhimUS = (option) => {
   return useQuery({
     queryKey: ["GetPhimAPI"],
@@ -121,78 +134,6 @@ export const useGetMovieWithShowtimesUS = (movieId, option) => {
     ...option,
   });
 };
-
-// export const useGetLoaiVeUS = (option) => {
-//   return useQuery({
-//     queryKey: ["GetLoaiVeAPI"],
-//     queryFn: getLoaiVeAPI,
-//     optionsUseQuery,
-//     ...option,
-//   });
-// };
-
-export const useGetRapSCUS = (ma_phim, option) => {
-  return useQuery({
-    queryKey: ["GetRapSCAPI", ma_phim],
-    queryFn: () => getRapSCAPI(ma_phim),
-    optionsUseQuery,
-    ...option,
-  });
-};
-
-export const useGetDSGheUS = (ma_phong, option) => {
-  return useQuery({
-    queryKey: ["GetDSGheAPI", ma_phong],
-    queryFn: () => getDSGHEAPI(ma_phong),
-    optionsUseQuery,
-    ...option,
-  });
-};
-
-export const useGetRapUS = (ma_rap, option) => {
-  return useQuery({
-    queryKey: ["GetRapAPI", ma_rap],
-    queryFn: () => getRapAPI(ma_rap),
-    optionsUseQuery,
-    ...option,
-  });
-};
-
-export const useGePhongUS = (ma_phong, option) => {
-  return useQuery({
-    queryKey: ["GetPhongAPI", ma_phong],
-    queryFn: () => getPhongAPI(ma_phong),
-    optionsUseQuery,
-    ...option,
-  });
-};
-
-export const usePostBookingUS = (option) => {
-  return useMutation({
-    mutationFn: postBooKingAPI,
-    ...option,
-  });
-};
-
-export const useGetDVAnUongUS = (option) => {
-  return useQuery({
-    queryKey: ["GetDVAnUongAPI"],
-    queryFn: getDVAnUongAPI,
-    optionsUseQuery,
-    ...option,
-  });
-};
-
-export const useGetTrangThaiGheUS = (ma_suat_chieu, option) => {
-  return useQuery({
-    queryKey: ["GetTrangThaiGheAPI", ma_suat_chieu],
-    queryFn: () => getTrangThaiGheAPI(ma_suat_chieu),
-    enabled: !!ma_suat_chieu,
-    optionsUseQuery,
-    ...option,
-  });
-};
-
 // Hook thêm phim mới
 export const useCreatePhimUS = (option) => {
   return useMutation({
@@ -233,43 +174,86 @@ export const useRestoreMovieUS = (option) => {
   });
 };
 
-// Thêm các hooks cho user
-export const useGetAllUsersUS = (option) => {
+// export const useGetLoaiVeUS = (option) => {
+//   return useQuery({
+//     queryKey: ["GetLoaiVeAPI"],
+//     queryFn: getLoaiVeAPI,
+//     optionsUseQuery,
+//     ...option,
+//   });
+// };
+
+export const useGetDVAnUongUS = (option) => {
   return useQuery({
-    queryKey: ["GetAllUsersAPI"],
-    queryFn: getAllUsersAPI,
+    queryKey: ["GetDVAnUongAPI"],
+    queryFn: getDVAnUongAPI,
     optionsUseQuery,
     ...option,
   });
 };
 
-export const useGetUserByIdUS = (userId, option) => {
+// Ticket Type hooks
+export const useGetAllTicketTypesUS = (option) => {
   return useQuery({
-    queryKey: ["GetUserByIdAPI", userId],
-    queryFn: () => getUserByIdAPI(userId),
-    enabled: !!userId,
+    queryKey: ["GetAllTicketTypesAPI"],
+    queryFn: getAllTicketTypesAPI,
     optionsUseQuery,
     ...option,
   });
 };
 
-export const useCreateUserUS = (option) => {
-  return useMutation({
-    mutationFn: createUserAPI,
+export const useGetDeletedTicketTypesUS = (option) => {
+  return useQuery({
+    queryKey: ["GetDeletedTicketTypesAPI"],
+    queryFn: getDeletedTicketTypesAPI,
+    optionsUseQuery,
     ...option,
   });
 };
 
-export const useUpdateUserUS = (option) => {
+export const useCreateTicketTypeUS = (option) => {
   return useMutation({
-    mutationFn: ({ userId, userData }) => updateUserAPI(userId, userData),
+    mutationFn: createTicketTypeAPI,
     ...option,
   });
 };
 
-export const useDeleteUserUS = (option) => {
+export const useUpdateTicketTypeUS = (option) => {
   return useMutation({
-    mutationFn: deleteUserAPI,
+    mutationFn: ({ id, data }) => updateTicketTypeAPI(id, data),
+    ...option,
+  });
+};
+
+export const useDeleteTicketTypeUS = (option) => {
+  return useMutation({
+    mutationFn: deleteTicketTypeAPI,
+    ...option,
+  });
+};
+
+export const useRestoreTicketTypeUS = (option) => {
+  return useMutation({
+    mutationFn: restoreTicketTypeAPI,
+    ...option,
+  });
+};
+
+//ghế
+export const useGetDSGheUS = (ma_phong, option) => {
+  return useQuery({
+    queryKey: ["GetDSGheAPI", ma_phong],
+    queryFn: () => getDSGHEAPI(ma_phong),
+    optionsUseQuery,
+    ...option,
+  });
+};
+export const useGetTrangThaiGheUS = (ma_suat_chieu, option) => {
+  return useQuery({
+    queryKey: ["GetTrangThaiGheAPI", ma_suat_chieu],
+    queryFn: () => getTrangThaiGheAPI(ma_suat_chieu),
+    enabled: !!ma_suat_chieu,
+    optionsUseQuery,
     ...option,
   });
 };
@@ -289,7 +273,7 @@ export const useGetCinemaByIdUS = (cinemaId, option) => {
     queryKey: ["GetCinemaByIdAPI", cinemaId],
     queryFn: () => getCinemaByIdAPI(cinemaId),
     enabled: !!cinemaId,
-    optionsUseQuery,
+    ...optionsUseQuery,
     ...option,
   });
 };
@@ -331,51 +315,155 @@ export const useRestoreCinemaUS = (option) => {
     ...option,
   });
 };
-
-// Genre hooks
-export const useGetAllGenresUS = (option) => {
+export const useGetRapUS = (ma_rap, option) => {
   return useQuery({
-    queryKey: ["GetAllGenresAPI"],
-    queryFn: getAllGenreAPI,
+    queryKey: ["GetRapAPI", ma_rap],
+    queryFn: () => getRapAPI(ma_rap),
     optionsUseQuery,
     ...option,
   });
 };
 
-export const useGetGenreByIdUS = (genreId, option) => {
+export const useGePhongUS = (ma_phong, option) => {
   return useQuery({
-    queryKey: ["GetGenreByIdAPI", genreId],
-    queryFn: () => getGenreByIdAPI(genreId),
-    enabled: !!genreId,
+    queryKey: ["GetPhongAPI", ma_phong],
+    queryFn: () => getPhongAPI(ma_phong),
+    optionsUseQuery,
+    ...option,
+  });
+};
+export const useGetRapSCUS = (ma_phim, option) => {
+  return useQuery({
+    queryKey: ["GetRapSCAPI", ma_phim],
+    queryFn: () => getRapSCAPI(ma_phim),
     optionsUseQuery,
     ...option,
   });
 };
 
-export const useCreateGenreUS = (option) => {
-  return useMutation({
-    mutationFn: createGenreAPI,
+//Phòng chiếu
+// Thêm các hooks cho phòng chiếu
+export const useGetAllTheaterRoomsUS = (option) => {
+  return useQuery({
+    queryKey: ["GetAllTheaterRoomsAPI"],
+    queryFn: getAllTheaterRoomsAPI,
+    optionsUseQuery,
     ...option,
   });
 };
 
-export const useUpdateGenreUS = (option) => {
-  return useMutation({
-    mutationFn: ({ genreId, genreData }) => updateGenreAPI(genreId, genreData),
+export const useGetTheaterRoomByIdUS = (roomId, option) => {
+  return useQuery({
+    queryKey: ["GetTheaterRoomByIdAPI", roomId],
+    queryFn: () => getTheaterRoomByIdAPI(roomId),
+    enabled: !!roomId,
+    optionsUseQuery,
     ...option,
   });
 };
 
-export const useDeleteGenreUS = (option) => {
+export const useCreateTheaterRoomUS = (option) => {
   return useMutation({
-    mutationFn: deleteGenreAPI,
+    mutationFn: createTheaterRoomAPI,
     ...option,
   });
 };
 
-export const useRestoreGenreUS = (option) => {
+export const useUpdateTheaterRoomUS = (option) => {
   return useMutation({
-    mutationFn: restoreGenreAPI,
+    mutationFn: ({ roomId, roomData }) =>
+      updateTheaterRoomAPI(roomId, roomData),
+    ...option,
+  });
+};
+
+export const useDeleteTheaterRoomUS = (option) => {
+  return useMutation({
+    mutationFn: deleteTheaterRoomAPI,
+    ...option,
+  });
+};
+
+export const useRestoreTheaterRoomUS = (option) => {
+  return useMutation({
+    mutationFn: restoreTheaterRoomAPI,
+    ...option,
+  });
+};
+
+// Hook lấy sơ đồ ghế của 1 phòng chiếu
+export const useGetSeatMapByRoomIdUS = (roomId, option) => {
+  return useQuery({
+    queryKey: ["GetSeatMapByRoomIdAPI", roomId],
+    queryFn: () => getSeatMapByRoomIdAPI(roomId),
+    enabled: !!roomId,
+    optionsUseQuery,
+    ...option,
+  });
+};
+
+// Showtime hooks
+export const useGetAllShowtimesUS = (option) => {
+  return useQuery({
+    queryKey: ["GetAllShowtimesAPI"],
+    queryFn: getAllShowtimesAPI,
+    optionsUseQuery,
+    ...option,
+  });
+};
+
+export const useCreateShowtimeUS = (option) => {
+  return useMutation({
+    mutationFn: createShowtimeAPI,
+    ...option,
+  });
+};
+
+export const useGetShowtimeByIdUS = (showtimeId, option) => {
+  return useQuery({
+    queryKey: ["GetShowtimeByIdAPI", showtimeId],
+    queryFn: () => getShowtimeByIdAPI(showtimeId),
+    enabled: !!showtimeId,
+    optionsUseQuery,
+    ...option,
+  });
+};
+
+export const useUpdateShowtimeUS = (option) => {
+  return useMutation({
+    mutationFn: ({ showtimeId, showtimeData }) =>
+      updateShowtimeAPI(showtimeId, showtimeData),
+    ...option,
+  });
+};
+
+export const useDeleteShowtimeUS = (option) => {
+  return useMutation({
+    mutationFn: deleteShowtimeAPI,
+    ...option,
+  });
+};
+
+export const useReactivateShowtimeUS = (option) => {
+  return useMutation({
+    mutationFn: reactivateShowtimeAPI,
+    ...option,
+  });
+};
+
+export const useGetFilteredShowtimesUS = (option) => {
+  return useMutation({
+    mutationFn: getFilteredShowtimesAPI,
+    ...option,
+  });
+};
+
+export const useGetSeatMapUS = (showtimeId, option) => {
+  return useQuery({
+    queryKey: ["GetSeatMapAPI", showtimeId],
+    queryFn: () => getSeatMapAPI(showtimeId),
+    enabled: !!showtimeId,
+    optionsUseQuery,
     ...option,
   });
 };
@@ -456,63 +544,93 @@ export const useGetTheaterRoomsByCinemaUS = (cinemaId, option) => {
     ...option,
   });
 };
-
-// Thêm các hooks cho phòng chiếu
-export const useGetAllTheaterRoomsUS = (option) => {
+// Genre hooks
+export const useGetAllGenresUS = (option) => {
   return useQuery({
-    queryKey: ["GetAllTheaterRoomsAPI"],
-    queryFn: getAllTheaterRoomsAPI,
+    queryKey: ["GetAllGenresAPI"],
+    queryFn: getAllGenreAPI,
     optionsUseQuery,
     ...option,
   });
 };
 
-export const useGetTheaterRoomByIdUS = (roomId, option) => {
+export const useGetGenreByIdUS = (genreId, option) => {
   return useQuery({
-    queryKey: ["GetTheaterRoomByIdAPI", roomId],
-    queryFn: () => getTheaterRoomByIdAPI(roomId),
-    enabled: !!roomId,
+    queryKey: ["GetGenreByIdAPI", genreId],
+    queryFn: () => getGenreByIdAPI(genreId),
+    enabled: !!genreId,
     optionsUseQuery,
     ...option,
   });
 };
 
-export const useCreateTheaterRoomUS = (option) => {
+export const useCreateGenreUS = (option) => {
   return useMutation({
-    mutationFn: createTheaterRoomAPI,
+    mutationFn: createGenreAPI,
     ...option,
   });
 };
 
-export const useUpdateTheaterRoomUS = (option) => {
+export const useUpdateGenreUS = (option) => {
   return useMutation({
-    mutationFn: ({ roomId, roomData }) =>
-      updateTheaterRoomAPI(roomId, roomData),
+    mutationFn: ({ genreId, genreData }) => updateGenreAPI(genreId, genreData),
     ...option,
   });
 };
 
-export const useDeleteTheaterRoomUS = (option) => {
+export const useDeleteGenreUS = (option) => {
   return useMutation({
-    mutationFn: deleteTheaterRoomAPI,
+    mutationFn: deleteGenreAPI,
     ...option,
   });
 };
 
-export const useRestoreTheaterRoomUS = (option) => {
+export const useRestoreGenreUS = (option) => {
   return useMutation({
-    mutationFn: restoreTheaterRoomAPI,
+    mutationFn: restoreGenreAPI,
     ...option,
   });
 };
-
-// Hook lấy sơ đồ ghế của 1 phòng chiếu
-export const useGetSeatMapByRoomIdUS = (roomId, option) => {
+// Thêm các hooks cho user
+export const useGetAllUsersUS = (option) => {
   return useQuery({
-    queryKey: ["GetSeatMapByRoomIdAPI", roomId],
-    queryFn: () => getSeatMapByRoomIdAPI(roomId),
-    enabled: !!roomId,
+    queryKey: ["GetAllUsersAPI"],
+    queryFn: getAllUsersAPI,
     optionsUseQuery,
+    ...option,
+  });
+};
+
+export const useGetUserByIdUS = (userId, option) => {
+  return useQuery({
+    queryKey: ["GetUserByIdAPI", userId],
+    queryFn: () => getUserByIdAPI(userId),
+    enabled: !!userId,
+    optionsUseQuery,
+    ...option,
+  });
+};
+
+export const useCreateUserUS = (option) => {
+  return useMutation({
+    mutationFn: createUserAPI,
+    ...option,
+  });
+};
+
+export const useUpdateUserUS = (option) => {
+  return useMutation({
+    mutationFn: ({ userId, userData }) => {
+      console.log("[useUpdateUserUS] Gọi updateUserAPI với:", { userId, userData });
+      return updateUserAPI(userId, userData);
+    },
+    ...option,
+  });
+};
+
+export const useDeleteUserUS = (option) => {
+  return useMutation({
+    mutationFn: deleteUserAPI,
     ...option,
   });
 };
@@ -522,72 +640,6 @@ export const useGetCurrentUserUS = (option) => {
   return useQuery({
     queryKey: ["GetCurrentUserAPI"],
     queryFn: getCurrentUserAPI,
-    optionsUseQuery,
-    ...option,
-  });
-};
-
-// Showtime hooks
-export const useGetAllShowtimesUS = (option) => {
-  return useQuery({
-    queryKey: ["GetAllShowtimesAPI"],
-    queryFn: getAllShowtimesAPI,
-    optionsUseQuery,
-    ...option,
-  });
-};
-
-export const useCreateShowtimeUS = (option) => {
-  return useMutation({
-    mutationFn: createShowtimeAPI,
-    ...option,
-  });
-};
-
-export const useGetShowtimeByIdUS = (showtimeId, option) => {
-  return useQuery({
-    queryKey: ["GetShowtimeByIdAPI", showtimeId],
-    queryFn: () => getShowtimeByIdAPI(showtimeId),
-    enabled: !!showtimeId,
-    optionsUseQuery,
-    ...option,
-  });
-};
-
-export const useUpdateShowtimeUS = (option) => {
-  return useMutation({
-    mutationFn: ({ showtimeId, showtimeData }) =>
-      updateShowtimeAPI(showtimeId, showtimeData),
-    ...option,
-  });
-};
-
-export const useDeleteShowtimeUS = (option) => {
-  return useMutation({
-    mutationFn: deleteShowtimeAPI,
-    ...option,
-  });
-};
-
-export const useReactivateShowtimeUS = (option) => {
-  return useMutation({
-    mutationFn: reactivateShowtimeAPI,
-    ...option,
-  });
-};
-
-export const useGetFilteredShowtimesUS = (option) => {
-  return useMutation({
-    mutationFn: getFilteredShowtimesAPI,
-    ...option,
-  });
-};
-
-export const useGetSeatMapUS = (showtimeId, option) => {
-  return useQuery({
-    queryKey: ["GetSeatMapAPI", showtimeId],
-    queryFn: () => getSeatMapAPI(showtimeId),
-    enabled: !!showtimeId,
     optionsUseQuery,
     ...option,
   });
@@ -628,7 +680,7 @@ export const useCheckPaymentStatusUS = (option) => {
 //   });
 // };
 
-// Movie Schedule hooks
+// Lịch chiếu
 export const useGetAllMovieSchedulesUS = (option) => {
   return useQuery({
     queryKey: ["GetAllMovieSchedulesAPI"],
@@ -675,56 +727,16 @@ export const useGetDeletedGenresUS = (option) => {
   });
 };
 
-// Ticket Type hooks
-export const useGetAllTicketTypesUS = (option) => {
-  return useQuery({
-    queryKey: ["GetAllTicketTypesAPI"],
-    queryFn: getAllTicketTypesAPI,
-    optionsUseQuery,
-    ...option,
-  });
-};
-
-export const useGetDeletedTicketTypesUS = (option) => {
-  return useQuery({
-    queryKey: ["GetDeletedTicketTypesAPI"],
-    queryFn: getDeletedTicketTypesAPI,
-    optionsUseQuery,
-    ...option,
-  });
-};
-
-export const useCreateTicketTypeUS = (option) => {
-  return useMutation({
-    mutationFn: createTicketTypeAPI,
-    ...option,
-  });
-};
-
-export const useUpdateTicketTypeUS = (option) => {
-  return useMutation({
-    mutationFn: ({ id, data }) => updateTicketTypeAPI(id, data),
-    ...option,
-  });
-};
-
-export const useDeleteTicketTypeUS = (option) => {
-  return useMutation({
-    mutationFn: deleteTicketTypeAPI,
-    ...option,
-  });
-};
-
-export const useRestoreTicketTypeUS = (option) => {
-  return useMutation({
-    mutationFn: restoreTicketTypeAPI,
-    ...option,
-  });
-};
-
 // =====================
 // Booking Hooks (Đặt vé)
 // =====================
+//booking
+export const usePostBookingUS = (option) => {
+  return useMutation({
+    mutationFn: postBooKingAPI,
+    ...option,
+  });
+};
 export const useGetAllBookingsUS = (option) => {
   return useQuery({
     queryKey: ["GetAllBookingsAPI"],
@@ -753,7 +765,8 @@ export const useCreateBookingUS = (option) => {
 
 export const useUpdateBookingUS = (option) => {
   return useMutation({
-    mutationFn: ({ bookingId, bookingData }) => updateBookingAPI(bookingId, bookingData),
+    mutationFn: ({ bookingId, bookingData }) =>
+      updateBookingAPI(bookingId, bookingData),
     ...option,
   });
 };
@@ -765,10 +778,80 @@ export const useDeleteBookingUS = (option) => {
   });
 };
 
+//district manager
 export const useGetManagedMoviesUS = (option) => {
   return useQuery({
     queryKey: ["GetManagedMoviesAPI"],
     queryFn: getManagedMoviesAPI,
+    optionsUseQuery,
+    ...option,
+  });
+};
+
+// =====================
+// Promotion Hooks (Khuyến mãi)
+// =====================
+export const useGetAllPromotionsUS = (option) => {
+  return useQuery({
+    queryKey: ["GetAllPromotionsAPI"],
+    queryFn: getAllPromotionsAPI,
+    optionsUseQuery,
+    ...option,
+  });
+};
+
+export const useGetPromotionByIdUS = (promotionId, option) => {
+  return useQuery({
+    queryKey: ["GetPromotionByIdAPI", promotionId],
+    queryFn: () => getPromotionByIdAPI(promotionId),
+    enabled: !!promotionId,
+    optionsUseQuery,
+    ...option,
+  });
+};
+
+export const useCreatePromotionUS = (option) => {
+  return useMutation({
+    mutationFn: createPromotionAPI,
+    ...option,
+  });
+};
+
+export const useUpdatePromotionUS = (option) => {
+  return useMutation({
+    mutationFn: ({ id, data }) => updatePromotionAPI(id, data),
+    ...option,
+  });
+};
+
+export const useDeletePromotionUS = (option) => {
+  return useMutation({
+    mutationFn: deletePromotionAPI,
+    ...option,
+  });
+};
+
+export const useGetUserPromotionsUS = (option) => {
+  return useQuery({
+    queryKey: ["GetUserPromotionsAPI"],
+    queryFn: getUserPromotionsAPI,
+    optionsUseQuery,
+    ...option,
+  });
+};
+
+export const useCalculatePromotionUS = (option) => {
+  return useMutation({
+    mutationFn: calculatePromotionAPI,
+    ...option,
+  });
+};
+
+// ScreenType
+export const useGetScreenTypeUS = (option) => {
+  return useQuery({
+    queryKey: ["getScreenTypeAPI"],
+    queryFn: getScreenTypeAPI,
     optionsUseQuery,
     ...option,
   });

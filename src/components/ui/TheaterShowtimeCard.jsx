@@ -23,6 +23,12 @@ function TheaterShowtimeCard({
         <div>
           <h4 className="font-semibold">{theater.name}</h4>
           <p className="text-sm">{theater.address}</p>
+          {theater.room_name && (
+            <p className="text-sm italic">
+              {theater.room_name}
+              {theater.room_type ? ` (${theater.room_type})` : ''}
+            </p>
+          )}
         </div>
         <FaChevronDown
           className={`transition-transform duration-300 text-xl ${

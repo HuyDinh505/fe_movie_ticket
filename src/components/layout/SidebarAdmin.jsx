@@ -50,11 +50,8 @@ const SidebarAdmin = () => {
       <div className="flex-1 overflow-y-auto sidebar-scroll m-0 p-0">
         <nav>
           <ul className="space-y-4">
-            {/* QUẢN LÝ - Dropdown -> now direct items */}
             <ul className="space-y-2">
               {" "}
-              {/* This ul was ml-6 mt-2, now it's direct */}
-              {/* Quản lý doanh thu */}
               <li>
                 <div
                   className="flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF]"
@@ -327,7 +324,7 @@ const SidebarAdmin = () => {
                 )}
               </li>
               {/* Quản lý khuyến mãi */}
-              <li>
+              {/* <li>
                 <div
                   className="flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF]"
                   onClick={() => setIsPromotionDropdownOpen(!isPromotionOpen)}
@@ -346,7 +343,7 @@ const SidebarAdmin = () => {
                     </li>
                   </ul>
                 )}
-              </li>
+              </li> */}
               {/* Quản lý bài viết */}
               <li>
                 <div

@@ -3,12 +3,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   useGetDeletedMoviesUS,
   useRestoreMovieUS,
-} from "../../api/homePage/queries";
-import MovieTable from "../../components/admin/Movie/MovieTable";
+} from "../../../api/homePage/queries";
+import MovieTable from "../../../components/admin/Movie/MovieTable";
 import { toast } from "react-toastify";
 import { FaSearch } from "react-icons/fa";
-import Modal from "../../components/ui/Modal";
-import MovieDetailModalContent from "../../components/ui/MovieDetailModalContent";
+import Modal from "../../../components/ui/Modal";
+import MovieDetailModalContent from "../../../components/ui/MovieDetailModalContent";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -27,9 +27,9 @@ const DeletedMovies = () => {
     error,
   } = useGetDeletedMoviesUS({
     onError: (err) => {
-      console.error("Lỗi khi lấy danh sách phim đã xóa:", err);
+      console.error("Lỗi khi lấy danh sách phim đã xóa: ", err);
       const errorMessage =
-        err.response?.data?.message || "Không thể tải danh sách phim đã xóa!";
+        err.response?.message || "Không thể tải danh sách phim đã xóa!";
       toast.error(errorMessage);
     },
   });
@@ -38,8 +38,7 @@ const DeletedMovies = () => {
   const { mutate: restoreMovieMutation, isLoading: isRestoring } =
     useRestoreMovieUS({
       onSuccess: () => {
-        // Invalidate the correct query to refetch the list
-        queryClient.invalidateQueries({ queryKey: ["GetDeletedMoviesAPI"] });
+        queryClient.invalidateQueries({ queryKey: ["getDeletedMoviesAPI"] });
         toast.success("Khôi phục phim thành công!");
       },
       onError: (error) => {
@@ -48,7 +47,6 @@ const DeletedMovies = () => {
         );
       },
     });
-
   const handleRestoreMovie = (id) => {
     setConfirmModal({ open: true, id });
   };
@@ -60,8 +58,6 @@ const DeletedMovies = () => {
     setConfirmModal({ open: false, id: null });
   };
 
-  // The hook returns the full axios response, so we access data via .data
-  // The backend might wrap the movies array in another 'data' object.
   const movies = deletedMoviesResponse?.data?.movies || [];
 
   const filteredMovies = Array.isArray(movies)

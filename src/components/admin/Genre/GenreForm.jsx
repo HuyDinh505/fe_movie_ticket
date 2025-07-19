@@ -2,17 +2,20 @@ import React, { useState, useEffect } from "react";
 
 const GenreForm = ({ onSubmit, onCancel, initialData }) => {
   const [formData, setFormData] = useState({
-    id: null,
+    genre_id: null,
     genre_name: "",
   });
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData({
+        genre_id: initialData.genre_id || initialData.id || null,
+        genre_name: initialData.genre_name || "",
+      });
     } else {
       setFormData({
-        id: null,
+        genre_id: null,
         genre_name: "",
       });
     }
@@ -59,7 +62,8 @@ const GenreForm = ({ onSubmit, onCancel, initialData }) => {
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 flex items-center justify-center bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+            className="flex-1 flex items-center justify-center bg-gray-200 text-gray-800 
+            py-2 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -79,7 +83,8 @@ const GenreForm = ({ onSubmit, onCancel, initialData }) => {
           </button>
           <button
             type="submit"
-            className="flex-1 flex items-center justify-center bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
+            className="flex-1 flex items-center justify-center bg-blue-500 text-white 
+            py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

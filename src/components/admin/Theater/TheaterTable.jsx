@@ -101,7 +101,8 @@ const TheaterTable = ({
                     {!isDeletedView && (
                       <button
                         onClick={() => onEdit(theater)}
-                        className="p-2 text-blue-600 hover:text-blue-800 transition-colors rounded-lg hover:bg-blue-100"
+                        className="cursor-pointer p-2 text-blue-600 hover:text-blue-800 
+                        transition-colors rounded-lg hover:bg-blue-100"
                         title="Chỉnh sửa"
                       >
                         <FaEdit />
@@ -109,7 +110,7 @@ const TheaterTable = ({
                     )}
                     <button
                       onClick={() => onDelete(theater.cinema_id)}
-                      className={`p-2 ${
+                      className={`p-2 cursor-pointer ${
                         isDeletedView
                           ? "text-green-600 hover:text-green-800 hover:bg-green-100"
                           : "text-red-600 hover:text-red-800 hover:bg-red-100"

@@ -59,7 +59,7 @@ const DeleteTicketType = () => {
           open={confirmRestore.open}
           onClose={() => setConfirmRestore({ open: false, id: null })}
         >
-          <div className="p-4 bg-white rounded shadow-none border border-gray-200">
+          <div className="p-4 ">
             <h2 className="text-lg font-semibold mb-4">
               Xác nhận khôi phục loại vé
             </h2>
@@ -73,7 +73,7 @@ const DeleteTicketType = () => {
               </button>
               <button
                 onClick={handleConfirmRestore}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer"
               >
                 Khôi phục
               </button>

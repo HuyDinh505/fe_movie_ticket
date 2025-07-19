@@ -22,15 +22,23 @@ const ScheduleManagement = () => {
   const [confirmModal, setConfirmModal] = useState({ open: false, id: null });
   const queryClient = useQueryClient();
 
+  // State cho tìm kiếm, lọc, phân trang
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterMovie, setFilterMovie] = useState("");
+  const [filterCinema, setFilterCinema] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const [filterStatus, setFilterStatus] = useState(""); // "", "past", "current", "upcoming"
+
   // Lấy role hiện tại
   const { userData } = useContext(AuthContext);
   const role =
-    userData?.role || (Array.isArray(userData?.roles) ? userData.roles[0] : "");
+    userData.role || (Array.isArray(userData?.roles) ? userData.roles[0] : "");
 
   // Lấy danh sách lịch chiếu
-  const { data: schedulesData, isLoading: loadingSchedules } =
+  const { data: SchedulesData, isLoading: loadingSchedules } =
     useGetAllMovieSchedulesUS();
-  const schedules = schedulesData?.data || [];
+  const schedules = SchedulesData?.data || [];
 
   // Lấy danh sách phim phù hợp theo role
   const { data: allMoviesData, isLoading: loadingAllMovies } = useGetPhimUS();
@@ -147,12 +155,112 @@ const ScheduleManagement = () => {
     setEditingSchedule(null);
   };
 
+  // Lọc và tìm kiếm
+  const filteredSchedules = schedules.filter((item) => {
+    // Lọc theo phim
+    if (filterMovie && String(item.movie_id) !== String(filterMovie))
+      return false;
+    // Lọc theo rạp
+    if (filterCinema && String(item.cinema_id) !== String(filterCinema))
+      return false;
+    // Lọc theo trạng thái chiếu
+    if (filterStatus) {
+      const today = new Date();
+      const start = item.start_date ? new Date(item.start_date) : null;
+      const end = item.end_date ? new Date(item.end_date) : null;
+      if (filterStatus === "past" && end && today <= end) return false;
+      if (
+        filterStatus === "current" &&
+        (!start || !end || today < start || today > end)
+      )
+        return false;
+      if (filterStatus === "upcoming" && start && today >= start) return false;
+    }
+    // Tìm kiếm theo tên phim hoặc rạp (nếu có dữ liệu)
+    const movie = movieList.find(
+      (m) => String(m.movie_id) === String(item.movie_id)
+    );
+    const cinema = cinemaList.find(
+      (c) => String(c.cinema_id) === String(item.cinema_id)
+    );
+    const movieName = movie?.movie_name || movie?.title || movie?.name || "";
+    const cinemaName = cinema?.cinema_name || cinema?.name || "";
+    if (searchTerm) {
+      const lower = searchTerm.toLowerCase();
+      if (
+        !movieName.toLowerCase().includes(lower) &&
+        !cinemaName.toLowerCase().includes(lower)
+      ) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  // Phân trang
+  const totalItems = filteredSchedules.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const paginatedSchedules = filteredSchedules.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Khi filter/search thay đổi thì reset về trang 1
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterMovie, filterCinema]);
+
   return (
     <div className="space-y-6 sm:space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center sm:p-6 bg-white rounded-xl shadow-lg sticky top-0 z-30">
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight mb-4 sm:mb-0">
           Quản lý Lịch chiếu
         </h1>
+      </div>
+
+      {/* Bộ lọc và tìm kiếm */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-center bg-white p-4 rounded-xl shadow-md">
+        <input
+          type="text"
+          placeholder="Tìm kiếm theo tên phim hoặc rạp..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="border border-gray-300 rounded px-3 py-2 w-full sm:w-64"
+        />
+        <select
+          value={filterMovie}
+          onChange={(e) => setFilterMovie(e.target.value)}
+          className="border border-gray-300 rounded px-3 py-2 w-full sm:w-48"
+        >
+          <option value="">Tất cả phim</option>
+          {movieList.map((movie) => (
+            <option key={movie.movie_id} value={movie.movie_id}>
+              {movie.movie_name || movie.title || movie.name}
+            </option>
+          ))}
+        </select>
+        <select
+          value={filterCinema}
+          onChange={(e) => setFilterCinema(e.target.value)}
+          className="border border-gray-300 rounded px-3 py-2 w-full sm:w-48"
+        >
+          <option value="">Tất cả rạp</option>
+          {cinemaList.map((cinema) => (
+            <option key={cinema.cinema_id} value={cinema.cinema_id}>
+              {cinema.cinema_name || cinema.name}
+            </option>
+          ))}
+        </select>
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="border border-gray-300 rounded px-3 py-2 w-full sm:w-48"
+        >
+          <option value="">Tất cả trạng thái</option>
+          <option value="past">Đã chiếu</option>
+          <option value="current">Đang chiếu</option>
+          <option value="upcoming">Sắp chiếu</option>
+        </select>
         <button
           onClick={handleAddSchedule}
           className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600 hover:to-blue-800 font-semibold shadow-md transition-all text-sm sm:text-base cursor-pointer"
@@ -162,16 +270,46 @@ const ScheduleManagement = () => {
         </button>
       </div>
 
-      <div className="w-full">
-        <div className="bg-white rounded-xl shadow-lg overflow-auto max-h-[70vh]">
+      <div className="w-full bg-white max-h-[100vh]">
+        <div className=" rounded-xl shadow-lg overflow-auto ">
           <ScheduleTable
-            schedules={schedules}
+            schedules={paginatedSchedules}
             movieList={movieList}
             cinemaList={cinemaList}
             onEdit={handleEdit}
             onDelete={handleDelete}
             loading={loadingSchedules}
           />
+        </div>
+        {/* Pagination */}
+        <div className="flex justify-center items-center gap-2 mt-4">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50 cursor-pointer"
+          >
+            Trước
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i + 1}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`px-3 py-1 rounded ${
+                currentPage === i + 1
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 hover:bg-gray-300"
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages || totalPages === 0}
+            className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50 cursor-pointer"
+          >
+            Sau
+          </button>
         </div>
       </div>
 
