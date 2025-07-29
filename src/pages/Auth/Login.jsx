@@ -145,9 +145,13 @@ function LoginPage() {
       case "admin":
         return "/admin/dashboard";
       case "booking_manager":
-        return "/manage/dashboard";
+        return "/manage/ticket_order";
+      case "ticket_manager":
+        return "/manage/ticket_order";
       case "showtime_manager":
-        return "/manage/dashboard";
+        return "/manage/showtime";
+      case "cinema_manager":
+        return "/manage/theater";
       case "finance_manager":
         return "/finance/revenue";
       case "content_manager":
@@ -161,7 +165,7 @@ function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-8 mb-4">
-      <ToastContainer
+      {/* <ToastContainer
         position="top-right"
         autoClose={5000}
         hideProgressBar={false}
@@ -172,8 +176,8 @@ function LoginPage() {
         draggable
         pauseOnHover
         theme="light"
-      />
-      <div className="flex w-[60%] bg-white rounded-2xl shadow-lg overflow-hidden">
+      /> */}
+      <div className="flex lg:w-[60%] bg-white rounded-2xl shadow-lg overflow-hidden">
         {isLoading || movies.length === 0 ? (
           <div
             className="w-1/2 flex items-center justify-center"
@@ -186,26 +190,10 @@ function LoginPage() {
         ) : (
           <AuthLeftBanner image={currentPoster} />
         )}
-        <div className="w-1/2 flex flex-col justify-center p-16">
-          <h2 className="text-4xl font-bold text-[#6c63ff] mb-8 text-center">
+        <div className="w lg:w-1/2 flex flex-col justify-center p-16">
+          <h2 className="text-4xl font-bold mb-8 text-center">
             Đăng nhập tài khoản
           </h2>
-
-          {/* Role Information */}
-          {/* <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-            <h3 className="text-sm font-semibold text-blue-800 mb-2">
-              Hệ thống hỗ trợ các loại tài khoản:
-            </h3>
-            <ul className="text-xs text-blue-700 space-y-1">
-              <li>• <strong>Admin:</strong> Quản trị toàn bộ hệ thống</li>
-              <li>• <strong>Booking Manager:</strong> Quản lý đặt vé và đơn hàng</li>
-              <li>• <strong>Showtime Manager:</strong> Quản lý lịch chiếu và rạp phim</li>
-              <li>• <strong>Finance Manager:</strong> Quản lý tài chính và báo cáo</li>
-              <li>• <strong>Content Manager:</strong> Quản lý nội dung và bài viết</li>
-              <li>• <strong>District Manager:</strong> Quản lý theo khu vực</li>
-            </ul>
-          </div> */}
-
           <form onSubmit={handleLogin}>
             <div className="mb-4">
               <label
@@ -256,13 +244,13 @@ function LoginPage() {
               <a
                 className="inline-block align-baseline font-bold text-sm"
                 style={{
-                  color: "var(--color-hover)",
+                  color: "var(--color-black)",
                 }}
                 onMouseEnter={(e) => {
                   e.target.style.color = "var(--color-primary)";
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.color = "var(--color-hover)";
+                  e.target.style.color = "var(--color-black)";
                 }}
                 href="#"
               >
@@ -288,7 +276,7 @@ function LoginPage() {
                 onMouseLeave={(e) => {
                   if (!loading) {
                     e.target.style.backgroundColor = "var(--color-primary)";
-                    e.target.style.color = "black";
+                    e.target.style.color = "white";
                   }
                 }}
                 type="submit"
@@ -308,8 +296,8 @@ function LoginPage() {
                 className="bg-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full text-center"
                 style={{
                   color: "var(--color-hover)",
-                  borderColor: "var(--color-hover)",
-                  border: "2px solid var(--color-hover)",
+                  borderColor: "var(--color-border)",
+                  border: "2px solid var(--color-border)",
                 }}
                 onMouseEnter={(e) => {
                   e.target.style.backgroundColor = "var(--color-hover)";
@@ -317,7 +305,7 @@ function LoginPage() {
                 }}
                 onMouseLeave={(e) => {
                   e.target.style.backgroundColor = "white";
-                  e.target.style.color = "var(--color-hover)";
+                  e.target.style.color = "var(--color-black)";
                 }}
               >
                 ĐĂNG KÝ

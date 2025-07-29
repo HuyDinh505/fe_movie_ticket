@@ -12,6 +12,7 @@ import {
 import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 import Modal from "../../../components/ui/Modal";
+import { handleApiError, getApiMessage } from "../../../Utilities/apiMessage";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -62,27 +63,36 @@ const GenreManagement = () => {
         updateGenre.mutate(
           { genreId: genreData.genre_id, genreData: genreData },
           {
-            onSuccess: () => {
+            onSuccess: (response) => {
+              if (response?.data?.status === false) {
+                handleApiError(response.data, "Cập nhật thể loại thất bại");
+                return;
+              }
               toast.success("Cập nhật thể loại thành công!");
               setIsFormVisible(false);
               setEditingGenre(null);
               queryClient.invalidateQueries({ queryKey: ["GetAllGenresAPI"] });
             },
             onError: (error) => {
-              toast.error("Cập nhật thể loại thất bại: " + error.message);
+              toast.error(getApiMessage(error, "Không thể thêm dịch vụ mới"));
             },
           }
         );
       } else {
         // Create new genre
         createGenre.mutate(genreData, {
-          onSuccess: () => {
+          onSuccess: (response) => {
+            console.log("API Response:", response);
+            if (response?.data?.status === false) {
+              handleApiError(response.data, "Thêm thể loại mới thất bại");
+              return;
+            }
             toast.success("Thêm thể loại thành công!");
             setIsFormVisible(false);
             queryClient.invalidateQueries({ queryKey: ["GetAllGenresAPI"] });
           },
           onError: (error) => {
-            toast.error("Thêm thể loại thất bại: " + error.message);
+            toast.error(getApiMessage(error, "Không thể thêm dịch vụ mới"));
           },
         });
       }
@@ -101,12 +111,22 @@ const GenreManagement = () => {
 
   const handleConfirmDelete = () => {
     deleteGenre.mutate(confirmDelete.genreId, {
-      onSuccess: () => {
-        toast.success("Xóa thể loại thành công!");
+      onSuccess: (response) => {
+        // Đổi tên 'data' thành 'response'
+        // Kiểm tra lỗi nghiệp vụ cho xóa nếu API có trả về
+        console.log("api respo:", response);
+        if (response?.data?.status === false) {
+          //
+          console.log("API Response:", response);
+          handleApiError(response.data, "Xóa thể loại phim thất bại");
+          return;
+        }
+        if (response?.status === true)
+          toast.success(response.message || "Xóa thể loại phim11 thành công");
         queryClient.invalidateQueries({ queryKey: ["GetAllGenresAPI"] });
       },
       onError: (error) => {
-        toast.error("Xóa thể loại thất bại: " + error.message);
+        toast.error(getApiMessage(error, "Có lỗi xảy ra khi lưu dịch vụ!"));
       },
     });
     setConfirmDelete({ open: false, genreId: null });
@@ -145,6 +165,7 @@ const GenreManagement = () => {
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight mb-4 sm:mb-0">
           Quản lý Thể loại
         </h1>
+
         {!isFormVisible && (
           <button
             onClick={handleAddGenre}

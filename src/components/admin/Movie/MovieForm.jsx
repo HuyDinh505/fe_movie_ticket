@@ -203,10 +203,10 @@ const MovieForm = ({
       // Tạo FormData đúng chuẩn cho array
       const formData = new FormData();
       Object.entries(movieData).forEach(([key, value]) => {
-        if (key === 'screening_type_ids' && Array.isArray(value)) {
-          value.forEach((id) => formData.append('screening_type_ids[]', id));
-        } else if (key === 'genres_ids' && Array.isArray(value)) {
-          value.forEach((id) => formData.append('genres_ids[]', id));
+        if (key === "screening_type_ids" && Array.isArray(value)) {
+          value.forEach((id) => formData.append("screening_type_ids[]", id));
+        } else if (key === "genres_ids" && Array.isArray(value)) {
+          value.forEach((id) => formData.append("genres_ids[]", id));
         } else if (value !== undefined && value !== null) {
           formData.append(key, value);
         }

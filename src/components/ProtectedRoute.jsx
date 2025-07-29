@@ -3,6 +3,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { toast } from "react-toastify";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
+  // debugger;
   const { isAdmin, isLoggedIn, isLoading, userData } = useAuth();
   const location = useLocation();
 
@@ -70,6 +71,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     );
 
     if (!hasRequiredRole) {
+      // debugger;
       console.log(
         `ProtectedRoute: Access denied - User role "${
           userData.role
@@ -94,9 +96,16 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
         return <Navigate to="/admin/dashboard" replace />;
       } else if (
         userData.role === "booking_manager" ||
-        userData.role === "showtime_manager"
+        userData.role === "ticket_manager" ||
+        userData.role === "cinema_manager"
       ) {
-        return <Navigate to="/manage/dashboard" replace />;
+        return <Navigate to="/manage/ticket_order" replace />;
+      } else if (
+        userData.role === "showtime_manager" ||
+        userData.role === "cinema_manager"
+      ) {
+        // debugger;
+        return <Navigate to="/manage/showtime" replace />;
       } else if (userData.role === "finance_manager") {
         return <Navigate to="/finance/revenue" replace />;
       } else if (userData.role === "content_manager") {

@@ -2,7 +2,7 @@ import React from "react";
 
 const MovieRevenueTable = ({ data }) => {
   return (
-    <div className="overflow-x-auto border rounded-lg">
+    <div className="overflow-x-auto border rounded-lg pt-6">
       <table className="min-w-full text-sm text-left">
         <thead className="bg-gray-100">
           <tr>

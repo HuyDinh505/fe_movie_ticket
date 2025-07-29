@@ -17,7 +17,8 @@ import {
 import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 import Modal from "../../../components/ui/Modal";
-
+import { getApiMessage, handleApiError } from "../../../Utilities/apiMessage";
+import Swal from "sweetalert2";
 const ITEMS_PER_PAGE = 10;
 
 const TheaterManagement = () => {
@@ -56,21 +57,75 @@ const TheaterManagement = () => {
   };
 
   const handleDelete = (theaterId) => {
-    setConfirmModal({ open: true, type: "deleteTheater", id: theaterId });
+    // setConfirmModal({ open: true, type: "deleteTheater", id: theaterId });
+    Swal.fire({
+      title: "Bạn có chắc chắn muốn xóa rạp chiếu này không?",
+      text: "Hành động này không thể hoàn tác!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Xóa",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        deleteCinema.mutate(theaterId, {
+          onSuccess: (response) => {
+            if (response?.data?.status === false) {
+              Swal.fire(
+                "Thất bại!",
+                response?.data?.message || "Xóa rạp chiếu thất bại",
+                "error"
+              );
+              handleApiError(response.data, "Xóa rạp chiếu thất bại");
+              return;
+            }
+            Swal.fire(
+              "Đã xóa!",
+              response?.data?.message || "Xóa rạp chiếu thành công",
+              "success"
+            );
+            queryClient.invalidateQueries({ queryKey: ["GetAllCinemasAPI"] });
+          },
+          onError: (error) => {
+            Swal.fire(
+              "Thất bại!",
+              getApiMessage(error, "Xóa rạp chiếu thất bại"),
+              "error"
+            );
+          },
+        });
+      }
+    });
   };
 
   const handleAddOrUpdateTheater = (theaterData) => {
     if (theaterData) {
       // Lấy id từ FormData nếu là FormData, hoặc từ object nếu là object
-      let cinemaId = theaterData.get ? theaterData.get('cinema_id') : theaterData.cinema_id;
-      console.log('[TheaterManagement] handleAddOrUpdateTheater - cinemaId:', cinemaId);
-      console.log('[TheaterManagement] handleAddOrUpdateTheater - theaterData:', theaterData);
+      let cinemaId = theaterData.get
+        ? theaterData.get("cinema_id")
+        : theaterData.cinema_id;
+      console.log(
+        "[TheaterManagement] handleAddOrUpdateTheater - cinemaId:",
+        cinemaId
+      );
+      console.log(
+        "[TheaterManagement] handleAddOrUpdateTheater - theaterData:",
+        theaterData
+      );
       if (cinemaId) {
-        console.log(`[TheaterManagement] Gọi updateCinema với endpoint: /cinema/${cinemaId}`);
+        console.log(
+          `[TheaterManagement] Gọi updateCinema với endpoint: /cinema/${cinemaId}`
+        );
         updateCinema.mutate(
           { cinemaId: cinemaId, cinemaData: theaterData },
           {
-            onSuccess: () => {
+            onSuccess: (response) => {
+              // Đổi tên 'data' thành 'response'
+              if (response?.data?.status === false) {
+                //
+                console.log("API Response:", response);
+                // Gọi handleApiError tương tự cho cập nhật nếu API trả về lỗi nghiệp vụ
+                handleApiError(response.data, "Cập nhật rạp chiếu thất bại"); //
+                return;
+              }
               toast.success("Cập nhật rạp chiếu thành công!");
               setIsFormVisible(false);
               setEditingTheater(null);
@@ -80,16 +135,28 @@ const TheaterManagement = () => {
               queryClient.invalidateQueries({ queryKey: ["GetAllCinemasAPI"] });
             },
             onError: (error) => {
-              toast.error("Cập nhật rạp chiếu thất bại: " + error.message);
+              toast.error(getApiMessage(error, "Không thể cập nhật rạp chiếu"));
             },
           }
         );
       } else {
-        console.log('[TheaterManagement] Gọi createCinema');
+        console.log("[TheaterManagement] Gọi createCinema");
         // Create new theater
         createCinema.mutate(theaterData, {
-          onSuccess: () => {
-            toast.success("Thêm rạp chiếu thành công!");
+          onSuccess: (response) => {
+            // Đổi tên 'data' thành 'response' cho rõ ràng
+            // Kiểm tra lỗi nghiệp vụ từ phản hồi của server
+            // Dựa vào hình ảnh bạn cung cấp, lỗi nghiệp vụ có data.status === false
+            // và data.code (ví dụ 500) nằm trong response.data
+            if (response?.data?.status === false) {
+              //
+              console.log("API Response:", response);
+              // GỌI HÀM handleApiError VỚI response.data
+              // response.data chính là payload lỗi nghiệp vụ: { code: 500, message: "...", status: false, ... }
+              handleApiError(response.data, "Thêm rạp mới thất bại"); //
+              return; // Dừng lại vì đã xử lý lỗi
+            }
+            toast.success(response.message, "Thêm rạp chiếu11 thành công!");
             setIsFormVisible(false);
             setSelectedCinemaIdForRooms(null);
             setIsRoomFormVisible(false);
@@ -97,7 +164,7 @@ const TheaterManagement = () => {
             queryClient.invalidateQueries({ queryKey: ["GetAllCinemasAPI"] });
           },
           onError: (error) => {
-            toast.error("Thêm rạp chiếu thất bại: " + error.message);
+            toast.error(getApiMessage(error, "Không thể thêm rạp mới"));
           },
         });
       }
@@ -139,8 +206,23 @@ const TheaterManagement = () => {
           roomData: { ...roomData, cinema_id: selectedCinemaIdForRooms },
         },
         {
-          onSuccess: () => {
-            toast.success("Cập nhật phòng chiếu thành công!");
+          onSuccess: (response) => {
+            // Đổi tên 'data' thành 'response' cho rõ ràng
+            // Kiểm tra lỗi nghiệp vụ từ phản hồi của server
+            // Dựa vào hình ảnh bạn cung cấp, lỗi nghiệp vụ có data.status === false
+            // và data.code (ví dụ 500) nằm trong response.data
+            if (response?.data?.status === false) {
+              //
+              console.log("API Response:", response);
+              // GỌI HÀM handleApiError VỚI response.data
+              // response.data chính là payload lỗi nghiệp vụ: { code: 500, message: "...", status: false, ... }
+              handleApiError(
+                response.data,
+                "Cập nhật phòng chiếu mới thất bại"
+              ); //
+              return; // Dừng lại vì đã xử lý lỗi
+            }
+            toast.success(response.message, "Cập nhật phòng chiếu thành công!");
             setIsRoomFormVisible(false);
             setEditingRoom(null);
             queryClient.invalidateQueries({
@@ -151,7 +233,9 @@ const TheaterManagement = () => {
             });
           },
           onError: (error) => {
-            toast.error("Cập nhật phòng chiếu thất bại: " + error.message);
+            toast.error(
+              getApiMessage(error, "Không thể cập nhật phòng chiếu mới")
+            );
           },
         }
       );
@@ -160,7 +244,19 @@ const TheaterManagement = () => {
       createRoom.mutate(
         { ...roomData, cinema_id: selectedCinemaIdForRooms },
         {
-          onSuccess: () => {
+          onSuccess: (response) => {
+            // Đổi tên 'data' thành 'response' cho rõ ràng
+            // Kiểm tra lỗi nghiệp vụ từ phản hồi của server
+            // Dựa vào hình ảnh bạn cung cấp, lỗi nghiệp vụ có data.status === false
+            // và data.code (ví dụ 500) nằm trong response.data
+            if (response?.data?.status === false) {
+              //
+              console.log("API Response:", response);
+              // GỌI HÀM handleApiError VỚI response.data
+              // response.data chính là payload lỗi nghiệp vụ: { code: 500, message: "...", status: false, ... }
+              handleApiError(response.data, "Thêm phòng chiếu mới thất bại"); //
+              return; // Dừng lại vì đã xử lý lỗi
+            }
             toast.success("Thêm phòng chiếu thành công!");
             setIsRoomFormVisible(false);
             queryClient.invalidateQueries({
@@ -171,7 +267,7 @@ const TheaterManagement = () => {
             });
           },
           onError: (error) => {
-            toast.error("Thêm phòng chiếu thất bại: " + error.message);
+            toast.error(getApiMessage(error, "Không thể thêm phòng chiếu mới"));
           },
         }
       );
@@ -194,36 +290,72 @@ const TheaterManagement = () => {
   const handleConfirmAction = () => {
     if (confirmModal.type === "deleteRoom") {
       deleteRoom.mutate(confirmModal.id, {
-        onSuccess: () => {
+        onSuccess: (response) => {
+          // Đổi tên 'data' thành 'response' cho rõ ràng
+          // Kiểm tra lỗi nghiệp vụ từ phản hồi của server
+          // Dựa vào hình ảnh bạn cung cấp, lỗi nghiệp vụ có data.status === false
+          // và data.code (ví dụ 500) nằm trong response.data
+          if (response?.data?.status === false) {
+            //
+            console.log("API Response:", response);
+            // GỌI HÀM handleApiError VỚI response.data
+            // response.data chính là payload lỗi nghiệp vụ: { code: 500, message: "...", status: false, ... }
+            handleApiError(response.data, "Xóa phòng chiếu thất bại"); //
+            return; // Dừng lại vì đã xử lý lỗi
+          }
           toast.success("Xóa phòng chiếu thành công!");
           queryClient.invalidateQueries({
             queryKey: ["GetTheaterRoomsByCinemaAPI", selectedCinemaIdForRooms],
           });
         },
         onError: (error) => {
-          toast.error("Xóa phòng chiếu thất bại: " + error.message);
+          toast.error(getApiMessage(error, "Không thể xóa phòng chiếu"));
         },
       });
     } else if (confirmModal.type === "restoreRoom") {
       restoreRoom.mutate(confirmModal.id, {
-        onSuccess: () => {
+        onSuccess: (response) => {
+          // Đổi tên 'data' thành 'response' cho rõ ràng
+          // Kiểm tra lỗi nghiệp vụ từ phản hồi của server
+          // Dựa vào hình ảnh bạn cung cấp, lỗi nghiệp vụ có data.status === false
+          // và data.code (ví dụ 500) nằm trong response.data
+          if (response?.data?.status === false) {
+            //
+            console.log("API Response:", response);
+            // GỌI HÀM handleApiError VỚI response.data
+            // response.data chính là payload lỗi nghiệp vụ: { code: 500, message: "...", status: false, ... }
+            handleApiError(response.data, "Khôi phục phòng chiếu thất bại"); //
+            return; // Dừng lại vì đã xử lý lỗi
+          }
           toast.success("Khôi phục phòng chiếu thành công!");
           queryClient.invalidateQueries({
             queryKey: ["GetTheaterRoomsByCinemaAPI", selectedCinemaIdForRooms],
           });
         },
         onError: (error) => {
-          toast.error("Khôi phục phòng chiếu thất bại: " + error.message);
+          toast.error(getApiMessage(error, "Không thể khôi phục phòng chiếu"));
         },
       });
     } else if (confirmModal.type === "deleteTheater") {
       deleteCinema.mutate(confirmModal.id, {
-        onSuccess: () => {
-          toast.success("Xóa rạp chiếu thành công!");
+        onSuccess: (response) => {
+          // Đổi tên 'data' thành 'response' cho rõ ràng
+          // Kiểm tra lỗi nghiệp vụ từ phản hồi của server
+          // Dựa vào hình ảnh bạn cung cấp, lỗi nghiệp vụ có data.status === false
+          // và data.code (ví dụ 500) nằm trong response.data
+          if (response?.data?.status === false) {
+            //
+            console.log("API Response:", response);
+            // GỌI HÀM handleApiError VỚI response.data
+            // response.data chính là payload lỗi nghiệp vụ: { code: 500, message: "...", status: false, ... }
+            handleApiError(response.data, "Xóa rạp chiếu thất bại"); //
+            return; // Dừng lại vì đã xử lý lỗi
+          }
+          toast.success(response.message, "Xóa rạp chiếu thành công!");
           queryClient.invalidateQueries({ queryKey: ["GetAllCinemasAPI"] });
         },
         onError: (error) => {
-          toast.error("Xóa rạp chiếu thất bại: " + error.message);
+          toast.error(getApiMessage(error, "Không thể xóa phòng chiếu"));
         },
       });
     }

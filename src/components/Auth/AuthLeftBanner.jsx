@@ -2,7 +2,7 @@ import React from "react";
 
 const AuthLeftBanner = ({ image, children }) => (
   <div
-    className="w-1/2 flex flex-col justify-center items-center"
+    className="hidden w-1/2 lg:flex flex-col justify-center items-center"
     style={{ backgroundColor: "var(--color-primary)" }}
   >
     <img

@@ -36,7 +36,7 @@ const UserManagement = () => {
   const deleteUser = useDeleteUserUS();
 
   // Đã sửa đổi để truy cập đúng mảng dữ liệu người dùng
-  const users = usersData?.data?.users || [];
+  const users = usersData?.data || [];
 
   // Kiểm tra xem users có phải là một mảng không
   if (!Array.isArray(users)) {
@@ -71,12 +71,13 @@ const UserManagement = () => {
 
   // Trong UserManagement.jsx
   const handleAddOrUpdateUser = (formDataFromUserForm) => {
-    // Đổi tên tham số cho rõ ràng để tránh nhầm lẫn
     if (formDataFromUserForm) {
-      // Lấy user_id từ đối tượng FormData bằng phương thức .get()
       const userId = formDataFromUserForm.get("user_id");
-
-      // Kiểm tra nếu userId tồn tại (không null, undefined, hoặc chuỗi rỗng)
+      console.log("[UserManagement] userId khi submit:", userId);
+      console.log(
+        "[UserManagement] formDataFromUserForm:",
+        formDataFromUserForm
+      );
       if (userId) {
         updateUser.mutate(
           { userId: userId, userData: formDataFromUserForm }, // Truyền userId riêng và FormData đầy đủ

@@ -10,8 +10,8 @@ import { useGetUserPromotionsUS } from "../../api/homePage/queries";
 
 function PromotionSection() {
   const { data, isLoading, isError } = useGetUserPromotionsUS();
-  const promotions = Array.isArray(data?.data) ? data.data : [];
-
+  const promotions = Array.isArray(data) ? data : [];
+  console.log("Khuyến mãi: ", promotions);
   return (
     <section className="max-w-screen-xl w-full mx-auto py-10 px-4 sm:px-6 lg:px-8">
       <h2 className="text-xl font-bold mb-6 border-l-4 border-orange-500 pl-3">

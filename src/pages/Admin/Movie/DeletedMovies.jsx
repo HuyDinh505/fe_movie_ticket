@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 import { FaSearch } from "react-icons/fa";
 import Modal from "../../../components/ui/Modal";
 import MovieDetailModalContent from "../../../components/ui/MovieDetailModalContent";
-
+import { getApiMessage, handleApiError } from "../../../Utilities/apiMessage";
 const ITEMS_PER_PAGE = 10;
 
 const DeletedMovies = () => {
@@ -37,14 +37,25 @@ const DeletedMovies = () => {
   // Restore movie mutation using the new authenticated hook
   const { mutate: restoreMovieMutation, isLoading: isRestoring } =
     useRestoreMovieUS({
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["getDeletedMoviesAPI"] });
-        toast.success("Khôi phục phim thành công!");
+      onSuccess: (response) => {
+        // Đổi tên 'data' thành 'response' cho rõ ràng
+        // Kiểm tra lỗi nghiệp vụ từ phản hồi của server (nếu API trả về HTTP 200 nhưng có lỗi)
+        // Dựa trên cách bạn xử lý ở ConcessionManagement.jsx, tôi giả định cấu trúc này
+        if (response?.data?.status === false) {
+          // console.log("API Restore Response (Business Error):", response);
+          handleApiError(response.data, "Khôi phục phim thất bại");
+          // Không reset state ngay lập tức nếu có lỗi nghiệp vụ để người dùng có thể thấy thông báo
+          // và quyết định hành động tiếp theo. Có thể reset sau 1 thời gian.
+          // setShowConfirmModal(false);
+          // setSelectedConcessionId(null);
+          // setSelectedConcessionName("");
+          return;
+        }
+        toast.success(response.message);
+        queryClient.invalidateQueries({ queryKey: ["GetDeletedMoviesAPI"] }); // Đảm bảo key đúng!
       },
       onError: (error) => {
-        toast.error(
-          error.response?.data?.message || "Khôi phục phim thất bại!"
-        );
+        toast.error(getApiMessage(error, "Không thể khôi phục đồ ăn/uống"));
       },
     });
   const handleRestoreMovie = (id) => {

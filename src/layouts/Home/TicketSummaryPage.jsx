@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import TicketSummary from "../../components/ui/TicketSummary";
 
-const TICKET_SUMMARY_HEIGHT = 100; // px, chỉnh đúng chiều cao thực tế
+const TICKET_SUMMARY_HEIGHT = 122; // px, chỉnh đúng chiều cao thực tế
 
 const TicketSummaryPage = ({
   showtime,
@@ -66,7 +66,7 @@ const TicketSummaryPage = ({
 
   return (
     <div
-      className={`left-0 right-0 bg-white shadow-lg z-50 transition-transform duration-300 ease-in-out
+      className={`left-0 right-0 bg-[#006666] shadow-lg z-50 transition-transform duration-300 ease-in-out
         ${isAboveFooter ? "absolute" : "fixed"} bottom-0`}
       style={
         isAboveFooter && footerRef?.current

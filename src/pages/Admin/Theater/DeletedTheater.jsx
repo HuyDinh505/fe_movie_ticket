@@ -7,33 +7,35 @@ import {
   useGetDeletedCinemasUS,
   useRestoreCinemaUS,
 } from "../../../api/homePage/queries";
+import Modal from "../../../components/ui/Modal";
 
 const ITEMS_PER_PAGE = 10;
 
 const DeletedTheater = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [confirmRestore, setConfirmRestore] = useState({ open: false, cinemaId: null });
 
   const queryClient = useQueryClient();
   const { data: deletedCinemasData, isLoading } = useGetDeletedCinemasUS();
   const restoreCinema = useRestoreCinemaUS();
 
-  const handleRestore = (cinemaId) => {
-    const confirmed = window.confirm(
-      "Bạn có chắc chắn muốn khôi phục rạp chiếu này không?"
-    );
-    if (confirmed) {
-      restoreCinema.mutate(cinemaId, {
-        onSuccess: () => {
-          toast.success("Khôi phục rạp chiếu thành công!");
-          queryClient.invalidateQueries({ queryKey: ["GetDeletedCinemasAPI"] });
-          queryClient.invalidateQueries({ queryKey: ["GetAllCinemasAPI"] });
-        },
-        onError: (error) => {
-          toast.error("Khôi phục rạp chiếu thất bại: " + error.message);
-        },
-      });
-    }
+  const handleAskRestore = (cinemaId) => {
+    setConfirmRestore({ open: true, cinemaId });
+  };
+
+  const handleConfirmRestore = () => {
+    restoreCinema.mutate(confirmRestore.cinemaId, {
+      onSuccess: () => {
+        toast.success("Khôi phục rạp chiếu thành công!");
+        queryClient.invalidateQueries({ queryKey: ["GetDeletedCinemasAPI"] });
+        queryClient.invalidateQueries({ queryKey: ["GetAllCinemasAPI"] });
+      },
+      onError: (error) => {
+        toast.error("Khôi phục rạp chiếu thất bại: " + error.message);
+      },
+    });
+    setConfirmRestore({ open: false, cinemaId: null });
   };
 
   const filteredCinemas = Array.isArray(deletedCinemasData?.data)
@@ -62,7 +64,6 @@ const DeletedTheater = () => {
           Rạp chiếu đã xóa mềm
         </h1>
       </div>
-
       <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-3">
@@ -77,17 +78,15 @@ const DeletedTheater = () => {
           </div>
         </div>
       </div>
-
       <div className="w-full pt-6">
         <div className="bg-white rounded-xl shadow-lg overflow-auto">
           <TheaterTable
             theaters={paginatedCinemas}
             onEdit={() => {}}
-            onDelete={handleRestore}
+            onDelete={handleAskRestore}
             loading={isLoading}
             isDeletedView={true}
           />
-
           {totalPages > 1 && (
             <div className="flex justify-center items-center space-x-2 py-4 border-t">
               <button
@@ -121,6 +120,29 @@ const DeletedTheater = () => {
           )}
         </div>
       </div>
+      <Modal
+        open={confirmRestore.open}
+        onClose={() => setConfirmRestore({ open: false, cinemaId: null })}
+      >
+        <div className="p-4">
+          <h2 className="text-lg font-semibold mb-4">Xác nhận khôi phục rạp chiếu</h2>
+          <p>Bạn có chắc chắn muốn khôi phục rạp chiếu này không?</p>
+          <div className="flex justify-end gap-2 mt-6">
+            <button
+              onClick={() => setConfirmRestore({ open: false, cinemaId: null })}
+              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            >
+              Hủy
+            </button>
+            <button
+              onClick={handleConfirmRestore}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            >
+              Khôi phục
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

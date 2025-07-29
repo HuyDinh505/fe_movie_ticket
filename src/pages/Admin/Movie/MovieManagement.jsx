@@ -15,7 +15,7 @@ import Modal from "../../../components/ui/Modal";
 import MovieDetailModalContent from "../../../components/ui/MovieDetailModalContent";
 import ModalPhim from "../../../components/ui/Modal_phim";
 import { AuthContext } from "../../../contexts/AuthContext";
-
+import { getApiMessage, handleApiError } from "../../../Utilities/apiMessage";
 const ITEMS_PER_PAGE = 10;
 
 const MovieManagement = () => {
@@ -69,40 +69,45 @@ const MovieManagement = () => {
     role === "district_manager" ? fetchManagedMovies : fetchAllMovies;
 
   const { mutate: createMovie, isLoading: isCreating } = useCreatePhimUS({
-    onSuccess: (data) => {
-      if (data?.status === false) {
-        toast.error(data?.message || "Thêm phim mới thất bại");
+    onSuccess: (response) => {
+      if (response?.data?.status === false) {
+        console.log("API Response:", response);
+        handleApiError(response.data, "Thêm phim mới thất bại");
         return;
       }
-      toast.success("Thêm phim mới thành công");
+      handleApiError(response.data, "Thêm phim mới mới thất bại");
       setIsFormVisible(false);
       fetchMovies();
     },
     onError: (error) => {
-      toast.error(error.message || "Không thể thêm phim mới");
+      toast.error(getApiMessage(error, "Không thể thêm phim mới"));
     },
   });
 
   const { mutate: updateMovie, isLoading: isUpdating } = useUpdatePhimUS({
-    onSuccess: (data) => {
-      if (data?.status === false) {
-        toast.error(data?.message || "Cập nhật phim thất bại");
+    onSuccess: (response) => {
+      if (response?.data?.status === false) {
+        handleApiError(response.data, "Cập nhật phim thất bại");
         return;
       }
-      toast.success("Cập nhật phim thành công");
+      handleApiError(response.data, "Cập nhật phim thành công");
       setIsFormVisible(false);
       fetchMovies();
     },
     onError: (error) => {
-      toast.error(
-        `Không thể cập nhật phim: ${error.message || "Lỗi không xác định"}`
-      );
+      toast.error(getApiMessage(error, "Không thể cập nhật phim"));
     },
   });
 
   const { mutate: deleteMovie, isLoading: isDeleting } = useDeletePhimUS({
-    onSuccess: () => {
-      toast.success("Xóa phim thành công");
+    onSuccess: (response) => {
+      console.log("API Response:", response);
+      if (response?.data?.status === false) {
+        console.log("API Response:", response);
+        handleApiError(response.data, "Xóa phim thất bại");
+        return;
+      }
+      toast.success(response.data.message || "Cập nhật phim thành công");
       fetchMovies();
     },
     onError: (error) => {

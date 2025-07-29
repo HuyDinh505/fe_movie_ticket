@@ -38,18 +38,14 @@ const QuickBookingSection = () => {
     }),
     menu: (provided) => ({
       ...provided,
-      width: "200px", // Đảm bảo menu dropdown cũng giữ chiều rộng cố định
+      width: "100%", // Đảm bảo menu dropdown cũng giữ chiều rộng cố định
       zIndex: 100,
       position: "absolute",
     }),
     menuPortal: (base) => ({ ...base, zIndex: 9999 }),
   };
 
-  const {
-    data: moviesData,
-    isLoading: isLoadingMovies,
-    error: errorMovies,
-  } = useGetPhimUS();
+  const { data: moviesData, isLoading: isLoadingMovies } = useGetPhimUS();
   const movies = moviesData?.data?.movies || [];
 
   const [selectedMovie, setSelectedMovie] = useState(null);
@@ -182,14 +178,15 @@ const QuickBookingSection = () => {
 
   return (
     <div className="w-full max-w-screen-xl mx-auto bg-white p-2 sm:p-4 shadow-md rounded-lg flex flex-col gap-3 sm:gap-4">
-      <div className="flex flex-col md:flex-row gap-3 md:gap-4 w-full">
+      <div className="flex flex-col lg:flex-row gap-3 lg:gap-4 w-full">
         {/* Step 1 */}
         <div className="flex items-center gap-2 w-full">
-          <span className="text-black bg-yellow-300 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-2">
+          <span className="text-white bg-[var(--color-header-bg)] rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0">
             1
           </span>
           <div className="flex-grow">
             <Select
+              classNamePrefix="react-select"
               ref={movieSelectRef}
               inputId="select-movie"
               styles={{
@@ -213,11 +210,12 @@ const QuickBookingSection = () => {
         </div>
         {/* Step 2 */}
         <div className="flex items-center gap-2 w-full">
-          <span className="text-black bg-yellow-300 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-2">
+          <span className="text-white bg-[var(--color-header-bg)] rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0">
             2
           </span>
           <div className="flex-grow">
             <Select
+              classNamePrefix="react-select"
               ref={cinemaSelectRef}
               inputId="select-cinema"
               styles={{
@@ -242,11 +240,12 @@ const QuickBookingSection = () => {
         </div>
         {/* Step 3 */}
         <div className="flex items-center gap-2 w-full">
-          <span className="text-black bg-yellow-300 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-2">
+          <span className="text-white bg-[var(--color-header-bg)] rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0">
             3
           </span>
           <div className="flex-grow">
             <Select
+              classNamePrefix="react-select"
               ref={dateSelectRef}
               inputId="select-date"
               styles={{
@@ -271,11 +270,12 @@ const QuickBookingSection = () => {
         </div>
         {/* Step 4 */}
         <div className="flex items-center gap-2 w-full">
-          <span className="text-black bg-yellow-300 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-2">
+          <span className="text-white bg-[var(--color-header-bg)] rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0">
             4
           </span>
           <div className="flex-grow">
             <Select
+              classNamePrefix="react-select"
               ref={showtimeSelectRef}
               inputId="select-showtime"
               styles={{
@@ -306,7 +306,9 @@ const QuickBookingSection = () => {
               : "cursor-not-allowed opacity-50"
           }`}
           style={{
-            backgroundColor: selectedShowtime ? "var(--color-primary)" : "#ccc",
+            backgroundColor: selectedShowtime
+              ? "var(--color-header-bg)"
+              : "#ccc",
             color: selectedShowtime ? "black" : "#666",
           }}
           onMouseEnter={(e) => {
@@ -317,7 +319,7 @@ const QuickBookingSection = () => {
           }}
           onMouseLeave={(e) => {
             if (selectedShowtime) {
-              e.target.style.backgroundColor = "var(--color-primary)";
+              e.target.style.backgroundColor = "var(--color-header-bg)";
               e.target.style.color = "black";
             }
           }}

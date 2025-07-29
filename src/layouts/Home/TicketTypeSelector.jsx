@@ -60,7 +60,9 @@ function TicketTypeSelector({ onTicketSelect, selectedTickets }) {
       if (newCount < 0) return prev.map((c, i) => (i === index ? 0 : c));
       // Nếu tăng vượt quá 10 cho 1 loại vé, cũng không cho phép
       if (newCount > MAX_TOTAL_TICKETS) {
-        toast.error(`Bạn chỉ được chọn tối đa ${MAX_TOTAL_TICKETS} vé cho mỗi loại!`);
+        toast.error(
+          `Bạn chỉ được chọn tối đa ${MAX_TOTAL_TICKETS} vé cho mỗi loại!`
+        );
         return prev;
       }
       // Nếu tổng vượt quá 10 sau khi tăng, không cho phép
@@ -75,7 +77,7 @@ function TicketTypeSelector({ onTicketSelect, selectedTickets }) {
   if (isLoading) {
     return (
       <section className="max-w-screen-xl mx-auto sm:px-6 md:px-8 lg:px-10 sm:py-8 md:py-10">
-        <h2 className="text-center text-xl sm:text-2xl font-bold text-orange-400 mb-6">
+        <h2 className="text-center text-xl sm:text-2xl font-bold text-[var-(--color-text-showtime)] mb-6">
           CHỌN LOẠI VÉ
         </h2>
         <div className="text-center">Đang tải danh sách loại vé...</div>
@@ -88,7 +90,7 @@ function TicketTypeSelector({ onTicketSelect, selectedTickets }) {
     toast.error(getApiMessage(error, "Lỗi khi tải danh sách loại vé!"));
     return (
       <section className="max-w-screen-xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 sm:py-8 md:py-10">
-        <h2 className="text-center text-xl sm:text-2xl font-bold text-orange-400 mb-6">
+        <h2 className="text-center text-xl sm:text-2xl font-bold text-[var-(--color-text-showtime)] mb-6">
           CHỌN LOẠI VÉ
         </h2>
         <div className="text-center text-red-500">
@@ -103,7 +105,7 @@ function TicketTypeSelector({ onTicketSelect, selectedTickets }) {
     toast.error(getApiMessage(null, "Không có loại vé nào khả dụng!"));
     return (
       <section className="max-w-screen-xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 sm:py-8 md:py-10">
-        <h2 className="text-center text-xl sm:text-2xl font-bold text-orange-400 mb-6">
+        <h2 className="text-center text-xl sm:text-2xl font-bold text-[var-(--color-text-showtime)] mb-6">
           CHỌN LOẠI VÉ
         </h2>
         <div className="text-center">Không có loại vé nào khả dụng</div>
@@ -114,8 +116,8 @@ function TicketTypeSelector({ onTicketSelect, selectedTickets }) {
   return (
     <section className="max-w-screen-xl mx-auto sm:px-6 md:px-8 lg:px-10 pt-2 pb-6 sm:pt-2 sm:pb-8 md:pt-2 md:pb-10">
       <h2
-        className="text-center text-xl sm:text-2xl font-bold mb-6"
-        style={{ color: "var(--color-text)" }}
+        className="text-center text-xl sm:text-2xl font-bold mb-6 text-[var-(--color-text-showtime)]"
+        style={{ color: "var(--color-text-showtime)" }}
       >
         CHỌN LOẠI VÉ
       </h2>
@@ -123,7 +125,7 @@ function TicketTypeSelector({ onTicketSelect, selectedTickets }) {
         {ticketTypes.map((ticket, index) => (
           <div
             key={ticket.ticket_type_id}
-            className="border border-orange-300 p-4 rounded text-center w-full sm:w-[calc(50%-0.5rem)] md:w-[calc(33.33%-0.66rem)] lg:w-[calc(25%-0.75rem)]"
+            className="border border-[var(--color-showtime-bg)] p-4 rounded text-center w-full sm:w-[calc(50%-0.5rem)] md:w-[calc(33.33%-0.66rem)] lg:w-[calc(25%-0.75rem)]"
           >
             <h4 className="font-bold">{ticket.ticket_type_name}</h4>
             <p className="font-semibold mb-3">

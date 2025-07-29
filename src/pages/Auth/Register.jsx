@@ -226,7 +226,7 @@ function RegisterPage() {
         pauseOnHover
         theme="light"
       />
-      <div className="flex w-[60%] bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div className="flex lg:w-[60%] bg-white rounded-2xl shadow-lg overflow-hidden">
         {isLoading || movies.length === 0 ? (
           <div
             className="w-1/2 flex items-center justify-center"
@@ -239,7 +239,7 @@ function RegisterPage() {
         ) : (
           <AuthLeftBanner image={currentPoster} />
         )}
-        <div className="w-1/2 flex flex-col justify-center p-16">
+        <div className="lg:w-1/2 flex flex-col justify-center p-16">
           <h2
             className="text-4xl font-bold mb-8 text-center"
             style={{ color: "var(--color-blue)" }}
@@ -493,7 +493,7 @@ function RegisterPage() {
                 className="text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full cursor-pointer"
                 style={{
                   backgroundColor: "var(--color-primary)",
-                  color: "black",
+                  color: "white",
                 }}
                 onMouseEnter={(e) => {
                   if (!loading) {
@@ -504,7 +504,7 @@ function RegisterPage() {
                 onMouseLeave={(e) => {
                   if (!loading) {
                     e.target.style.backgroundColor = "var(--color-primary)";
-                    e.target.style.color = "black";
+                    e.target.style.color = "white";
                   }
                 }}
                 type="submit"
@@ -514,14 +514,14 @@ function RegisterPage() {
               </button>
             </div>
             {/* Quên mật khẩu */}
-            <div className="text-center mb-4">
+            {/* <div className="text-center mb-4">
               <a
                 className="inline-block align-baseline font-bold text-sm"
                 style={{
-                  color: "var(--color-hover)",
+                  color: "text-black",
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.color = "var(--color-primary)";
+                  e.target.style.color = "text-black";
                 }}
                 onMouseLeave={(e) => {
                   e.target.style.color = "var(--color-hover)";
@@ -530,7 +530,7 @@ function RegisterPage() {
               >
                 Quên mật khẩu?
               </a>
-            </div>
+            </div> */}
             {/* Link đăng nhập */}
             <div className="text-center text-sm text-gray-600 mb-4">
               Bạn đã có tài khoản?
@@ -540,9 +540,9 @@ function RegisterPage() {
                 to="/login"
                 className="inline-block text-center bg-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
                 style={{
-                  color: "var(--color-hover)",
-                  borderColor: "var(--color-hover)",
-                  border: "2px solid var(--color-hover)",
+                  color: "var(--color-text)",
+                  borderColor: "var(--color-border)",
+                  border: "2px solid var(--color-border)",
                 }}
                 onMouseEnter={(e) => {
                   e.target.style.backgroundColor = "var(--color-hover)";

@@ -17,8 +17,10 @@ import AccountPage from "./pages/AccountPage";
 import UserManagement from "./pages/Admin/User/UserManagement";
 import ShowtimeManagement from "./pages/Admin/Showtimes/ShowtimeManagement";
 import TheaterManagement from "./pages/Admin/Theater/TheaterManagement";
+// import TheaterRoomsManagement from "./pages/Admin/Theater/TheaterRoomsManagement";
+// import TheaterReports from "./pages/Admin/Theater/TheaterReports";
 // import TheaterForm from "./components/admin/TheaterForm";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import GenreManagement from "./pages/Admin/Genre/GenreManagement";
 import DeletedTheater from "./pages/Admin/Theater/DeletedTheater";
@@ -27,9 +29,9 @@ import TicketOrder from "./pages/Admin/TicketOrder";
 import ConcessionManagement from "./pages/Admin/Concession/ConcessionManagement";
 import PromotionManagement from "./pages/Admin/Promotion/PromotionManagement";
 import ArticlesManagement from "./pages/Admin/ArticlesManagement";
-import Dashboard from "./pages/Dashboard/Dashboard";
-import MovieRevenueByDate from "./pages/Dashboard/MovieRevenueByDate";
-import TheaterRevenueByDate from "./pages/Dashboard/TheaterRevenueByDate";
+import Dashboard from "./pages/Admin/Dashboard/Dashboard";
+import MovieRevenueByDate from "./pages/Admin/Dashboard/MovieRevenueByDate";
+import TheaterRevenueByDate from "./pages/Admin/Dashboard/TheaterRevenueByDate";
 import ScrollToTop from "./components/ui/ScrollToTop";
 import BlogListPage from "./pages/Blog/BlogListPage";
 import BlogDetailPage from "./pages/Blog/BlogDetailPage";
@@ -49,12 +51,19 @@ import DeleteTicketType from "./pages/Admin/TicketType/DeleteTicketType";
 // import ConcessionManagement from "./pages/Admin/ConcessionManagement";
 import PromotionDetail from "./pages/Promotion";
 import React from "react";
+import TheaterRoomsManagement from "./pages/Admin/Room/TheaterRoomsManagement";
 
 function App() {
   const location = useLocation();
+
+  // Debug logs để kiểm tra routing
+  // console.log("App.jsx - Current location:", location.pathname);
+  // console.log("App.jsx - Current search:", location.search);
+
   // Reset toast khi chuyển trang
   React.useEffect(() => {
-    toast.dismiss();
+    console.log("App.jsx - Route changed to:", location.pathname);
+    // toast.dismiss();
   }, [location.pathname]);
 
   return (
@@ -108,6 +117,8 @@ function App() {
             <Route path="user" element={<UserManagement />} />
             <Route path="showtime" element={<ShowtimeManagement />} />
             <Route path="theater" element={<TheaterManagement />} />
+            {/* <Route path="theater_rooms" element={<TheaterRoomsManagement />} /> */}
+            {/* <Route path="theater_reports" element={<TheaterReports />} /> */}
             <Route path="delete_cinema" element={<DeletedTheater />} />
             <Route path="genre" element={<GenreManagement />} />
             <Route path="genre_delete" element={<DeleteGenre />} />
@@ -135,7 +146,14 @@ function App() {
             path="/manage"
             element={
               <ProtectedRoute
-                allowedRoles={["showtime_manager", "booking_manager", "admin"]}
+                allowedRoles={[
+                  "showtime_manager",
+                  "booking_manager",
+                  "order_manager",
+                  "ticket_manager",
+                  "cinema_manager",
+                  "admin",
+                ]}
               >
                 <ManageLayout />
               </ProtectedRoute>
@@ -143,7 +161,7 @@ function App() {
           >
             <Route
               index
-              element={<Navigate to="/manage/dashboard" replace />}
+              element={<Navigate to="/manage/ticket_order" replace />}
             />
 
             {/* Dashboard Routes */}
@@ -167,6 +185,8 @@ function App() {
               element={<ShowtimeManagement />}
             />
             <Route path="theater" element={<TheaterManagement />} />
+            <Route path="theater_rooms" element={<TheaterRoomsManagement />} />
+            {/* <Route path="theater_reports" element={<TheaterReports />} /> */}
 
             {/* Shared Routes for both roles */}
             <Route path="movies" element={<MovieManagement />} />
@@ -194,6 +214,7 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="theater" element={<TheaterManagement />} />
             <Route path="movies" element={<MovieManagement />} />
+            <Route path="user" element={<UserManagement />} />
             <Route path="showtime" element={<ShowtimeManagement />} />
             <Route path="genre" element={<GenreManagement />} />
             <Route path="genre_delete" element={<DeleteGenre />} />
@@ -239,7 +260,7 @@ function App() {
       </div>
       <ToastContainer
         position="top-right"
-        autoClose={5000}
+        autoClose={3000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
@@ -247,6 +268,7 @@ function App() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
+        style={{ zIndex: 10001 }}
       />
     </AuthProvider>
   );

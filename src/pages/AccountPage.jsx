@@ -1,15 +1,29 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import UserProfile from "../components/users/UserProfile";
-import { useGetCurrentUserUS } from "../api/homePage";
-import { useUpdateUserUS } from "../api/homePage";
+import { useGetCurrentUserUS, useUpdateUserUS } from "../api/homePage";
 import { useAuth } from "../contexts/AuthContext";
+import { toast } from "react-toastify";
+import { getApiMessage, handleApiError } from "../Utilities/apiMessage";
 
 const AccountPage = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { isLoggedIn } = useAuth();
   const { data: userData, isLoading, error } = useGetCurrentUserUS();
-  const updateUserMutation = useUpdateUserUS();
+  const updateUserMutation = useUpdateUserUS({
+    onSuccess: (data) => {
+      const message = getApiMessage(data, "Cập nhật thông tin thành công!");
+      toast.success(message);
+      // Invalidate and refetch user data
+      queryClient.invalidateQueries({ queryKey: ["GetCurrentUserAPI"] });
+    },
+    onError: (error) => {
+      handleApiError(error, "Có lỗi xảy ra khi cập nhật thông tin!");
+      console.error("Error updating profile:", error);
+    },
+  });
 
   React.useEffect(() => {
     if (!isLoggedIn) {
@@ -24,6 +38,7 @@ const AccountPage = () => {
         userData: formData,
       });
     } catch (error) {
+      // Error handling is done in the mutation's onError callback
       console.error("Error updating profile:", error);
     }
   };
@@ -42,7 +57,18 @@ const AccountPage = () => {
   }
 
   if (error) {
-    return <div className="container mx-auto p-4">Error loading user data</div>;
+    const errorMessage = getApiMessage(
+      error,
+      "Lỗi khi tải thông tin người dùng"
+    );
+    return (
+      <div className="container mx-auto p-4">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <strong className="font-bold">Lỗi!</strong>
+          <span className="block sm:inline"> {errorMessage}</span>
+        </div>
+      </div>
+    );
   }
 
   return (

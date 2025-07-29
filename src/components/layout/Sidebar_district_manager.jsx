@@ -13,13 +13,14 @@ import {
 } from "react-icons/fa";
 import { VscPieChart, VscGraph } from "react-icons/vsc";
 import { useAuth } from "../../contexts/AuthContext";
-import { imagePhim } from "../../Utilities/common";
+// import { imagePhim } from "../../Utilities/common";
 
 const Sidebar_district_manager = () => {
   const navigate = useNavigate();
-  const { userData, logout } = useAuth();
+  // const { userData, logout } = useAuth();
   const [isDashboardDropdownOpen, setIsDashboardDropdownOpen] = useState(false);
   const [isPhimDropdownOpen, setIsPhimDropdownOpen] = useState(false);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isTheaterDropdownOpen, setIsTheaterDropdownOpen] = useState(false);
   const [isShowtimeDropdownOpen, setIsShowtimeDropdownOpen] = useState(false);
   const [isGenreDropdownOpen, setIsGenreDropdownOpen] = useState(false);
@@ -27,13 +28,13 @@ const Sidebar_district_manager = () => {
   const [isPromotionOpen, setIsPromotionDropdownOpen] = useState(false);
   const [isArticlesOpen, setIsArticlesDropdownOpen] = useState(false);
   const [isTicketOpen, setIsTicketDropdownOpen] = useState(false);
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  // const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [ScheduleDropdown, setScheduleDropdown] = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
+  // const handleLogout = () => {
+  //   logout();
+  //   navigate("/login");
+  // };
 
   return (
     <div className="w-64 bg-[#112D4E] text-white h-screen flex flex-col shadow-lg fixed left-0 top-0 p-0 m-0">
@@ -67,6 +68,27 @@ const Sidebar_district_manager = () => {
                     >
                       <VscGraph className="text-sm" />
                       <span>Tổng quan</span>
+                    </li>
+                  </ul>
+                )}
+              </li>
+              {/* Quản lý nhân viên */}
+              <li>
+                <div
+                  className="flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF]"
+                  onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+                >
+                  <span>Quản lý nhân viên</span>
+                  <span>{isUserDropdownOpen ? "▲" : "▼"}</span>
+                </div>
+                {isUserDropdownOpen && (
+                  <ul className="ml-4 mt-2 space-y-2">
+                    <li
+                      className="p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2"
+                      onClick={() => navigate("/district_manager/user")}
+                    >
+                      <FaFilm className="text-sm" />
+                      <span>Danh sách nhân viên</span>
                     </li>
                   </ul>
                 )}
@@ -279,7 +301,7 @@ const Sidebar_district_manager = () => {
       </div>
 
       {/* User Section */}
-      <div className="mt-auto border-t border-[#3F72AF] pt-4 relative">
+      {/* <div className="mt-auto border-t border-[#3F72AF] pt-4 relative">
         <div
           className="flex items-center space-x-3 cursor-pointer p-2 rounded hover:bg-[#3F72AF]"
           onClick={() => setShowUserDropdown((prev) => !prev)}
@@ -307,7 +329,7 @@ const Sidebar_district_manager = () => {
             </button>
           </div>
         )}
-      </div>
+      </div> */}
     </div>
   );
 };

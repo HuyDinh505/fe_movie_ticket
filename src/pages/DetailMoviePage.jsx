@@ -1,9 +1,10 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   useGetMovieWithShowtimesUS,
   useGetDVAnUongUS,
+  useGetCurrentUserUS,
 } from "../api/homePage/queries";
 import MovieDetailPageLayout from "../layouts/Home/MovieDetailPage.jsx";
 import TicketTypeSelector from "../layouts/Home/TicketTypeSelector.jsx";
@@ -11,10 +12,15 @@ import ShowtimeSection from "../layouts/Home/ShowtimeSection.jsx";
 import SeatSelector from "../components/ui/SeatSelector.jsx";
 import ComboSelectorSection from "../layouts/Home/ComboSelectorSection.jsx";
 import TicketSummaryPage from "../layouts/Home/TicketSummaryPage.jsx";
+import AgeRestrictionModal from "../components/ui/AgeRestrictionModal.jsx";
+import { useAgeCalculation } from "../hooks/useAgeCalculation.js";
+import { useAuth } from "../contexts/AuthContext.jsx";
 
 const DetailMoviePage = () => {
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedShowtime, setSelectedShowtime] = useState(null);
   const [selectedTickets, setSelectedTickets] = useState(null);
@@ -22,6 +28,7 @@ const DetailMoviePage = () => {
   const [selectedCombos, setSelectedCombos] = useState({});
   const [refreshKey, setRefreshKey] = useState(0);
   const [seatMap, setSeatMap] = useState([]);
+  const [showAgeRestrictionModal, setShowAgeRestrictionModal] = useState(false);
   const seatSelectorRef = useRef();
 
   useEffect(() => {
@@ -51,14 +58,39 @@ const DetailMoviePage = () => {
   const allCombos = concessionsData?.data?.concessions || [];
   const movie = movieDetailData?.data || null;
 
+  // Lấy thông tin đầy đủ của người dùng hiện tại
+  const { data: currentUserData } = useGetCurrentUserUS();
+  const currentUser = currentUserData?.data || null;
+
+  // Tính tuổi người dùng từ ngày sinh
+  const userAge = useAgeCalculation(currentUser?.birth_date);
+
   const totalTicketsCount = selectedTickets
     ? selectedTickets.reduce((sum, ticket) => sum + ticket.count, 0)
     : 0;
 
-  const handleShowtimeSelect = useCallback((showtime) => {
-    setSelectedShowtime(showtime);
-    setCurrentStep(2);
-  }, []);
+  const handleShowtimeSelect = useCallback(
+    (showtime) => {
+      // Kiểm tra đăng nhập trước
+      if (!isLoggedIn) {
+        toast.info("Vui lòng đăng nhập để đặt vé!");
+        navigate("/login", { state: { from: location.pathname } });
+        return;
+      }
+
+      // Kiểm tra độ tuổi trước khi cho phép chọn suất chiếu
+      if (movie && movie.age_rating && currentUser && userAge !== null) {
+        if (userAge < movie.age_rating) {
+          setShowAgeRestrictionModal(true);
+          return;
+        }
+      }
+
+      setSelectedShowtime(showtime);
+      setCurrentStep(2);
+    },
+    [isLoggedIn, movie, currentUser, userAge, navigate, location.pathname]
+  );
 
   const handleTicketSelect = useCallback((tickets) => {
     setSelectedTickets(tickets);
@@ -164,6 +196,15 @@ const DetailMoviePage = () => {
           <ComboSelectorSection onComboSelect={handleComboSelect} />
         )}
       </div>
+
+      {/* Modal thông báo hạn chế độ tuổi */}
+      <AgeRestrictionModal
+        isOpen={showAgeRestrictionModal}
+        onClose={() => setShowAgeRestrictionModal(false)}
+        movieName={movie?.movie_name || ""}
+        ageRating={movie?.age_rating || 0}
+        userAge={userAge || 0}
+      />
     </>
   );
 };

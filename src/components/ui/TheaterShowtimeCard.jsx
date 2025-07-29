@@ -13,20 +13,20 @@ function TheaterShowtimeCard({
 
   return (
     <div
-      className="rounded p-4 mb-4 w-[66.5%] mx-auto"
-      style={{ backgroundColor: "var(--color-primary)", opacity: 0.7 }}
+      className="rounded p-4 mb-4 w-[80%] mx-auto"
+      style={{ backgroundColor: "var(--color-showtime-bg)", opacity: 0.7 }}
     >
       <div
         className="flex justify-between items-center mb-2 cursor-pointer"
         onClick={onToggle}
       >
         <div>
-          <h4 className="font-semibold">{theater.name}</h4>
-          <p className="text-sm">{theater.address}</p>
+          <h4 className="font-semibold text-white">{theater.name}</h4>
+          <p className="text-sm text-white">{theater.address}</p>
           {theater.room_name && (
-            <p className="text-sm italic">
+            <p className="text-sm italic text-white">
               {theater.room_name}
-              {theater.room_type ? ` (${theater.room_type})` : ''}
+              {theater.room_type ? ` (${theater.room_type})` : ""}
             </p>
           )}
         </div>
@@ -82,26 +82,27 @@ function TheaterShowtimeCard({
                   style={
                     isSelected
                       ? {
-                          backgroundColor: "var(--color-hover)",
+                          backgroundColor: "var(--color-hover-showtime)",
                           color: "white",
-                          borderColor: "var(--color-hover)",
+                          borderColor: "var(--color-hover-showtime)",
                         }
                       : {
                           backgroundColor: "white",
-                          color: "var(--color-hover)",
-                          borderColor: "var(--color-hover)",
+                          color: "var(--color-hover-showtime)",
+                          borderColor: "var(--color-hover-showtime)",
                         }
                   }
                   onMouseEnter={(e) => {
                     if (!isSelected) {
-                      e.target.style.backgroundColor = "#e0e7ff";
-                      e.target.style.color = "var(--color-hover)";
+                      e.target.style.backgroundColor =
+                        "var(--color-hover-showtime)";
+                      e.target.style.color = "var(--color-hover-showtime)";
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isSelected) {
                       e.target.style.backgroundColor = "white";
-                      e.target.style.color = "var(--color-hover)";
+                      e.target.style.color = "var(--color-hover-showtime)";
                     }
                   }}
                   onClick={() => onSelectShowtime(showtimeItem)}

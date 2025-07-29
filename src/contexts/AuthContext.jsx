@@ -15,7 +15,6 @@ export const AuthProvider = ({ children }) => {
     cinema_id: null, // Add cinema_id for showtime_manager
   });
   const [isLoading, setIsLoading] = useState(true); // Add isLoading state
-
   // console.log(
   //   "AuthContext (initial render): isLoading=",
   //   isLoading,

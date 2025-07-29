@@ -43,7 +43,7 @@ function ComboSelector({ onComboSelect }) {
     <div className="w-full mx-auto sm:py-8 md:py-10">
       <h2
         className="text-center text-xl sm:text-2xl font-bold mb-4"
-        style={{ color: "var(--color-text)" }}
+        style={{ color: "var(--color-showtime-bg)" }}
       >
         CHỌN BẮP NƯỚC
       </h2>

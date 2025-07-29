@@ -22,14 +22,8 @@ import { VscPieChart, VscGraph } from "react-icons/vsc";
 
 const Sidebar = () => {
   const navigate = useNavigate();
-  const { userData, logout } = useAuth();
+  const { userData } = useAuth();
   const [openDropdowns, setOpenDropdowns] = useState({});
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
 
   const toggleDropdown = (dropdownName) => {
     setOpenDropdowns((prev) => ({
@@ -81,21 +75,74 @@ const Sidebar = () => {
               icon: FaClock,
             },
             {
-              label: "Quản lý suất chiếu",
-              path: "/manage/showtime_management",
-              icon: FaClock,
+              label: "Danh sách đơn hàng",
+              path: "/manage/ticket_order",
+              icon: FaTicketAlt,
+            },
+          ],
+        },
+      ],
+    },
+    cinema_manager: {
+      title: "CINEMA MANAGER",
+      menus: [
+        {
+          name: "user",
+          label: "Quản lý nhân viên rạp",
+          icon: FaBuilding,
+          items: [
+            {
+              label: "Danh sách nhân viên",
+              path: "/manage/user",
+              icon: FaBuilding,
             },
           ],
         },
         {
           name: "theater",
-          label: "Quản lý rạp phim",
+          label: "Quản lý phòng chiếu phim",
           icon: FaBuilding,
           items: [
             {
-              label: "Danh sách rạp chiếu",
-              path: "/admin/theater",
+              label: "Danh sách phòng chiếu",
+              path: "/manage/theater_rooms",
               icon: FaBuilding,
+            },
+          ],
+        },
+        {
+          name: "schedule",
+          label: "Quản lý lịch chiếu",
+          icon: FaClock,
+          items: [
+            {
+              label: "Lịch chiếu phim",
+              path: "/manage/schedule",
+              icon: FaCalendarAlt,
+            },
+          ],
+        },
+        {
+          name: "showtime",
+          label: "Quản lý suất chiếu",
+          icon: FaClock,
+          items: [
+            {
+              label: "Danh sách suất chiếu",
+              path: "/manage/showtime",
+              icon: FaClock,
+            },
+          ],
+        },
+        {
+          name: "booking",
+          label: "Quản lý đặt vé",
+          icon: FaTicketAlt,
+          items: [
+            {
+              label: "Danh sách đơn hàng",
+              path: "/manage/ticket_order",
+              icon: FaTicketAlt,
             },
           ],
         },
@@ -382,34 +429,6 @@ const Sidebar = () => {
             {currentRoleConfig.menus.map(renderMenuGroup)}
           </ul>
         </nav>
-      </div>
-
-      {/* User Section (at the bottom of sidebar) */}
-      <div className="mt-auto border-t border-[#3F72AF] pt-4 relative">
-        <div
-          className="flex items-center space-x-3 cursor-pointer p-2 rounded hover:bg-[#3F72AF]"
-          onClick={() => setShowUserDropdown((prev) => !prev)}
-        >
-          <FaUserCircle className="w-10 h-10 text-[#DBE2EF]" />
-          <div className="flex flex-col">
-            <span className="font-semibold">{userData.name || "User"}</span>
-            <span className="text-xs text-[#DBE2EF] opacity-75">
-              {currentRoleConfig.title
-                .replace(" PANEL", "")
-                .replace(" MANAGER", "")}
-            </span>
-          </div>
-        </div>
-        {showUserDropdown && (
-          <div className="absolute left-0 bottom-14 w-48 bg-white text-black shadow-lg rounded-md py-2 z-50">
-            <button
-              onClick={handleLogout}
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-            >
-              Đăng xuất
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

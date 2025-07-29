@@ -1,7 +1,15 @@
 import React from "react";
 import { FaEdit, FaTrash, FaRedo } from "react-icons/fa";
 
-const GenreTable = ({ genres, onEdit, onDelete, loading, isDeletedView, currentPage = 1, itemsPerPage = 10 }) => {
+const GenreTable = ({
+  genres,
+  onEdit,
+  onDelete,
+  loading,
+  isDeletedView,
+  currentPage = 1,
+  itemsPerPage = 10,
+}) => {
   return (
     <div className="overflow-x-auto bg-white rounded-xl shadow-md p-6">
       <table className="min-w-full divide-y divide-gray-200">
@@ -58,7 +66,7 @@ const GenreTable = ({ genres, onEdit, onDelete, loading, isDeletedView, currentP
                 className="hover:bg-blue-50 transition-colors duration-150"
               >
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {((currentPage - 1) * itemsPerPage) + idx + 1}
+                  {(currentPage - 1) * itemsPerPage + idx + 1}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900">
                   <div className="truncate max-w-xs" title={genre.genre_name}>

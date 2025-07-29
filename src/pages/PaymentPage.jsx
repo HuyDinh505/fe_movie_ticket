@@ -90,7 +90,7 @@ function PaymentPage() {
           .join(", ")
       : "Chưa chọn combo",
     total: calculateTotalPrice(bookingData),
-    holdTime: 180, // Dummy hold time in seconds (3 minutes)
+    holdTime: 5000, // Dummy hold time in seconds (3 minutes)
   };
   // console.log(bookingData);
   const [timeLeft, setTimeLeft] = useState(bookingDetails.holdTime);
@@ -101,8 +101,20 @@ function PaymentPage() {
   const [finalTotal, setFinalTotal] = useState(bookingDetails.total);
   const { mutate: calculatePromotion, isLoading: isCalculatingPromotion } =
     useCalculatePromotionUS();
-  const { data: promotionsData } = useGetUserPromotionsUS();
+  const {
+    data: promotionsData,
+    isLoading: isLoadingPromotions,
+    error: promotionsError,
+  } = useGetUserPromotionsUS();
+  // promotionsData là trực tiếp mảng promotion
   const allPromotions = promotionsData?.data || [];
+
+  // Debug promotions
+  console.log("Promotions full data:", promotionsData);
+  console.log("Promotions data array:", promotionsData?.data);
+  console.log("All promotions:", allPromotions);
+  console.log("Loading promotions:", isLoadingPromotions);
+  console.log("Promotions error:", promotionsError);
 
   const {
     mutate: bookTicket,
@@ -319,6 +331,12 @@ function PaymentPage() {
       concessions,
       payment_method: selectedPaymentMethod,
     };
+
+    // Thêm promotion_id nếu đã áp dụng khuyến mãi
+    if (appliedPromotion) {
+      bookingPayload.promotion_id = appliedPromotion.promotion_id;
+    }
+
     // Xử lý tickets
     if (
       Array.isArray(bookingData.tickets) &&
@@ -374,6 +392,14 @@ function PaymentPage() {
 
   // Handler khi áp dụng mã khuyến mãi
   const handleApplyPromotion = (code) => {
+    // Nếu code rỗng, hủy promotion (không hiển thị thông báo lỗi)
+    if (!code || code.trim() === "") {
+      setAppliedPromotion(null);
+      setDiscountAmount(0);
+      setFinalTotal(bookingDetails.total);
+      return;
+    }
+
     // console.log("Danh sách khuyến mãi user:", allPromotions);
     const promo = allPromotions.find((p) => p.code === code);
     if (!promo) {
@@ -447,6 +473,7 @@ function PaymentPage() {
                 onApply={handleApplyPromotion}
                 isLoading={isCalculatingPromotion}
                 appliedPromotion={appliedPromotion}
+                allPromotions={allPromotions}
               />
 
               <h2 className="text-xl font-semibold">

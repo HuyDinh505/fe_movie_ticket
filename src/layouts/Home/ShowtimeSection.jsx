@@ -62,10 +62,16 @@ function ShowtimeSection({ onShowtimeSelect, selectedShowtime, cinemas }) {
     <section className="max-w-screen-xl mx-auto px-4 pt-6 pb-2 sm:px-6 md:px-8 lg:px-10 sm:pt-8 sm:pb-2 md:pt-10 md:pb-2">
       <h2
         className="text-center text-xl sm:text-2xl font-bold mb-4"
-        style={{ color: "var(--color-text)" }}
+        style={{ color: "var(--color-text-showtime)" }}
       >
         LỊCH CHIẾU
       </h2>
+
+      {availableDates.length === 0 && (
+        <div className="text-center text-gray-500 font-medium py-8">
+          Không có lịch chiếu nào
+        </div>
+      )}
 
       {availableDates.length > 0 && (
         <ShowtimeDateSelector
@@ -79,7 +85,7 @@ function ShowtimeSection({ onShowtimeSelect, selectedShowtime, cinemas }) {
         <div className="mt-8 flex flex-col items-center">
           <h2
             className="font-bold mb-4 text-center text-xl sm:text-2xl"
-            style={{ color: "var(--color-text)" }}
+            style={{ color: "var(--color-text-showtime)" }}
           >
             DANH SÁCH PHÒNG CHIẾU
           </h2>

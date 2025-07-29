@@ -23,15 +23,15 @@ const SeatSelector = forwardRef(
     );
     const [lastBookedSeats, setLastBookedSeats] = useState([]);
 
-    console.log(
-      "SeatSelector - selectedShowtime prop received:",
-      selectedShowtime
-    );
-    console.log("SeatSelector - initialSelectedSeats:", initialSelectedSeats);
-    console.log(
-      "SeatSelector - totalTicketsCount received:",
-      totalTicketsCount
-    );
+    // console.log(
+    //   "SeatSelector - selectedShowtime prop received:",
+    //   selectedShowtime
+    // );
+    // console.log("SeatSelector - initialSelectedSeats:", initialSelectedSeats);
+    // console.log(
+    //   "SeatSelector - totalTicketsCount received:",
+    //   totalTicketsCount
+    // );
 
     // Fetch seat map data from API
     const {
@@ -196,7 +196,9 @@ const SeatSelector = forwardRef(
         <div className="inline-block">
           {/* Màn hình */}
           <div className="w-full h-8 bg-gray-200 rounded-t-lg mb-4 flex items-center justify-center">
-            <span className="text-gray-600 font-semibold">MÀN HÌNH</span>
+            <span className="text-[var(--color-showtime-bg)] font-semibold">
+              MÀN HÌNH
+            </span>
           </div>
           {/* Ghế */}
           <div className="overflow-x-auto pb-4 custom-scrollbar">
@@ -232,10 +234,10 @@ const SeatSelector = forwardRef(
                           "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed";
                       } else if (isSelected) {
                         style +=
-                          "bg-[var(--color-hover)] text-white border-[var(--color-hover)]";
+                          "bg-[var(--color-showtime-bg)] text-white border-[var(--color-showtime-bg)]";
                       } else {
                         style +=
-                          "bg-white text-[var(--color-hover)] border-[var(--color-hover)] hover:bg-[#e0e7ff] cursor-pointer";
+                          "bg-white text-black border-[var(--color-showtime-bg)] hover:bg-[#e0e7ff] cursor-pointer";
                       }
 
                       return (
@@ -258,11 +260,11 @@ const SeatSelector = forwardRef(
         {/* Chú thích */}
         <div className="mt-8 flex justify-center gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded border border-[var(--color-hover)] bg-white"></div>
+            <div className="w-6 h-6 rounded border border-[var(--color-showtime-bg)] bg-white"></div>
             <span className="text-sm">Có thể chọn</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded border border-[var(--color-hover)] bg-[var(--color-hover)]"></div>
+            <div className="w-6 h-6 rounded border border-[var(--color-showtime-bg)] bg-[var(--color-showtime-bg)]"></div>
             <span className="text-sm">Đã chọn</span>
           </div>
           <div className="flex items-center gap-2">

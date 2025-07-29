@@ -17,14 +17,14 @@ const BookingSummary = forwardRef(
     return (
       <div
         className="w-full lg:basis-1/2 text-white p-4 rounded-md space-y-3 text-sm leading-relaxed"
-        style={{ backgroundColor: "var(--color-blue)" }}
+        style={{ backgroundColor: "var(--color-showtime-bg)" }}
       >
         <h3 className="text-lg font-bold mb-2">{bookingDetails.movieTitle}</h3>
         <div className="flex items-center gap-2 mb-2">
           <span className="text-sm">THỜI GIAN GIỮ VÉ :</span>
           <span
             className="px-2 py-1 rounded text-lg font-bold"
-            style={{ backgroundColor: "var(--color-primary)", color: "black" }}
+            style={{ backgroundColor: "var(--color-white)", color: "black" }}
           >
             {mm}:{ss}
           </span>
@@ -60,7 +60,7 @@ const BookingSummary = forwardRef(
 
         <div className="pt-3 border-t-2 border-dashed border-white text-white text-lg font-bold flex flex-col gap-1 justify-between items-end">
           <div className="flex justify-between w-full items-center">
-            <span style={{ color: "var(--color-text)" }}>
+            <span style={{ color: "var(--color-text-white)" }}>
               SỐ TIỀN CẦN THANH TOÁN
             </span>
             <span>{bookingDetails.total.toLocaleString()} VND</span>

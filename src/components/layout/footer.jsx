@@ -1,5 +1,5 @@
 import React, { forwardRef } from "react";
-
+import logo from "../../assets/logo/logo.png";
 const Footer = forwardRef(function Footer(props, ref) {
   return (
     <footer
@@ -8,7 +8,7 @@ const Footer = forwardRef(function Footer(props, ref) {
       className="bg-[#1f1235] text-white py-6 border border-blue-400"
       {...props}
     >
-      <div className="w-[80%] mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 pb-4">
+      <div className="w-[80%] mx-auto grid grid-cols-2 md:grid-cols-3 gap-8 pb-4">
         {/* Cột 1: Giới thiệu */}
         <div>
           <h3 className="font-bold mb-3 text-lg">GIỚI THIỆU</h3>
@@ -47,11 +47,7 @@ const Footer = forwardRef(function Footer(props, ref) {
 
       {/* Thông tin công ty */}
       <div className="w-[80%] mx-auto flex items-center">
-        <img
-          src="https://www.galaxycine.vn/_next/static/media/galaxy-logo-mobile.074abeac.png"
-          alt="Galaxy Cinema"
-          className="h-8 mr-3"
-        />
+        <img src={logo} alt="Galaxy Cinema" className="h-14 mr-3" />
         <div>
           <p className="font-bold text-white text-lg">
             CÔNG TY CỔ PHẦN HAI THÀNH VIÊN

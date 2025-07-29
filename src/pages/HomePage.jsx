@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useGetPhimUS } from "../api/homePage/queries";
 import Banner from "../components/layout/banner";
 import QuickBookingSection from "../components/ui/QuickBookingSection";
@@ -8,11 +8,13 @@ import PromotionSection from "../layouts/Home/PromotionSection";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import SearchModal from "../components/ui/SearchModal";
 
 function HomePage() {
   const { data: moviesData, isLoading, error } = useGetPhimUS();
   const navigate = useNavigate();
   const location = useLocation();
+  const [showSearchModal, setShowSearchModal] = useState(false);
 
   React.useEffect(() => {
     if (location.state?.loginSuccess) {
@@ -50,7 +52,7 @@ function HomePage() {
 
   return (
     <>
-      <ToastContainer
+      {/* <ToastContainer
         position="top-right"
         autoClose={5000}
         hideProgressBar={false}
@@ -61,10 +63,10 @@ function HomePage() {
         draggable
         pauseOnHover
         theme="light"
-      />
+      /> */}
       <div className="w-full bg-[#f5f5f5] min-h-screen">
         <Banner />
-        <div className="">
+        <div className="max-w-screen-xl mx-auto px-2 sm:px-4 lg:px-8">
           <QuickBookingSection />
         </div>
         <div className="max-w-screen-xl mx-auto px-2 sm:px-4 lg:px-8">
@@ -73,10 +75,16 @@ function HomePage() {
             showSeeMore={movies.length > 8}
             onSeeMore={handleSeeMore}
           />
-          <NewsSection />
+          {/* <NewsSection /> */}
           <PromotionSection />
         </div>
       </div>
+
+      {/* Search Modal */}
+      <SearchModal
+        isOpen={showSearchModal}
+        onClose={() => setShowSearchModal(false)}
+      />
     </>
   );
 }

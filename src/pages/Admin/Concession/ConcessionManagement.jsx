@@ -10,6 +10,8 @@ import {
   useDeleteConcessionUS,
 } from "../../../api/homePage/queries";
 
+import { handleApiError, getApiMessage } from "../../../Utilities/apiMessage";
+
 const ITEMS_PER_PAGE = 10;
 
 const CATEGORY_OPTIONS = [
@@ -37,36 +39,69 @@ const ConcessionManagement = () => {
 
   const { mutate: createConcession, isLoading: isCreating } =
     useCreateConcessionUS({
-      onSuccess: () => {
+      onSuccess: (response) => {
+        // Đổi tên 'data' thành 'response' cho rõ ràng
+        // Kiểm tra lỗi nghiệp vụ từ phản hồi của server
+        // Dựa vào hình ảnh bạn cung cấp, lỗi nghiệp vụ có data.status === false
+        // và data.code (ví dụ 500) nằm trong response.data
+        if (response?.data?.status === false) {
+          //
+          console.log("API Response:", response);
+          // GỌI HÀM handleApiError VỚI response.data
+          // response.data chính là payload lỗi nghiệp vụ: { code: 500, message: "...", status: false, ... }
+          handleApiError(response.data, "Thêm dịch vụ mới thất bại"); //
+          return; // Dừng lại vì đã xử lý lỗi
+        }
+        // Nếu không có lỗi nghiệp vụ (tức là thành công hoàn toàn)
         toast.success("Thêm dịch vụ mới thành công");
         setIsFormVisible(false);
         fetchConcessions();
       },
       onError: (error) => {
-        toast.error(error.message || "Không thể thêm dịch vụ mới");
+        // onError được gọi khi có lỗi HTTP (ví dụ: 4xx, 5xx) hoặc lỗi mạng
+        // Sử dụng getApiMessage để lấy thông báo lỗi từ đối tượng lỗi
+        toast.error(getApiMessage(error, "Không thể thêm dịch vụ mới")); //
+        // Bạn có thể thêm logic cụ thể cho các lỗi HTTP ở đây nếu cần,
+        // ví dụ: if (error.response?.status === 401) { /* xử lý lỗi unauthorized */ }
       },
     });
 
   const { mutate: updateConcession, isLoading: isUpdating } =
     useUpdateConcessionUS({
-      onSuccess: () => {
+      onSuccess: (response) => {
+        // Đổi tên 'data' thành 'response'
+        if (response?.data?.status === false) {
+          //
+          // console.log("API Response:", response);/
+          // Gọi handleApiError tương tự cho cập nhật nếu API trả về lỗi nghiệp vụ
+          handleApiError(response.data, "Cập nhật dịch vụ thất bại"); //
+          return;
+        }
         toast.success("Cập nhật dịch vụ thành công");
         setIsFormVisible(false);
         fetchConcessions();
       },
       onError: (error) => {
-        toast.error(error.message || "Không thể cập nhật dịch vụ");
+        toast.error(getApiMessage(error, "Không thể cập nhật dịch vụ")); //
       },
     });
 
   const { mutate: deleteConcession, isLoading: isDeleting } =
     useDeleteConcessionUS({
-      onSuccess: () => {
+      onSuccess: (response) => {
+        // Đổi tên 'data' thành 'response'
+        // Kiểm tra lỗi nghiệp vụ cho xóa nếu API có trả về
+        if (response?.data?.status === false) {
+          //
+          console.log("API Response:", response);
+          handleApiError(response.data, "Xóa dịch vụ thất bại"); //
+          return;
+        }
         toast.success("Xóa dịch vụ thành công");
         fetchConcessions();
       },
       onError: (error) => {
-        toast.error(error.message || "Không thể xóa dịch vụ");
+        toast.error(getApiMessage(error, "Không thể xóa dịch vụ")); //
       },
     });
 
@@ -91,7 +126,9 @@ const ConcessionManagement = () => {
         createConcession(concessionData);
       }
     } catch (error) {
+      // Lỗi này sẽ hiếm khi xảy ra với React Query vì nó bắt lỗi ở onError hook
       console.error("Error saving concession:", error);
+      toast.error(getApiMessage(error, "Có lỗi xảy ra khi lưu dịch vụ!")); //
     }
   };
 

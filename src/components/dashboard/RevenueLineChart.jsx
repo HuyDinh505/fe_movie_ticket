@@ -1,12 +1,13 @@
 import React from "react";
 import {
-  LineChart,
+  ComposedChart,
+  Bar,
   Line,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  CartesianGrid,
 } from "recharts";
 
 const RevenueLineChart = ({ data }) => {
@@ -14,18 +15,19 @@ const RevenueLineChart = ({ data }) => {
     <div className="bg-white p-4 rounded shadow">
       <h3 className="text-lg font-semibold mb-4">Doanh thu theo tháng</h3>
       <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={data}>
+        <ComposedChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="month" />
           <YAxis />
           <Tooltip />
-          <Line
+          <Bar dataKey="revenue" fill="#60a5fa" />
+          {/* <Line
             type="monotone"
             dataKey="revenue"
             stroke="#ef4444"
             strokeWidth={2}
-          />
-        </LineChart>
+          /> */}
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   );

@@ -24,6 +24,8 @@ const END_POINT = {
   PAYMENT_INITIATE: "payment/initiate",
   PAYMENT_STATUS: "payment/status",
   PROMOTION: "promotion",
+  REVENUE_REPORT: "report/revenue",
+  REPORT: "report",
 };
 
 // =====================
@@ -173,6 +175,20 @@ export const getPhimAPI = async () => {
     return response;
   } catch (error) {
     console.error("Lỗi khi lấy danh sách phim:", error);
+    throw error;
+  }
+};
+
+export const searchMoviesAPI = async (params = {}) => {
+  try {
+    const response = await axios({
+      url: `${END_POINT.PHIM}/list/filter`,
+      method: "GET",
+      params,
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi tìm kiếm phim:", error);
     throw error;
   }
 };
@@ -702,7 +718,22 @@ export const getTheaterRoomsByCinemaAPI = async (cinemaId) => {
     throw error;
   }
 };
-
+export const getTheaterRoomsListByCinemaAPI = async (cinemaId) => {
+  try {
+    const response = await axios({
+      // Đảm bảo backend của bạn có endpoint này
+      url: `${END_POINT.CINEMA_ROOMS_LIST}/${cinemaId}/list-room`,
+      method: "GET",
+    });
+    return response;
+  } catch (error) {
+    console.error(
+      `Lỗi khi lấy danh sách phòng chiếu của rạp ID ${cinemaId}:`,
+      error
+    );
+    throw error;
+  }
+};
 // =====================
 // Showtime APIs (Suất chiếu)
 // =====================
@@ -1124,7 +1155,7 @@ export const updateUserAPI = async (userId, formDataFromUserForm) => {
       headers: {
         "Content-Type": "multipart/form-data",
       },
-      // transformRequest: [(data) => data], // Nên bỏ dòng này vì axios tự xử lý FormData
+      transformRequest: [(data) => data], // Nên bỏ dòng này vì axios tự xử lý FormData
     });
     return response;
   } catch (error) {
@@ -1491,6 +1522,66 @@ export const getScreenTypeAPI = async () => {
     return response;
   } catch (error) {
     console.error("Lỗi khi lấy danh sách loại chiếu:", error);
+    throw error;
+  }
+};
+
+// =====================
+// Revenue Report APIs (Doanh thu)
+// =====================
+export const getTotalRevenueAPI = async (params = {}) => {
+  try {
+    const response = await axios({
+      url: `${END_POINT.REVENUE_REPORT}/total`,
+      method: "GET",
+      params,
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi lấy báo cáo doanh thu:", error);
+    throw error;
+  }
+};
+
+// Thêm API lấy doanh thu theo phim (theo movie_id)
+export const getRevenueByMovieIdAPI = async (movieId, params = {}) => {
+  try {
+    const response = await axios({
+      url: `${END_POINT.REVENUE_REPORT}/movie/${movieId}/revenue`, // Movie ID trong URL path
+      method: "GET",
+      params, // start_date và end_date sẽ được truyền vào đây
+    });
+    return response.data; // Trả về response.data để lấy trực tiếp dữ liệu chính
+  } catch (error) {
+    console.error(`Lỗi khi lấy doanh thu cho phim ID ${movieId}:`, error);
+    throw error;
+  }
+};
+
+// Thêm API lấy doanh thu tất cả phim
+export const getAllMoviesRevenueAPI = async (params = {}) => {
+  try {
+    const response = await axios({
+      url: `${END_POINT.REVENUE_REPORT}/movie/all`,
+      method: "GET",
+      params,
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi lấy doanh thu tất cả phim:", error);
+    throw error;
+  }
+};
+export const getMoviesRevenueByIDAPI = async (movieId, params = {}) => {
+  try {
+    const response = await axios({
+      url: `${END_POINT.REPORT}/movie/${movieId}/revenue`,
+      method: "GET",
+      params,
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi lấy doanh thu phim theo ID:", error);
     throw error;
   }
 };

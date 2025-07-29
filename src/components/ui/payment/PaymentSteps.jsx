@@ -4,10 +4,13 @@ const PaymentSteps = ({ currentStep }) => {
   return (
     <div className="mb-8">
       {/* Numbers and Text */}
-      <div className="grid grid-cols-6 text-center font-bold mb-2">
+      <div className="grid grid-cols-3 lg:grid-cols-6 text-center font-bold mb-2">
         <div
           style={{
-            color: currentStep === 1 ? "var(--color-hover)" : "#bdbdbd",
+            color:
+              currentStep === 1
+                ? "var(--color-hover)"
+                : "var(--color-showtime-bg)",
           }}
         >
           <span className="text-3xl">1</span>
@@ -16,7 +19,10 @@ const PaymentSteps = ({ currentStep }) => {
         </div>
         <div
           style={{
-            color: currentStep === 2 ? "var(--color-hover)" : "#bdbdbd",
+            color:
+              currentStep === 2
+                ? "var(--color-showtime-bg)"
+                : "var(--color-showtime-bg)",
           }}
         >
           <span className="text-3xl">2</span>
@@ -34,11 +40,11 @@ const PaymentSteps = ({ currentStep }) => {
         </div>
       </div>
       {/* Progress Bar */}
-      <div className="relative w-[calc(50%-4rem)] ml-4 h-1 bg-gray-300 rounded-full">
+      <div className="relative lg:w-[calc(50%-4rem)] ml-4 h-1 bg-gray-300 rounded-full">
         <div
           className="absolute top-0 left-0 h-1 rounded-full"
           style={{
-            backgroundColor: "var(--color-hover)",
+            backgroundColor: "var(--color-showtime-bg)",
             width: `${(currentStep - 1) * 50}%`,
           }}
         ></div>

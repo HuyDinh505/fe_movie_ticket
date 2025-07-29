@@ -7,6 +7,7 @@ import {
 import { toast } from "react-toastify";
 import ConcessionTable from "../../../components/admin/Concession/ConcessionTable";
 import Modal from "../../../components/ui/Modal";
+import { getApiMessage, handleApiError } from "../../../Utilities/apiMessage";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -27,13 +28,35 @@ const DeletedConcession = () => {
   // Hook để khôi phục concession
   const { mutate: restoreConcession, isLoading: isRestoring } =
     useRestoreConcessionUS({
-      onSuccess: () => {
-        toast.success("Khôi phục đồ ăn/uống thành công");
+      onSuccess: (response) => {
+        // Đổi tên 'data' thành 'response' cho rõ ràng
+        // Kiểm tra lỗi nghiệp vụ từ phản hồi của server (nếu API trả về HTTP 200 nhưng có lỗi)
+        // Dựa trên cách bạn xử lý ở ConcessionManagement.jsx, tôi giả định cấu trúc này
+        if (response?.data?.status === false) {
+          // console.log("API Restore Response (Business Error):", response);
+          handleApiError(response.data, "Khôi phục đồ ăn/uống thất bại");
+          // Không reset state ngay lập tức nếu có lỗi nghiệp vụ để người dùng có thể thấy thông báo
+          // và quyết định hành động tiếp theo. Có thể reset sau 1 thời gian.
+          // setShowConfirmModal(false);
+          // setSelectedConcessionId(null);
+          // setSelectedConcessionName("");
+          return;
+        }
+
+        // Nếu thành công hoàn toàn
+        handleApiError(response.data, "Khôi phục thể loại thành công");
         refetchDeletedConcessions();
         setCurrentPage(1);
+        setShowConfirmModal(false); // Đóng modal và reset state khi thành công
+        setSelectedConcessionId(null);
+        setSelectedConcessionName("");
       },
       onError: (error) => {
-        toast.error(error.message || "Không thể khôi phục đồ ăn/uống");
+        // Xử lý lỗi HTTP (ví dụ: 4xx, 5xx) hoặc lỗi mạng
+        toast.error(getApiMessage(error, "Không thể khôi phục đồ ăn/uống"));
+        setShowConfirmModal(false); // Đóng modal và reset state khi có lỗi HTTP/mạng
+        setSelectedConcessionId(null);
+        setSelectedConcessionName("");
       },
     });
 

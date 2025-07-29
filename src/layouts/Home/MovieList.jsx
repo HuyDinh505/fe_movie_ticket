@@ -46,7 +46,7 @@ function MovieList({ movies = [], showSeeMore = false, onSeeMore }) {
             className="py-2 px-6 rounded cursor-pointer font-bold transition"
             style={{
               backgroundColor: "var(--color-primary)",
-              color: "black",
+              color: "white",
             }}
             onMouseEnter={(e) => {
               e.target.style.backgroundColor = "var(--color-hover)";
@@ -54,7 +54,7 @@ function MovieList({ movies = [], showSeeMore = false, onSeeMore }) {
             }}
             onMouseLeave={(e) => {
               e.target.style.backgroundColor = "var(--color-primary)";
-              e.target.style.color = "black";
+              e.target.style.color = "white";
             }}
             onClick={onSeeMore}
           >

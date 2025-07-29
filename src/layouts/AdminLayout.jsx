@@ -1,13 +1,18 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import SidebarAdmin from "../components/layout/SidebarAdmin";
+import SidebarAdmin from "../components/layout/SidebarAdmin"; // Đường dẫn đúng
+import HeaderAdmin from "../components/layout/headerAdmin"; // Import HeaderAdmin
 
 const AdminLayout = () => {
   return (
-    <div className="flex bg-gradient-to-r from-slate-100">
+    <div className="flex min-h-screen bg-gradient-to-r from-slate-100">
+      {/* Sidebar cố định */}
       <SidebarAdmin />
-      <div className="absolute top-0 left-64 w-[calc(100%-256px)] h-full flex flex-col pl-1.5 pr-1.5">
-        <main className="flex-1 overflow-x-auto">
+      <div className="flex flex-col flex-1 ml-64">
+        {" "}
+        <HeaderAdmin />
+        <main className="flex-1 overflow-auto mt-20">
+          {" "}
           <div className="container mx-auto">
             <Outlet />
           </div>

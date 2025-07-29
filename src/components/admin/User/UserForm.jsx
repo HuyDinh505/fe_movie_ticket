@@ -4,11 +4,12 @@ import { imagePhim } from "../../../Utilities/common";
 import { useGetAllCinemasUS } from "../../../api/homePage/queries";
 
 const UserForm = ({ onSubmit, initialData, onCancel }) => {
+  console.log("[UserForm] onSubmit prop:", onSubmit);
   const [formData, setFormData] = useState({
     user_id: null,
     full_name: "",
     email: "",
-    avatar: null,
+    avatar: null, // Mặc định là null
     password: "",
     password_confirmation: "",
     phone: "",
@@ -22,11 +23,9 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
   const [errors, setErrors] = useState({});
   const [avatarPreview, setAvatarPreview] = useState("");
 
-  // Lấy danh sách rạp
   const { data: cinemasData } = useGetAllCinemasUS();
   const cinemas = cinemasData?.data || [];
 
-  // Lọc danh sách district duy nhất từ danh sách rạp
   const districts = [];
   const districtMap = {};
   cinemas.forEach((cinema) => {
@@ -42,7 +41,7 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
   useEffect(() => {
     if (initialData) {
       console.log("[UserForm] initialData nhận được khi sửa:", initialData);
-      // Đảm bảo district_ids luôn là mảng
+
       let districtIds = [];
       if (initialData.district_ids) {
         if (Array.isArray(initialData.district_ids)) {
@@ -52,40 +51,40 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
         }
       }
 
-      const formDataInit = {
+      setFormData({
         user_id: initialData.user_id || null,
-        ...initialData,
+        full_name: initialData.full_name || "",
+        email: initialData.email || "",
+        avatar: null,
         password: "",
         password_confirmation: "",
-        role: Array.isArray(initialData.roles)
-          ? initialData.roles[0]
-          : initialData.role || "user",
-        district_ids: districtIds,
-        cinema_id: initialData.cinema_id || "",
+        phone: initialData.phone || "",
+        // Đảm bảo role được lấy đúng nếu initialData.roles là mảng
+        role:
+          Array.isArray(initialData.roles) && initialData.roles.length > 0
+            ? initialData.roles[0]
+            : initialData.role || "user",
         birth_date: initialData.birth_date
           ? initialData.birth_date.slice(0, 10)
           : "",
-      };
+        gender: initialData.gender || "",
+        district_ids: districtIds,
+        cinema_id: initialData.cinema_id || "",
+      });
 
-      // Không set avatar: null khi có dữ liệu cũ
-      if (!initialData.avatar_url) {
-        formDataInit.avatar = null;
-      }
-
-      console.log("[UserForm] formDataInit truyền vào state:", formDataInit);
-      setFormData(formDataInit);
-
+      // Chỉ set avatarPreview nếu có avatar_url cũ
       if (initialData.avatar_url) {
         setAvatarPreview(`${imagePhim}${initialData.avatar_url}`);
       } else {
         setAvatarPreview("");
       }
     } else {
+      // Khi tạo mới
       setFormData({
         user_id: null,
         full_name: "",
         email: "",
-        avatar: null,
+        avatar: null, // Đảm bảo là null khi tạo mới
         password: "",
         password_confirmation: "",
         phone: "",
@@ -98,7 +97,7 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
       setAvatarPreview("");
     }
     setErrors({});
-  }, [initialData]);
+  }, [initialData]); // Dependency array chỉ cần initialData
 
   const validateForm = () => {
     const newErrors = {};
@@ -175,20 +174,53 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Tạo URL để preview
+      const allowedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp",
+      ];
+      const maxSize = 2 * 1024 * 1024; // 2MB
+
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(
+          "Chỉ chấp nhận file ảnh có định dạng: PNG, JPG, JPEG, WEBP"
+        );
+        // Đặt avatar về null nếu không hợp lệ
+        setFormData((prev) => ({ ...prev, avatar: null }));
+        setAvatarPreview("");
+        e.target.value = ""; // Reset input
+        return;
+      }
+
+      if (file.size > maxSize) {
+        toast.error("Kích thước file không được vượt quá 2MB");
+        // Đặt avatar về null nếu không hợp lệ
+        setFormData((prev) => ({ ...prev, avatar: null }));
+        setAvatarPreview("");
+        e.target.value = ""; // Reset input
+        return;
+      }
+
       const previewUrl = URL.createObjectURL(file);
       setAvatarPreview(previewUrl);
 
-      // Cập nhật formData với file
       setFormData((prev) => ({
         ...prev,
-        avatar: file,
+        avatar: file, // Đảm bảo đây là một File object
       }));
+
+      if (errors.avatar) {
+        setErrors((prev) => ({ ...prev, avatar: "" }));
+      }
+    } else {
+      // Nếu người dùng chọn file rồi hủy, đảm bảo avatar trở lại null
+      setFormData((prev) => ({ ...prev, avatar: null }));
+      setAvatarPreview("");
     }
   };
 
   const handleDistrictChange = (e) => {
-    // Đảm bảo luôn trả về mảng số
     const selected = Array.from(e.target.selectedOptions, (opt) =>
       Number(opt.value)
     );
@@ -202,7 +234,15 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
     e.preventDefault();
     console.log("[UserForm] Đã bấm nút Cập nhật!");
     if (validateForm()) {
-      // Sử dụng FormData để gửi dữ liệu, luôn append birth_date
+      console.log(
+        "[DEBUG] Giá trị của formData.avatar TRƯỚC KHI tạo FormData:",
+        formData.avatar
+      );
+      console.log(
+        "[DEBUG] formData.avatar instanceof File:",
+        formData.avatar instanceof File
+      );
+
       const formDataToSend = new FormData();
       formDataToSend.append("full_name", formData.full_name || "");
       formDataToSend.append("email", formData.email || "");
@@ -212,9 +252,9 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
       formDataToSend.append("gender", formData.gender || "");
 
       // Thêm user_id nếu đang edit
-      if (initialData && formData.user_id) {
-        formDataToSend.append("user_id", formData.user_id);
-      }
+      // if (initialData && formData.user_id) {
+      //   formDataToSend.append("user_id", formData.user_id);
+      // }
 
       // Xử lý password - chỉ thêm khi có giá trị
       if (!initialData || formData.password) {
@@ -227,10 +267,12 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
         }
       }
 
-      // Xử lý avatar file
-      if (formData.avatar && formData.avatar instanceof File) {
+      // Xử lý avatar file: CHỈ THÊM VÀO NẾU NÓ THỰC SỰ LÀ MỘT FILE MỚI ĐƯỢC CHỌN
+      if (formData.avatar instanceof File) {
         formDataToSend.append("avatar", formData.avatar);
       }
+      // QUAN TRỌNG: Không thêm trường 'avatar' nào khác nếu không có file mới được chọn.
+      // Laravel sẽ tự động giữ ảnh cũ nếu trường 'avatar' không có trong request.
 
       // Xử lý district_ids cho district_manager
       if (formData.role === "district_manager") {
@@ -250,15 +292,21 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
           formDataToSend.append("cinema_id", Number(formData.cinema_id));
         }
       }
-      console.log("[UserForm] Dữ liệu gửi lên khi submit:", formData);
-      // Đã sửa lỗi ở dòng này:
+
+      // Luôn append _method cho PATCH khi cập nhật
+      // if (initialData && formData.user_id) {
+      //   // Chỉ thêm _method: PATCH khi là update
+      //   formDataToSend.append("_method", "PATCH");
+      // }
+
       console.log(
-        "[UserForm] user_id trong formDataToSend:",
-        formDataToSend.get("user_id")
-      ); // CHỈNH SỬA Ở ĐÂY
-      // Log toàn bộ FormData thực tế gửi lên để debug
+        "[UserForm] Dữ liệu trong state formData trước khi submit:",
+        formData
+      );
+      // Log toàn bộ FormData trước khi submit
+      console.log("[UserForm] Dữ liệu thực tế trong FormDataToSend:");
       for (let pair of formDataToSend.entries()) {
-        console.log("[UserForm][FormData gửi lên]", pair[0] + ':', pair[1]);
+        console.log("[FormData entry]", pair[0] + ":", pair[1]);
       }
       onSubmit(formDataToSend);
     } else {
@@ -275,7 +323,7 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
       <form
         onSubmit={handleSubmit}
         className="space-y-4"
-        encType="multipart/form-data"
+        encType="multipart/form-data" // Quan trọng cho upload file
       >
         <div>
           <input
@@ -333,8 +381,9 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
             accept="image/*"
             className="w-full border rounded p-2 border-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           />
-          {errors.avatar_url && (
-            <p className="text-red-500 text-sm mt-1">{errors.avatar_url}</p>
+          {/* Lỗi avatar_url nên được đổi thành errors.avatar nếu bạn muốn hiển thị lỗi cho trường avatar */}
+          {errors.avatar && (
+            <p className="text-red-500 text-sm mt-1">{errors.avatar}</p>
           )}
         </div>
 
@@ -411,7 +460,6 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
           )}
         </div>
 
-        {/* Chọn cụm rạp quản lý cho district_manager */}
         {formData.role === "district_manager" && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -439,7 +487,6 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
           </div>
         )}
 
-        {/* Chọn rạp quản lý cho showtime_manager và booking_manager */}
         {["showtime_manager", "booking_manager"].includes(formData.role) && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

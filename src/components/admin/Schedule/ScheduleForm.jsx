@@ -17,11 +17,19 @@ const ScheduleForm = ({
 
   useEffect(() => {
     if (initialData) {
+      // Chuyển đổi ngày từ 'YYYY-MM-DD HH:mm' hoặc ISO sang 'YYYY-MM-DDTHH:mm' cho input datetime-local
+      const formatForInput = (dateStr) => {
+        if (!dateStr) return "";
+        // Nếu đã có 'T', giữ nguyên
+        if (dateStr.includes("T")) return dateStr.slice(0, 16);
+        // Nếu có dạng 'YYYY-MM-DD HH:mm', chuyển sang 'YYYY-MM-DDTHH:mm'
+        return dateStr.replace(" ", "T").slice(0, 16);
+      };
       setForm({
         movie_id: initialData.movie_id || "",
         cinema_id: initialData.cinema_id || "",
-        start_date: initialData.start_date || "",
-        end_date: initialData.end_date || "",
+        start_date: formatForInput(initialData.start_date),
+        end_date: formatForInput(initialData.end_date),
       });
     } else {
       setForm({ movie_id: "", cinema_id: "", start_date: "", end_date: "" });
@@ -35,8 +43,17 @@ const ScheduleForm = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // console.log("Form data before submit:", form);
-    if (onSubmit) onSubmit(form);
+    // Đảm bảo format gửi về backend là 'YYYY-MM-DD HH:mm'
+    const formatForBackend = (dateStr) => {
+      if (!dateStr) return "";
+      return dateStr.replace("T", " ");
+    };
+    const submitData = {
+      ...form,
+      start_date: formatForBackend(form.start_date),
+      end_date: formatForBackend(form.end_date),
+    };
+    if (onSubmit) onSubmit(submitData);
   };
 
   return (
@@ -108,7 +125,7 @@ const ScheduleForm = ({
             Ngày bắt đầu
           </label>
           <input
-            type="date"
+            type="datetime-local"
             name="start_date"
             value={form.start_date}
             onChange={handleChange}
@@ -127,7 +144,7 @@ const ScheduleForm = ({
             Ngày kết thúc
           </label>
           <input
-            type="date"
+            type="datetime-local"
             name="end_date"
             value={form.end_date}
             onChange={handleChange}

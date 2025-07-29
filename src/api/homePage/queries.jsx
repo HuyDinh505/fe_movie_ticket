@@ -6,6 +6,7 @@ import {
   getDVAnUongAPI,
   // getLoaiVeAPI,
   getPhimAPI,
+  searchMoviesAPI,
   getPhimTheoRapAPI,
   getPhongAPI,
   getRapAPI,
@@ -45,6 +46,7 @@ import {
   updateTheaterRoomAPI,
   deleteTheaterRoomAPI,
   restoreTheaterRoomAPI,
+  getTheaterRoomsListByCinemaAPI,
   getSeatMapByRoomIdAPI,
   getCurrentUserAPI,
   getAllShowtimesAPI,
@@ -90,6 +92,10 @@ import {
   getUserPromotionsAPI,
   calculatePromotionAPI,
   getScreenTypeAPI,
+  getTotalRevenueAPI,
+  getRevenueByMovieIdAPI,
+  getAllMoviesRevenueAPI,
+  getMoviesRevenueByIDAPI,
 } from "./request";
 import { optionsUseQuery } from "../../Utilities/common";
 
@@ -101,6 +107,18 @@ export const useGetPhimUS = (option) => {
   return useQuery({
     queryKey: ["GetPhimAPI"],
     queryFn: getPhimAPI,
+    optionsUseQuery,
+    ...option,
+  });
+};
+
+export const useSearchMoviesUS = (searchParams, option) => {
+  return useQuery({
+    queryKey: ["SearchMoviesAPI", searchParams],
+    queryFn: () => searchMoviesAPI(searchParams),
+    enabled:
+      !!searchParams &&
+      Object.keys(searchParams).some((key) => searchParams[key]),
     optionsUseQuery,
     ...option,
   });
@@ -544,6 +562,14 @@ export const useGetTheaterRoomsByCinemaUS = (cinemaId, option) => {
     ...option,
   });
 };
+export const useGetTheaterRoomsListByCinemaUS = (cinemaId, options) => {
+  return useQuery({
+    queryKey: ["getTheaterRoomsListByCinemaAPI", cinemaId],
+    queryFn: () => getTheaterRoomsListByCinemaAPI(cinemaId),
+    enabled: !!cinemaId, // Chỉ thực hiện query khi cinemaId có giá trị
+    ...options, // Để bạn có thể truyền thêm các tùy chọn useQuery khác (ví dụ: onSuccess, onError)
+  });
+};
 // Genre hooks
 export const useGetAllGenresUS = (option) => {
   return useQuery({
@@ -621,7 +647,10 @@ export const useCreateUserUS = (option) => {
 export const useUpdateUserUS = (option) => {
   return useMutation({
     mutationFn: ({ userId, userData }) => {
-      console.log("[useUpdateUserUS] Gọi updateUserAPI với:", { userId, userData });
+      console.log("[useUpdateUserUS] Gọi updateUserAPI với:", {
+        userId,
+        userData,
+      });
       return updateUserAPI(userId, userData);
     },
     ...option,
@@ -834,7 +863,11 @@ export const useDeletePromotionUS = (option) => {
 export const useGetUserPromotionsUS = (option) => {
   return useQuery({
     queryKey: ["GetUserPromotionsAPI"],
-    queryFn: getUserPromotionsAPI,
+    queryFn: async () => {
+      const response = await getUserPromotionsAPI();
+      // Trả về trực tiếp mảng promotion từ response.data
+      return response.data;
+    },
     optionsUseQuery,
     ...option,
   });
@@ -853,6 +886,66 @@ export const useGetScreenTypeUS = (option) => {
     queryKey: ["getScreenTypeAPI"],
     queryFn: getScreenTypeAPI,
     optionsUseQuery,
+    ...option,
+  });
+};
+
+// Revenue Report hook
+export const useGetTotalRevenueUS = (params = {}, option) => {
+  return useQuery({
+    queryKey: ["GetTotalRevenueAPI", params],
+    queryFn: () => getTotalRevenueAPI(params),
+    ...option,
+  });
+};
+
+// Thêm custom hook lấy doanh thu theo movieId
+export const useGetRevenueByMovieIdUS = (movieId, startDate, endDate) => {
+  // Chuẩn hóa ngày thành định dạng YYYY-MM-DD
+  const formattedStartDate = startDate
+    ? startDate.toISOString().split("T")[0]
+    : "";
+  const formattedEndDate = endDate ? endDate.toISOString().split("T")[0] : "";
+
+  // Tạo đối tượng params để truyền vào hàm API
+  const queryParams = {
+    start_date: formattedStartDate,
+    end_date: formattedEndDate,
+  };
+
+  return useQuery({
+    // queryKey: Quan trọng để React Query biết khi nào cần re-fetch.
+    // Nó phải thay đổi khi movieId, startDate hoặc endDate thay đổi.
+    queryKey: [
+      "GetRevenueByMovieIdAPI",
+      movieId,
+      formattedStartDate,
+      formattedEndDate,
+    ],
+
+    // queryFn: Hàm sẽ được gọi để lấy dữ liệu.
+    // Chúng ta truyền movieId và queryParams vào getRevenueByMovieIdAPI.
+    queryFn: () => getRevenueByMovieIdAPI(movieId, queryParams),
+
+    // enabled: Chỉ thực hiện query khi movieId đã có giá trị (không phải null/undefined/0)
+    // và ngày bắt đầu/kết thúc được chọn.
+    enabled: !!movieId && !!startDate && !!endDate,
+  });
+};
+
+// Thêm custom hook lấy doanh thu tất cả phim
+export const useGetAllMoviesRevenueUS = (params = {}) => {
+  return useQuery({
+    queryKey: ["GetAllMoviesRevenueAPI", params],
+    queryFn: () => getAllMoviesRevenueAPI(params),
+    enabled: !!params,
+  });
+};
+export const useGetMoviesRevenueByIDUS = (movieId, params = {}, option) => {
+  return useQuery({
+    queryKey: ["GetMoviesRevenueByIDAPI", movieId, params],
+    queryFn: () => getMoviesRevenueByIDAPI(movieId, params),
+    enabled: !!movieId,
     ...option,
   });
 };

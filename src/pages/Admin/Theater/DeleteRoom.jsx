@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import {
   useGetTheaterRoomsByCinemaUS,
   useGetAllCinemasUS,
-} from "../../api/homePage/queries";
+} from "../../../api/homePage/queries";
 import { FaRedo, FaBuilding } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRestoreTheaterRoomUS } from "../../api/homePage/queries";
+import { useRestoreTheaterRoomUS } from "../../../api/homePage/queries";
 
 const DeleteRoom = () => {
   const [selectedCinemaId, setSelectedCinemaId] = useState(null);

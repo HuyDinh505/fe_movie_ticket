@@ -20,7 +20,7 @@ const PaymentActionButtons = ({ onBack, onPay, isLoading = false }) => {
         onMouseLeave={(e) => {
           if (!isLoading) {
             e.target.style.backgroundColor = "var(--color-primary)";
-            e.target.style.color = "black";
+            e.target.style.color = "white";
           }
         }}
       >
@@ -43,7 +43,7 @@ const PaymentActionButtons = ({ onBack, onPay, isLoading = false }) => {
         onMouseLeave={(e) => {
           if (!isLoading) {
             e.target.style.backgroundColor = "var(--color-primary)";
-            e.target.style.color = "black";
+            e.target.style.color = "white";
           }
         }}
       >

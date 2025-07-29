@@ -73,7 +73,14 @@ const TicketTypeManagement = () => {
       );
     } else {
       createTicketType.mutate(formData, {
-        onSuccess: () => {
+        onSuccess: (data) => {
+          console.log("API Response:", data);
+          if (data?.data?.status === false) {
+            toast.error(data?.data?.message || "Thêm loại vé mới thất bại");
+            // alert(data?.message || "Thêm thể loại mới thất bại");
+            // alert("aaaaaaaaaaaaaaaa");
+            return;
+          }
           toast.success("Thêm loại vé thành công!");
           setIsFormVisible(false);
           queryClient.invalidateQueries({ queryKey: ["GetAllTicketTypesAPI"] });

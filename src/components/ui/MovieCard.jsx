@@ -15,7 +15,7 @@ function MovieCard({ image, category, title, trailerUrl, onBuyTicket }) {
         <img
           src={image}
           alt={title}
-          className="w-full rounded h-96 object-cover"
+          className="w-full rounded object-cover h-64 sm:h-72 md:h-80 lg:h-96"
         />
         {/* Overlay mờ chỉ phủ lên ảnh */}
         <div className="absolute inset-0 pointer-events-none group-hover:backdrop-blur-[1px] transition duration-300 rounded z-10"></div>
@@ -25,7 +25,7 @@ function MovieCard({ image, category, title, trailerUrl, onBuyTicket }) {
             className="flex items-center gap-2 px-6 py-2 rounded mb-3 text-base font-semibold transition cursor-pointer font-bold"
             style={{
               backgroundColor: "var(--color-primary)",
-              color: "black",
+              color: "white",
             }}
             onMouseEnter={(e) => {
               e.target.style.backgroundColor = "var(--color-hover)";
@@ -33,7 +33,7 @@ function MovieCard({ image, category, title, trailerUrl, onBuyTicket }) {
             }}
             onMouseLeave={(e) => {
               e.target.style.backgroundColor = "var(--color-primary)";
-              e.target.style.color = "black";
+              e.target.style.color = "white";
             }}
             onClick={(e) => {
               e.stopPropagation();
@@ -48,16 +48,16 @@ function MovieCard({ image, category, title, trailerUrl, onBuyTicket }) {
               className="flex items-center gap-2 px-6 py-2 rounded text-base font-semibold transition border font-bold cursor-pointer"
               style={{
                 backgroundColor: "white",
-                color: "var(--color-hover)",
-                border: "2px solid var(--color-hover)",
+                color: "var(--color-button)",
+                border: "2px solid var(--color-button)",
               }}
               onMouseEnter={(e) => {
-                e.target.style.backgroundColor = "var(--color-hover)";
+                e.target.style.backgroundColor = "var(--color-button)";
                 e.target.style.color = "white";
               }}
               onMouseLeave={(e) => {
                 e.target.style.backgroundColor = "white";
-                e.target.style.color = "var(--color-hover)";
+                e.target.style.color = "var(--color-button)";
               }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -88,7 +88,7 @@ function MovieCard({ image, category, title, trailerUrl, onBuyTicket }) {
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
-            className="rounded object-cover w-full h-full"
+            className="rounded object-cover w-full h-full cursor-pointer"
           ></iframe>
         </div>
       </ModalPhim>

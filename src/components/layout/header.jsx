@@ -15,16 +15,17 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../../contexts/AuthContext";
 import { imagePhim } from "../../Utilities/common";
-
+import SearchModal from "../ui/SearchModal";
+import logo from "../../assets/logo/logo.png";
 function Header() {
   const navigate = useNavigate();
   const { isLoggedIn, userData, logout } = useAuth();
-  const [showSearch, setShowSearch] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const userDropdownRef = useRef(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [activeMobileDropdown, setActiveMobileDropdown] = useState(null);
+  const [showSearchModal, setShowSearchModal] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -39,7 +40,7 @@ function Header() {
     setShowUserDropdown(false);
     navigate("/");
   };
-
+  console.log("link ảnh user:", userData.avatar_url);
   const handleUserToggleDropdown = () => {
     setShowUserDropdown((prev) => !prev);
   };
@@ -100,16 +101,12 @@ function Header() {
     },
   ];
   return (
-    <header className="bg-gradient-to-tr from-blue-300 to-blue-500 py-8 px-4 w-full fixed top-0 left-0 z-[10000] shadow-md">
-      <ToastContainer />
-      <div className="w-full lg:w-[80%] mx-auto flex items-center justify-between px-4">
+    <header className="bg-[var(--color-header-bg)] py-8 px-4 w-full fixed top-0 left-0 z-[10000] shadow-md text-white">
+      {/* <ToastContainer /> */}
+      <div className="md:w-[80%] lg:w-[80%] mx-auto flex items-center justify-between px-4">
         {/* Logo */}
         <Link to="/">
-          <img
-            src="https://www.galaxycine.vn/_next/static/media/galaxy-logo-mobile.074abeac.png"
-            alt="GalaxyCinema Logo"
-            className="h-12 w-auto"
-          />
+          <img src={logo} alt="GalaxyCinema Logo" className="h-16 w-auto" />
         </Link>
 
         {/* Desktop nav */}
@@ -122,7 +119,7 @@ function Header() {
               onMouseLeave={() => setActiveDropdown(null)}
             >
               <button
-                className="text-black hover:text-orange-500 flex items-center gap-1 cursor-pointer
+                className="text-white hover:text-black flex items-center gap-1 cursor-pointer
               font-semibold"
               >
                 {item.name} <FaChevronDown className="w-3 h-3" />
@@ -151,21 +148,14 @@ function Header() {
 
         {/* Right section */}
         <div className="flex items-center space-x-4">
-          {/* Search icon - Removed desktop search input */}
+          {/* Search icon */}
           <div className="hidden lg:block relative">
             <button
-              onClick={() => setShowSearch(!showSearch)}
-              className="p-2 rounded-full hover:text-orange-600 transition"
+              onClick={() => setShowSearchModal(true)}
+              className="p-2 rounded-full hover:text-orange-600 transition cursor-pointer"
             >
-              <FiSearch className="w-5 h-5 text-black" />
+              <FiSearch className="w-5 h-5 text-white" />
             </button>
-            {showSearch && (
-              <input
-                type="text"
-                placeholder="Tìm kiếm phim..."
-                className="absolute right-0 top-full mt-2 w-64 p-2 border rounded-lg bg-white"
-              />
-            )}
           </div>
 
           {/* User / Login */}
@@ -185,35 +175,35 @@ function Header() {
                   <FaUserCircle className="w-8 h-8 text-gray-500" />
                 )}
                 <div className="flex flex-col text-sm">
-                  <div className="flex items-center gap-1 font-semibold text-orange-500">
+                  <div className="flex items-center gap-1 font-semibold text-white">
                     <FaAward className="w-4 h-4" />
                     {userData.name}
                   </div>
-                  <div className="flex items-center gap-1 text-gray-600">
+                  {/* <div className="flex items-center gap-1 text-gray-600">
                     <FaGift className="w-4 h-4" />
                     {userData.stars} Stars
-                  </div>
+                  </div> */}
                 </div>
               </div>
               {showUserDropdown && (
-                <div className="absolute right-0 top-full mt-0 w-48 bg-white shadow-lg rounded-md py-2 z-50">
+                <div className="absolute right-0 top-full mt-0 w-48 bg-[var(--color-header-bg)] shadow-lg rounded-md py-2 z-50">
                   <Link
                     to="/account"
-                    className="block px-4 py-2 hover:bg-gray-100 flex gap-2"
+                    className="block px-4 py-2 hover:bg-[var(--color-button)] flex gap-2"
                   >
                     <FaUserTag />
                     Tài Khoản
                   </Link>
                   <Link
                     to="/history"
-                    className="block px-4 py-2 hover:bg-gray-100 flex gap-2"
+                    className="block px-4 py-2 hover:bg-[var(--color-button)] flex gap-2"
                   >
                     <FaHistory />
                     Lịch Sử
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="block px-4 py-2 hover:bg-gray-100 w-full text-left flex gap-2"
+                    className="block px-4 py-2 hover:bg-[var(--color-button)] w-full text-left flex gap-2 cursor-pointer"
                   >
                     <FaSignOutAlt /> Đăng Xuất
                   </button>
@@ -226,7 +216,7 @@ function Header() {
               className="hidden lg:flex px-4 py-2 rounded-full transition duration-300 font-bold"
               style={{
                 backgroundColor: "var(--color-primary)",
-                color: "black",
+                color: "white",
               }}
               onMouseEnter={(e) => {
                 e.target.style.backgroundColor = "var(--color-hover)";
@@ -234,7 +224,7 @@ function Header() {
               }}
               onMouseLeave={(e) => {
                 e.target.style.backgroundColor = "var(--color-primary)";
-                e.target.style.color = "black";
+                e.target.style.color = "white";
               }}
             >
               ĐĂNG NHẬP
@@ -243,6 +233,14 @@ function Header() {
 
           {/* Mobile user icon & menu */}
           <div className="flex lg:hidden items-center space-x-4">
+            {/* Mobile search button */}
+            <button
+              onClick={() => setShowSearchModal(true)}
+              className="p-2 rounded-full hover:text-orange-600 transition"
+            >
+              <FiSearch className="w-5 h-5 text-black" />
+            </button>
+
             {isLoggedIn ? (
               <div
                 className="flex items-center space-x-2 cursor-pointer"
@@ -250,7 +248,7 @@ function Header() {
               >
                 {userData.avatar_url ? (
                   <img
-                    src={`${imagePhim}/storage/${userData.avatar_url}`}
+                    src={`${imagePhim}${userData.avatar_url}`}
                     alt="User Avatar"
                     className="w-6 h-6 rounded-full object-cover border-2 border-gray-300"
                   />
@@ -258,14 +256,14 @@ function Header() {
                   <FaUserCircle className="w-6 h-6 text-gray-500" />
                 )}
                 <div className="flex flex-col text-sm">
-                  <div className="flex items-center gap-1 font-semibold text-orange-500">
+                  <div className="flex items-center gap-1 font-semibold text-[var(--color-white)]">
                     <FaAward className="w-4 h-4" />
                     {userData.name}
                   </div>
-                  <div className="flex items-center gap-1 text-gray-600">
+                  {/* <div className="flex items-center gap-1 text-gray-600">
                     <FaGift className="w-4 h-4" />
                     {userData.stars} Stars
-                  </div>
+                  </div> */}
                 </div>
               </div>
             ) : (
@@ -301,14 +299,16 @@ function Header() {
         >
           {/* Header of mobile menu (Search and Close button) */}
           <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center border border-gray-300 rounded-full px-4 py-2 w-full mr-4">
+            <button
+              onClick={() => {
+                setShowMobileMenu(false);
+                setShowSearchModal(true);
+              }}
+              className="flex items-center border border-gray-300 rounded-full px-4 py-2 w-full mr-4 bg-white"
+            >
               <FiSearch className="w-5 h-5 text-gray-500 mr-2" />
-              <input
-                type="text"
-                placeholder="Tìm kiếm..."
-                className="flex-1 outline-none"
-              />
-            </div>
+              <span className="text-gray-500">Tìm kiếm phim...</span>
+            </button>
             <button
               onClick={() => setShowMobileMenu(false)}
               className="text-gray-600"
@@ -323,7 +323,7 @@ function Header() {
               <div className="flex items-center space-x-2 mb-2">
                 {userData.avatar_url ? (
                   <img
-                    src={`${imagePhim}/storage/${userData.avatar_url}`}
+                    src={`${imagePhim}${userData.avatar_url}`}
                     alt="User Avatar"
                     className="w-8 h-8 rounded-full object-cover border-2 border-gray-300"
                   />
@@ -331,19 +331,19 @@ function Header() {
                   <FaUserCircle className="w-8 h-8 text-gray-500" />
                 )}
                 <div className="flex flex-col text-sm">
-                  <div className="flex items-center gap-1 font-semibold text-orange-500">
+                  <div className="flex items-center gap-1 font-semibold text-[var(--color-black)]">
                     <FaAward className="w-4 h-4" />
                     {userData.name}
                   </div>
-                  <div className="flex items-center gap-1 text-gray-600">
+                  {/* <div className="flex items-center gap-1 text-gray-600">
                     <FaGift className="w-4 h-4" />
                     {userData.stars} Stars
-                  </div>
+                  </div> */}
                 </div>
               </div>
               <Link
                 to="/account"
-                className="block px-4 py-2 hover:bg-gray-100 flex gap-2"
+                className="block px-4 py-2 hover:bg-gray-100 flex gap-2 text-black"
                 onClick={() => setShowMobileMenu(false)} // Close menu on navigation
               >
                 <FaUserTag />
@@ -351,7 +351,7 @@ function Header() {
               </Link>
               <Link
                 to="/history"
-                className="block px-4 py-2 hover:bg-gray-100 flex gap-2"
+                className="block px-4 py-2 hover:bg-gray-100 flex gap-2 text-black"
                 onClick={() => setShowMobileMenu(false)} // Close menu on navigation
               >
                 <FaHistory />
@@ -362,7 +362,7 @@ function Header() {
                   handleLogout();
                   setShowMobileMenu(false); // Close menu on logout
                 }}
-                className="block px-4 py-2 hover:bg-gray-100 w-full text-left flex gap-2"
+                className="block px-4 py-2 hover:bg-gray-100 w-full text-left flex gap-2 text-black cursor-pointer"
               >
                 <FaSignOutAlt /> Đăng Xuất
               </button>
@@ -406,6 +406,12 @@ function Header() {
           </nav>
         </div>
       )}
+
+      {/* Search Modal */}
+      <SearchModal
+        isOpen={showSearchModal}
+        onClose={() => setShowSearchModal(false)}
+      />
     </header>
   );
 }

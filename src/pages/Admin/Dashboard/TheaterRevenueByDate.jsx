@@ -1,30 +1,30 @@
+// 📁 pages/TheaterRevenueByDate.jsx
 import React, { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import MovieRevenueTable from "../../components/dashboard/MovieRevenueTable";
-import TopViewsBarChart from "../../components/dashboard/TopViewsBarChart";
+import TheaterRevenueTable from "../../../components/dashboard/TheaterRevenueTable";
+import TopViewsBarChart from "../../../components/dashboard/TopViewsBarChart";
 
-const MovieRevenueByDate = () => {
+const TheaterRevenueByDate = () => {
   const [startDate, setStartDate] = useState(new Date("2024-04-01"));
   const [endDate, setEndDate] = useState(new Date("2024-05-15"));
 
   // Dữ liệu mẫu
-  const movies = [
-    { name: "SUGA | Agust D TOUR", sold: 32, revenue: 8677300 },
-    { name: "Kung Fu Panda 4", sold: 11, revenue: 4282000 },
-    { name: "Quỷ Cái", sold: 26, revenue: 7791000 },
-    { name: "Quật Mộ Trùng Ma", sold: 8, revenue: 2671000 },
-    { name: "Monkey Man Báo Thù", sold: 23, revenue: 8118000 },
+  const theaters = [
+    { name: "HCinema Aeon Hà Đông", sold: 45, revenue: 12000000 },
+    { name: "CGV Vincom Nguyễn Chí Thanh", sold: 32, revenue: 9600000 },
+    { name: "Lotte Cinema Keangnam", sold: 27, revenue: 8700000 },
+    { name: "Beta Mỹ Đình", sold: 18, revenue: 5200000 },
   ];
 
   const handleLoadData = () => {
-    // TODO: gọi API để load dữ liệu theo khoảng ngày
+    // TODO: gọi API để lấy dữ liệu theo khoảng ngày
     console.log("Load data from", startDate, "to", endDate);
   };
 
   const handleExport = () => {
-    // TODO: xuất báo cáo ra Excel hoặc PDF
-    console.log("Exporting report...");
+    // TODO: xuất báo cáo ra file
+    console.log("Exporting theater report...");
   };
 
   return (
@@ -64,23 +64,23 @@ const MovieRevenueByDate = () => {
       {/* Biểu đồ */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <TopViewsBarChart
-          data={movies}
-          title="Số vé bán ra theo phim"
+          data={theaters}
+          title="Số vé bán theo rạp"
           dataKey="sold"
-          color="#60a5fa"
+          color="#38bdf8"
         />
         <TopViewsBarChart
-          data={movies}
-          title="Doanh thu theo phim"
+          data={theaters}
+          title="Doanh thu theo rạp"
           dataKey="revenue"
-          color="#f472b6"
+          color="#f87171"
         />
       </div>
 
-      {/* Bảng */}
-      <MovieRevenueTable data={movies} />
+      {/* Bảng dữ liệu */}
+      <TheaterRevenueTable data={theaters} />
     </div>
   );
 };
 
-export default MovieRevenueByDate;
+export default TheaterRevenueByDate;

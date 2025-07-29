@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 import GenreTable from "../../../components/admin/Genre/GenreTable";
 import Modal from "../../../components/ui/Modal";
-
+import { getApiMessage, handleApiError } from "../../../Utilities/apiMessage";
 const DeleteGenre = () => {
   const { data, isLoading } = useGetDeletedGenresUS({ staleTime: 0 });
   const restoreGenre = useRestoreGenreUS();
@@ -26,13 +26,17 @@ const DeleteGenre = () => {
 
   const handleConfirmRestore = () => {
     restoreGenre.mutate(confirmRestore.genreId, {
-      onSuccess: () => {
-        toast.success("Khôi phục thể loại thành công!");
+      onSuccess: (response) => {
+        if (response?.data.data === false) {
+          handleApiError(response.data, "Khôi phục thể loại thất bại");
+          return;
+        }
+        handleApiError(response.data, "Khôi phục thể loại thành công");
         queryClient.invalidateQueries({ queryKey: ["GetDeletedGenresAPI"] });
         queryClient.invalidateQueries({ queryKey: ["GetAllGenresAPI"] });
       },
       onError: (error) => {
-        toast.error("Khôi phục thể loại thất bại: " + error.message);
+        toast.error(getApiMessage(error, "Không thể khôi phục đồ ăn/uống"));
       },
     });
     setConfirmRestore({ open: false, genreId: null });

@@ -12,7 +12,7 @@ function ShowtimeDateSelector({ dates, selectedDate, onSelect }) {
             selectedDate && selectedDate.fullDate === date.fullDate
               ? {
                   backgroundColor: "var(--color-primary)",
-                  color: "black",
+                  color: "white",
                   borderColor: "var(--color-primary)",
                 }
               : {

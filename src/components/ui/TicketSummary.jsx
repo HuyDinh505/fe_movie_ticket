@@ -26,7 +26,9 @@ const TicketSummary = ({
 
   const handleBookTicket = () => {
     if (!canBook) {
-      toast.error("Vui lòng chọn suất chiếu, loại vé, số lượng vé và đủ ghế trước khi đặt vé!");
+      toast.error(
+        "Vui lòng chọn suất chiếu, loại vé, số lượng vé và đủ ghế trước khi đặt vé!"
+      );
       return;
     }
     const bookingData = {
@@ -68,32 +70,33 @@ const TicketSummary = ({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-center py-4 bg-white border-t border-gray-200">
-      <div className="flex-1 text-center sm:text-left mb-4 sm:mb-0 px-4">
-        <h3 className="text-lg sm:text-xl font-bold text-gray-800">
+    <div className="flex flex-col sm:flex-row justify-between items-center py-4 border-t border-gray-200">
+      <div className="flex-1 text-center sm:text-left mb-4 sm:mb-0 px-4 text-white">
+        <h3 className="text-lg sm:text-xl font-bold text-white">
           {movieTitle}
         </h3>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm ">
           {showtime.time} - {showtime.day} - {cinema}
         </p>
-        <p className="text-sm text-gray-600">Ghế : {seatsName.join(", ")}</p>
-        <p className="text-sm text-gray-600">{formatTickets()}</p>
+        <p className="text-sm ">Ghế : {seatsName.join(", ")}</p>
+        <p className="text-sm ">{formatTickets()}</p>
         {combos && Object.values(combos).some((q) => q > 0) && (
           <p className="text-sm text-gray-600">{formatCombos()}</p>
         )}
       </div>
       <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 px-4 w-full sm:w-auto">
-        <div className="text-right w-full sm:w-auto">
-          <p className="text-sm text-gray-600">Tạm tính:</p>
-          <p
-            className="text-lg sm:text-xl font-bold"
-            style={{ color: "var(--color-text)" }}
-          >
+        <div className="text-right w-full sm:w-auto text-white">
+          <p className="text-sm">Tạm tính:</p>
+          <p className="text-lg sm:text-xl font-bold text-white">
             {totalPrice.toLocaleString()} VND
           </p>
         </div>
         <div className="flex flex-col gap-2 w-full sm:w-auto">
-          <button className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-200 transition-colors w-full">
+          {/* Dòng này đã được thay đổi */}
+          <button
+            className="text-black bg-white px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-200 transition-colors w-full"
+            // style={{ backgroundColor: "var(--color-)" }}
+          >
             {showtime.time}
           </button>
           <button
@@ -101,7 +104,7 @@ const TicketSummary = ({
             className="px-6 py-2 rounded-lg transition-colors w-full font-semibold cursor-pointer"
             style={{
               backgroundColor: canBook ? "var(--color-primary)" : "#eee",
-              color: canBook ? "black" : "#aaa",
+              color: canBook ? "white" : "#aaa",
               cursor: canBook ? "pointer" : "not-allowed",
             }}
             disabled={!canBook}
@@ -114,7 +117,7 @@ const TicketSummary = ({
             onMouseLeave={(e) => {
               if (canBook) {
                 e.target.style.backgroundColor = "var(--color-primary)";
-                e.target.style.color = "black";
+                e.target.style.color = "white";
               }
             }}
           >
