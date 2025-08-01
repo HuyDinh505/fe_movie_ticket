@@ -1,14 +1,16 @@
 import React, { useState } from "react";
-import { useGetPhimUS } from "../api/homePage/queries";
-import Banner from "../components/layout/banner";
-import QuickBookingSection from "../components/ui/QuickBookingSection";
-import MovieList from "../layouts/Home/MovieList";
-import NewsSection from "../layouts/Home/NewsSection";
-import PromotionSection from "../layouts/Home/PromotionSection";
+import { useGetPhimUS } from "../../api/homePage/queries";
+import Banner from "../../components/layout/banner";
+import QuickBookingSection from "../../components/ui/QuickBookingSection";
+import MovieList from "../../layouts/Home/MovieList";
+import NewsSection from "../../layouts/Home/NewsSection";
+import PromotionSection from "../../layouts/Home/PromotionSection";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import SearchModal from "../components/ui/SearchModal";
+import SearchModal from "../../components/ui/SearchModal";
+
+import { useMediaQuery } from "react-responsive";
 
 function HomePage() {
   const { data: moviesData, isLoading, error } = useGetPhimUS();
@@ -16,6 +18,21 @@ function HomePage() {
   const location = useLocation();
   const [showSearchModal, setShowSearchModal] = useState(false);
 
+  //hiển thị 8 hoặc 9 phim
+  const isLargeScreen = useMediaQuery({ minWidth: 1024 });
+  const isMediumScreen = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
+  const isSmallScreen = useMediaQuery({ minWidth: 640, maxWidth: 767 });
+  const isExtraSmallScreen = useMediaQuery({ maxWidth: 639 });
+  let moviesToDisplay = 8;
+  if (isExtraSmallScreen) {
+    moviesToDisplay = 6;
+  } else if (isSmallScreen) {
+    moviesToDisplay = 9;
+  } else if (isMediumScreen) {
+    moviesToDisplay = 9;
+  } else if (isLargeScreen) {
+    moviesToDisplay = 8;
+  }
   React.useEffect(() => {
     if (location.state?.loginSuccess) {
       toast.success("Đăng nhập thành công!", {
@@ -64,14 +81,14 @@ function HomePage() {
         pauseOnHover
         theme="light"
       /> */}
-      <div className="w-full bg-[#f5f5f5] min-h-screen">
+      <div className="w-full bg-[#f5f5f5] min-h-screen mt-12">
         <Banner />
         <div className="max-w-screen-xl mx-auto px-2 sm:px-4 lg:px-8">
           <QuickBookingSection />
         </div>
         <div className="max-w-screen-xl mx-auto px-2 sm:px-4 lg:px-8">
           <MovieList
-            movies={movies.slice(0, 8)}
+            movies={movies.slice(0, moviesToDisplay)}
             showSeeMore={movies.length > 8}
             onSeeMore={handleSeeMore}
           />

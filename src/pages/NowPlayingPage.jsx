@@ -8,7 +8,7 @@ function NowPlayingPage() {
   if (error) return <div>Lỗi: {error.message}</div>;
   const movies = moviesData?.data?.movies || [];
   return (
-    <div className="pt-8">
+    <div className="pt-8 mt-5">
       <MovieList movies={movies} />
     </div>
   );

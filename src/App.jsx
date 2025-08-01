@@ -3,8 +3,8 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Header from "./components/layout/header";
 import LoginPage from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
-import HomePage from "./pages/HomePage";
-import DetailMoviePage from "./pages/DetailMoviePage";
+import HomePage from "./pages/User/HomePage";
+import DetailMoviePage from "./pages/User/DetailMoviePage";
 import PaymentPage from "./pages/PaymentPage";
 import MoMoRedirect from "./components/ui/payment/MoMoRedirect";
 import MovieManagement from "./pages/Admin/Movie/MovieManagement";
@@ -13,10 +13,12 @@ import MainLayout from "./layouts/MainLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import ManageLayout from "./layouts/ManageLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
-import AccountPage from "./pages/AccountPage";
+import AccountPage from "./pages/User/AccountPage";
 import UserManagement from "./pages/Admin/User/UserManagement";
 import ShowtimeManagement from "./pages/Admin/Showtimes/ShowtimeManagement";
 import TheaterManagement from "./pages/Admin/Theater/TheaterManagement";
+import DistrictManagement from "./pages/Admin/District/DistrictManagement";
+import DeleteDistrict from "./pages/Admin/District/DeleteDistrict";
 // import TheaterRoomsManagement from "./pages/Admin/Theater/TheaterRoomsManagement";
 // import TheaterReports from "./pages/Admin/Theater/TheaterReports";
 // import TheaterForm from "./components/admin/TheaterForm";
@@ -117,6 +119,8 @@ function App() {
             <Route path="user" element={<UserManagement />} />
             <Route path="showtime" element={<ShowtimeManagement />} />
             <Route path="theater" element={<TheaterManagement />} />
+            <Route path="district" element={<DistrictManagement />} />
+            <Route path="district_delete" element={<DeleteDistrict />} />
             {/* <Route path="theater_rooms" element={<TheaterRoomsManagement />} /> */}
             {/* <Route path="theater_reports" element={<TheaterReports />} /> */}
             <Route path="delete_cinema" element={<DeletedTheater />} />

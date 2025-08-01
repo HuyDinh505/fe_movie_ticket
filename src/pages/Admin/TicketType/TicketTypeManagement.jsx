@@ -8,8 +8,10 @@ import {
   useDeleteTicketTypeUS,
 } from "../../../api/homePage/queries";
 import { toast } from "react-toastify";
-import Modal from "../../../components/ui/Modal";
+import Modal from "../../../components/ui/Modal"; // Vẫn dùng cho form thêm/sửa
 import { useQueryClient } from "@tanstack/react-query";
+import Swal from "sweetalert2";
+import { getApiMessage, handleApiError } from "../../../Utilities/apiMessage"; // Đảm bảo import
 
 const ITEMS_PER_PAGE = 10;
 
@@ -18,14 +20,76 @@ const TicketTypeManagement = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null });
+  // const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null }); // KHÔNG CẦN NỮA
   const queryClient = useQueryClient();
 
   // Query hooks
-  const { data, isLoading } = useGetAllTicketTypesUS();
-  const createTicketType = useCreateTicketTypeUS();
-  const updateTicketType = useUpdateTicketTypeUS();
-  const deleteTicketType = useDeleteTicketTypeUS();
+  const { data, isLoading: loadingTicketTypes } = useGetAllTicketTypesUS(); // Đổi tên isLoading để rõ ràng hơn
+
+  // Mutation hooks - Đồng bộ cách khai báo
+  const { mutate: createTicketType, isPending: isCreatingTicketType } =
+    useCreateTicketTypeUS({
+      onSuccess: (response) => {
+        if (response?.data?.status === false) {
+          handleApiError(response.data, "Thêm loại vé mới thất bại");
+          return;
+        }
+        toast.success("Thêm loại vé thành công!");
+        setIsFormVisible(false);
+        queryClient.invalidateQueries({ queryKey: ["GetAllTicketTypesAPI"] });
+      },
+      onError: (error) => {
+        toast.error(getApiMessage(error, "Thêm loại vé thất bại"));
+      },
+    });
+
+  const { mutate: updateTicketType, isPending: isUpdatingTicketType } =
+    useUpdateTicketTypeUS({
+      onSuccess: (response) => {
+        // Kiểm tra lỗi nghiệp vụ từ phản hồi API
+        if (response?.data?.status === false) {
+          handleApiError(response.data, "Cập nhật loại vé thất bại");
+          return;
+        }
+        toast.success("Cập nhật loại vé thành công!");
+        setIsFormVisible(false);
+        setEditingTicketType(null);
+        queryClient.invalidateQueries({ queryKey: ["GetAllTicketTypesAPI"] });
+      },
+      onError: (error) => {
+        toast.error(getApiMessage(error, "Cập nhật loại vé thất bại"));
+      },
+    });
+
+  const { mutate: deleteTicketTypeMutation, isPending: isDeletingTicketType } =
+    useDeleteTicketTypeUS({
+      onSuccess: (response) => {
+        // Kiểm tra lỗi nghiệp vụ từ phản hồi API
+        if (response?.data?.status === false) {
+          Swal.fire(
+            "Thất bại!",
+            response?.data?.message || "Xóa loại vé thất bại",
+            "error"
+          );
+          // Có thể loại bỏ handleApiError ở đây nếu Swal là thông báo chính
+          // handleApiError(response.data, "Xóa loại vé thất bại");
+          return;
+        }
+        Swal.fire(
+          "Đã xóa!",
+          response?.data?.message || "Xóa loại vé thành công!",
+          "success"
+        );
+        queryClient.invalidateQueries({ queryKey: ["GetAllTicketTypesAPI"] });
+      },
+      onError: (error) => {
+        Swal.fire(
+          "Thất bại!",
+          getApiMessage(error, "Xóa loại vé thất bại"),
+          "error"
+        );
+      },
+    });
 
   const ticketTypes = Array.isArray(data?.data?.tickeType)
     ? data.data.tickeType.filter((type) =>
@@ -49,46 +113,34 @@ const TicketTypeManagement = () => {
     setIsFormVisible(true);
   };
 
+  // --- HÀM XÓA ĐÃ SỬA ĐỔI ĐỂ DÙNG SWAL CHO XÁC NHẬN ---
   const handleDelete = (id) => {
-    setConfirmDelete({ open: true, id });
+    Swal.fire({
+      title: "Bạn có chắc chắn muốn xóa loại vé này không?",
+      text: "Hành động này không thể hoàn tác!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Xóa",
+      cancelButtonText: "Hủy",
+      confirmButtonColor: "#d33", // Màu đỏ cho nút xóa
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        deleteTicketTypeMutation(id); // Gọi mutation xóa loại vé
+      }
+    });
   };
 
   const handleAddOrUpdate = (formData) => {
     if (editingTicketType) {
-      updateTicketType.mutate(
-        { id: editingTicketType.ticket_type_id, data: formData },
-        {
-          onSuccess: () => {
-            toast.success("Cập nhật loại vé thành công!");
-            setIsFormVisible(false);
-            setEditingTicketType(null);
-            queryClient.invalidateQueries({
-              queryKey: ["GetAllTicketTypesAPI"],
-            });
-          },
-          onError: (error) => {
-            toast.error("Cập nhật loại vé thất bại: " + error.message);
-          },
-        }
-      );
-    } else {
-      createTicketType.mutate(formData, {
-        onSuccess: (data) => {
-          console.log("API Response:", data);
-          if (data?.data?.status === false) {
-            toast.error(data?.data?.message || "Thêm loại vé mới thất bại");
-            // alert(data?.message || "Thêm thể loại mới thất bại");
-            // alert("aaaaaaaaaaaaaaaa");
-            return;
-          }
-          toast.success("Thêm loại vé thành công!");
-          setIsFormVisible(false);
-          queryClient.invalidateQueries({ queryKey: ["GetAllTicketTypesAPI"] });
-        },
-        onError: (error) => {
-          toast.error("Thêm loại vé thất bại: " + error.message);
-        },
+      updateTicketType({
+        id: editingTicketType.ticket_type_id,
+        data: formData,
       });
+    } else {
+      createTicketType(formData);
     }
   };
 
@@ -97,18 +149,7 @@ const TicketTypeManagement = () => {
     setEditingTicketType(null);
   };
 
-  const handleConfirmDelete = () => {
-    deleteTicketType.mutate(confirmDelete.id, {
-      onSuccess: () => {
-        toast.success("Xóa loại vé thành công!");
-        queryClient.invalidateQueries({ queryKey: ["GetAllTicketTypesAPI"] });
-      },
-      onError: (error) => {
-        toast.error("Xóa loại vé thất bại: " + error.message);
-      },
-    });
-    setConfirmDelete({ open: false, id: null });
-  };
+  // handleConfirmDelete không còn cần thiết và đã được loại bỏ
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -123,8 +164,8 @@ const TicketTypeManagement = () => {
         {!isFormVisible && (
           <button
             onClick={handleAdd}
-            className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2 bg-gradient-to-r 
-            from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600 
+            className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2 bg-gradient-to-r
+            from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600
             hover:to-blue-800 font-semibold shadow-md transition-all text-sm sm:text-base
             cursor-pointer"
           >
@@ -150,9 +191,9 @@ const TicketTypeManagement = () => {
           <TicketTypeTable
             ticketTypes={paginatedTicketTypes}
             onEdit={handleEdit}
-            onDelete={handleDelete}
-            loading={isLoading}
-            isDeleting={deleteTicketType.isLoading}
+            onDelete={handleDelete} // Gọi hàm handleDelete đã sửa đổi
+            loading={loadingTicketTypes}
+            isDeleting={isDeletingTicketType} // Truyền trạng thái đang xóa
             isDeletedView={false}
           />
           {totalPages > 1 && (
@@ -160,7 +201,7 @@ const TicketTypeManagement = () => {
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 
+                className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50
                 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 Trước
@@ -181,7 +222,7 @@ const TicketTypeManagement = () => {
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 
+                className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50
                 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 Sau
@@ -195,33 +236,8 @@ const TicketTypeManagement = () => {
               initialData={editingTicketType}
               onSubmit={handleAddOrUpdate}
               onCancel={handleCancelEdit}
-              isSubmitting={
-                createTicketType.isLoading || updateTicketType.isLoading
-              }
+              isSubmitting={isCreatingTicketType || isUpdatingTicketType} // Sử dụng isPending
             />
-          </div>
-        </Modal>
-        <Modal
-          open={confirmDelete.open}
-          onClose={() => setConfirmDelete({ open: false, id: null })}
-        >
-          <div className="p-4">
-            <h2 className="text-lg font-semibold mb-4">Xác nhận xóa loại vé</h2>
-            <p>Bạn có chắc chắn muốn xóa loại vé này không?</p>
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                onClick={() => setConfirmDelete({ open: false, id: null })}
-                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 cursor-pointer"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer"
-              >
-                Xóa
-              </button>
-            </div>
           </div>
         </Modal>
       </div>

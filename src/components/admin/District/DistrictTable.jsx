@@ -1,12 +1,13 @@
 import React from "react";
 import { FaEdit, FaTrash, FaRedo } from "react-icons/fa";
 
-const GenreTable = ({
-  genres,
+const DistrictTable = ({
+  districts,
   onEdit,
   onDelete,
   loading,
-  isDeletedView,
+  isDeleting,
+  isDeletedView = false,
   currentPage = 1,
   itemsPerPage = 10,
 }) => {
@@ -19,7 +20,10 @@ const GenreTable = ({
               STT
             </th>
             <th className="py-3 px-4 text-left text-xs font-bold text-blue-700 uppercase tracking-wider w-1/2">
-              Tên thể loại
+              Tên quận
+            </th>
+            <th className="px-3 py-4 text-left text-xs font-bold text-blue-700 uppercase tracking-wider w-24">
+              Viết tắt
             </th>
             <th className="px-6 py-3 text-center text-xs font-bold text-blue-700 uppercase tracking-wider w-24">
               Hành động
@@ -38,7 +42,7 @@ const GenreTable = ({
                 </div>
               </td>
             </tr>
-          ) : genres.length === 0 ? (
+          ) : districts.length === 0 ? (
             <tr>
               <td colSpan={3} className="py-8 text-center">
                 <div className="flex flex-col items-center justify-center text-gray-400">
@@ -60,24 +64,29 @@ const GenreTable = ({
               </td>
             </tr>
           ) : (
-            genres.map((genre, idx) => (
+            districts.map((district, idx) => (
               <tr
-                key={genre.genre_id}
+                key={district.district_id}
                 className="hover:bg-blue-50 transition-colors duration-150"
               >
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {(currentPage - 1) * itemsPerPage + idx + 1}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900">
-                  <div className="truncate max-w-xs" title={genre.genre_name}>
-                    {genre.genre_name}
+                  <div className="" title={district.district_name}>
+                    {district.district_name}
+                  </div>
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-900">
+                  <div className="" title={district.district_code}>
+                    {district.district_code}
                   </div>
                 </td>
                 <td className="py-3 px-4 whitespace-nowrap text-center">
                   <div className="flex justify-center space-x-2">
                     {!isDeletedView && (
                       <button
-                        onClick={() => onEdit(genre)}
+                        onClick={() => onEdit(district)}
                         className="p-2 cursor-pointer text-blue-600 hover:text-blue-800 transition-colors rounded-lg hover:bg-blue-100"
                         title="Chỉnh sửa"
                       >
@@ -85,7 +94,7 @@ const GenreTable = ({
                       </button>
                     )}
                     <button
-                      onClick={() => onDelete(genre.genre_id)}
+                      onClick={() => onDelete(district.district_id)}
                       className={`p-2 cursor-pointer ${
                         isDeletedView
                           ? "text-green-600 hover:text-green-800 hover:bg-green-100"
@@ -106,4 +115,4 @@ const GenreTable = ({
   );
 };
 
-export default GenreTable;
+export default DistrictTable;

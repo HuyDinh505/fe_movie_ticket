@@ -1,7 +1,13 @@
 import React from "react";
 import { FaExclamationTriangle } from "react-icons/fa";
 
-const AgeRestrictionModal = ({ isOpen, onClose, movieName, ageRating, userAge }) => {
+const AgeRestrictionModal = ({
+  isOpen,
+  onClose,
+  movieName,
+  ageRating,
+  userAge,
+}) => {
   if (!isOpen) return null;
 
   return (
@@ -10,23 +16,27 @@ const AgeRestrictionModal = ({ isOpen, onClose, movieName, ageRating, userAge })
         <div className="flex items-center justify-center mb-4">
           <FaExclamationTriangle className="text-red-500 text-4xl" />
         </div>
-        
+
         <h2 className="text-xl font-bold text-center text-gray-800 mb-4">
           Hạn chế độ tuổi
         </h2>
-        
+
         <div className="text-center mb-6">
           <p className="text-gray-600 mb-2">
-            Phim <span className="font-semibold text-blue-600">"{movieName}"</span> có độ tuổi tối thiểu là <span className="font-bold text-red-500">{ageRating}+</span>
+            Phim{" "}
+            <span className="font-semibold text-blue-600">"{movieName}"</span>{" "}
+            có độ tuổi tối thiểu là{" "}
+            <span className="font-bold text-red-500">{ageRating}+</span>
           </p>
           <p className="text-gray-600 mb-2">
-            Tuổi hiện tại của bạn: <span className="font-bold text-blue-600">{userAge} tuổi</span>
+            Tuổi hiện tại của bạn:{" "}
+            <span className="font-bold text-blue-600">{userAge} tuổi</span>
           </p>
           <p className="text-red-500 font-medium">
             Bạn chưa đủ tuổi để đặt vé xem phim này.
           </p>
         </div>
-        
+
         <div className="flex justify-center">
           <button
             onClick={onClose}
@@ -40,4 +50,4 @@ const AgeRestrictionModal = ({ isOpen, onClose, movieName, ageRating, userAge })
   );
 };
 
-export default AgeRestrictionModal; 
+export default AgeRestrictionModal;

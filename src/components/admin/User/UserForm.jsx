@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { imagePhim } from "../../../Utilities/common";
-import { useGetAllCinemasUS } from "../../../api/homePage/queries";
+import { imagePhim } from "../../../Utilities/common"; // Đảm bảo đường dẫn này đúng
+import { useGetAllCinemasUS } from "../../../api/homePage/queries"; // Đảm bảo đường dẫn này đúng
 
-const UserForm = ({ onSubmit, initialData, onCancel }) => {
+const UserForm = ({
+  onSubmit,
+  initialData, // Dữ liệu người dùng hiện có khi chỉnh sửa
+  onCancel,
+  districts = [],
+  loadingDistricts,
+}) => {
   console.log("[UserForm] onSubmit prop:", onSubmit);
+
   const [formData, setFormData] = useState({
     user_id: null,
     full_name: "",
     email: "",
-    avatar: null, // Mặc định là null
+    avatar: null, // Sẽ chứa File object khi người dùng chọn ảnh mới
+    avatar_url_from_backend: "", // Thêm trường này để lưu URL ảnh hiện có từ backend
     password: "",
     password_confirmation: "",
     phone: "",
@@ -26,65 +34,147 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
   const { data: cinemasData } = useGetAllCinemasUS();
   const cinemas = cinemasData?.data || [];
 
-  const districts = [];
-  const districtMap = {};
-  cinemas.forEach((cinema) => {
-    if (cinema.district && !districtMap[cinema.district.district_id]) {
-      districtMap[cinema.district.district_id] = true;
-      districts.push({
-        district_id: cinema.district.district_id,
-        district_name: cinema.district.district_name,
-      });
-    }
-  });
-
   useEffect(() => {
     if (initialData) {
       console.log("[UserForm] initialData nhận được khi sửa:", initialData);
+      console.log("[UserForm] initialData.roles:", initialData.roles);
+      console.log(
+        "[UserForm] typeof initialData.roles:",
+        typeof initialData.roles
+      );
+      console.log(
+        "[UserForm] Array.isArray(initialData.roles):",
+        Array.isArray(initialData.roles)
+      );
+      if (Array.isArray(initialData.roles)) {
+        console.log("[UserForm] First role:", initialData.roles[0]);
+      }
 
       let districtIds = [];
+      console.log(
+        "[UserForm] initialData.district_ids:",
+        initialData.district_ids
+      );
+      console.log(
+        "[UserForm] initialData.managed_districts:",
+        initialData.managed_districts
+      );
+      console.log("[UserForm] initialData.cinema_id:", initialData.cinema_id);
+      console.log(
+        "[UserForm] initialData.cinema_id type:",
+        typeof initialData.cinema_id
+      );
+
       if (initialData.district_ids) {
         if (Array.isArray(initialData.district_ids)) {
           districtIds = initialData.district_ids.map((id) => Number(id));
-        } else {
+        } else if (
+          typeof initialData.district_ids === "number" ||
+          typeof initialData.district_ids === "string"
+        ) {
           districtIds = [Number(initialData.district_ids)];
         }
+      } else if (initialData.district_id) {
+        // Đề phòng trường hợp backend chỉ trả về district_id đơn
+        districtIds = [Number(initialData.district_id)];
+      } else if (
+        initialData.managed_districts &&
+        Array.isArray(initialData.managed_districts)
+      ) {
+        // Nếu backend trả về managed_districts (array tên quận), cần map sang district_id
+        console.log(
+          "[UserForm] Processing managed_districts:",
+          initialData.managed_districts
+        );
+        // Map từ tên quận sang district_id
+        if (districts && districts.length > 0) {
+          console.log(
+            "[UserForm] Available districts:",
+            districts.map((d) => ({ id: d.district_id, name: d.district_name }))
+          );
+          districtIds = initialData.managed_districts
+            .map((districtName) => {
+              const district = districts.find(
+                (d) => d.district_name === districtName
+              );
+              console.log(
+                "[UserForm] Mapping district:",
+                districtName,
+                "->",
+                district ? district.district_id : "not found"
+              );
+              return district ? Number(district.district_id) : null;
+            })
+            .filter((id) => id !== null);
+          console.log(
+            "[UserForm] Mapped district_ids from managed_districts:",
+            districtIds
+          );
+        } else {
+          console.log("[UserForm] No districts available for mapping");
+        }
       }
+
+      console.log("[UserForm] Final districtIds:", districtIds);
 
       setFormData({
         user_id: initialData.user_id || null,
         full_name: initialData.full_name || "",
         email: initialData.email || "",
-        avatar: null,
-        password: "",
-        password_confirmation: "",
+        avatar: null, // Luôn reset avatar file khi load initialData
+        avatar_url_from_backend: initialData.avatar_url || "", // Lưu URL từ backend
+        password: "", // Luôn reset password khi load initialData
+        password_confirmation: "", // Luôn reset password_confirmation khi load initialData
         phone: initialData.phone || "",
-        // Đảm bảo role được lấy đúng nếu initialData.roles là mảng
-        role:
-          Array.isArray(initialData.roles) && initialData.roles.length > 0
-            ? initialData.roles[0]
-            : initialData.role || "user",
+        role: (() => {
+          let selectedRole = "user";
+          if (
+            Array.isArray(initialData.roles) &&
+            initialData.roles.length > 0
+          ) {
+            selectedRole = initialData.roles[0];
+            console.log(
+              "[UserForm] Using role from roles array:",
+              selectedRole
+            );
+          } else if (initialData.role) {
+            selectedRole = initialData.role;
+            console.log("[UserForm] Using role from role field:", selectedRole);
+          } else {
+            console.log("[UserForm] Using default role:", selectedRole);
+          }
+          console.log("[UserForm] Final selected role:", selectedRole);
+          return selectedRole;
+        })(),
         birth_date: initialData.birth_date
           ? initialData.birth_date.slice(0, 10)
           : "",
         gender: initialData.gender || "",
         district_ids: districtIds,
-        cinema_id: initialData.cinema_id || "",
+        cinema_id: initialData.cinema_id ? String(initialData.cinema_id) : "",
       });
 
-      // Chỉ set avatarPreview nếu có avatar_url cũ
+      console.log("[UserForm] Final formData.role:", formData.role);
+      console.log(
+        "[UserForm] Final formData.district_ids:",
+        formData.district_ids
+      );
+      console.log("[UserForm] Final formData.cinema_id:", formData.cinema_id);
+
+      // Thiết lập avatarPreview
       if (initialData.avatar_url) {
         setAvatarPreview(`${imagePhim}${initialData.avatar_url}`);
       } else {
         setAvatarPreview("");
       }
     } else {
-      // Khi tạo mới
+      // Logic cho trường hợp thêm mới
       setFormData({
         user_id: null,
         full_name: "",
         email: "",
-        avatar: null, // Đảm bảo là null khi tạo mới
+        avatar: null,
+        avatar_url_from_backend: "", // Cũng reset khi thêm mới
         password: "",
         password_confirmation: "",
         phone: "",
@@ -97,7 +187,7 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
       setAvatarPreview("");
     }
     setErrors({});
-  }, [initialData]); // Dependency array chỉ cần initialData
+  }, [initialData]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -112,12 +202,24 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
       newErrors.email = "Email không hợp lệ";
     }
 
-    if (!initialData || formData.password) {
+    // Validation cho mật khẩu:
+    // Bắt buộc nhập nếu là chế độ "Thêm mới" (initialData không tồn tại)
+    // HOẶC nếu người dùng đã nhập password (formData.password có giá trị)
+    if (!initialData || (formData.password && formData.password.length > 0)) {
       if (!formData.password) {
         newErrors.password = "Vui lòng nhập mật khẩu";
-      } else if (formData.password.length < 6) {
-        newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
+      } else if (formData.password.length < 8) {
+        // Cập nhật min length theo backend
+        newErrors.password = "Mật khẩu phải có ít nhất 8 ký tự";
       }
+      // Thêm kiểm tra regex cho mật khẩu nếu muốn validation khớp hoàn toàn với backend
+      else if (
+        !/^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/.test(formData.password)
+      ) {
+        newErrors.password =
+          "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 số và 1 ký tự đặc biệt";
+      }
+
       if (!formData.password_confirmation) {
         newErrors.password_confirmation = "Vui lòng xác nhận mật khẩu";
       } else if (formData.password !== formData.password_confirmation) {
@@ -127,8 +229,10 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
 
     if (!formData.phone.trim()) {
       newErrors.phone = "Vui lòng nhập số điện thoại";
-    } else if (!/^[0-9]{10}$/.test(formData.phone)) {
-      newErrors.phone = "Số điện thoại không hợp lệ";
+    } else if (!/^(\+?\d{9,15})$/.test(formData.phone)) {
+      // Cập nhật regex theo backend
+      newErrors.phone =
+        "Số điện thoại không hợp lệ. Chỉ được chứa số và có thể bắt đầu bằng dấu +";
     }
 
     if (!formData.birth_date) {
@@ -143,14 +247,29 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
       formData.role === "district_manager" &&
       (!formData.district_ids || formData.district_ids.length === 0)
     ) {
-      newErrors.district_ids = "Vui lòng chọn ít nhất một cụm rạp quản lý";
+      newErrors.district_ids =
+        "Người dùng có vai trò 'Quản lý cụm rạp' bắt buộc phải quản lý ít nhất một quận.";
     }
     if (
       (formData.role === "showtime_manager" ||
         formData.role === "booking_manager") &&
       !formData.cinema_id
     ) {
-      newErrors.cinema_id = "Vui lòng chọn rạp quản lý";
+      newErrors.cinema_id =
+        "Người dùng có vai trò này bắt buộc phải thuộc một rạp chiếu.";
+    }
+    // Thêm các kiểm tra logic cross-field cho cinema_id và district_ids giống như trong withValidator của backend
+    if (formData.role === "district_manager" && formData.cinema_id) {
+      newErrors.cinema_id =
+        'Người dùng có vai trò "Quản lý cụm rạp" không thể quản lý một rạp cụ thể.';
+    }
+    if (
+      ["showtime_manager", "booking_manager"].includes(formData.role) &&
+      Array.isArray(formData.district_ids) &&
+      formData.district_ids.length > 0
+    ) {
+      newErrors.district_ids =
+        "Người dùng với vai trò này không thể quản lý quận.";
     }
 
     setErrors(newErrors);
@@ -163,6 +282,7 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
       ...prev,
       [name]: value,
     }));
+    // Xóa lỗi khi người dùng bắt đầu nhập lại
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -186,19 +306,17 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
         toast.error(
           "Chỉ chấp nhận file ảnh có định dạng: PNG, JPG, JPEG, WEBP"
         );
-        // Đặt avatar về null nếu không hợp lệ
         setFormData((prev) => ({ ...prev, avatar: null }));
         setAvatarPreview("");
-        e.target.value = ""; // Reset input
+        e.target.value = ""; // Clear selected file
         return;
       }
 
       if (file.size > maxSize) {
         toast.error("Kích thước file không được vượt quá 2MB");
-        // Đặt avatar về null nếu không hợp lệ
         setFormData((prev) => ({ ...prev, avatar: null }));
         setAvatarPreview("");
-        e.target.value = ""; // Reset input
+        e.target.value = ""; // Clear selected file
         return;
       }
 
@@ -207,24 +325,41 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
 
       setFormData((prev) => ({
         ...prev,
-        avatar: file, // Đảm bảo đây là một File object
+        avatar: file, // Lưu File object vào state
+        avatar_url_from_backend: "", // Xóa URL cũ nếu có ảnh mới
       }));
 
       if (errors.avatar) {
         setErrors((prev) => ({ ...prev, avatar: "" }));
       }
     } else {
-      // Nếu người dùng chọn file rồi hủy, đảm bảo avatar trở lại null
-      setFormData((prev) => ({ ...prev, avatar: null }));
-      setAvatarPreview("");
+      // Khi người dùng bấm "Cancel" trên hộp thoại chọn file hoặc xóa file đã chọn
+      // Nếu có ảnh cũ từ backend, giữ lại preview đó
+      if (formData.avatar_url_from_backend) {
+        setAvatarPreview(`${imagePhim}${formData.avatar_url_from_backend}`);
+      } else {
+        setAvatarPreview("");
+      }
+      setFormData((prev) => ({ ...prev, avatar: null })); // Đặt lại avatar về null
     }
   };
 
-  const handleDistrictChange = (e) => {
-    const selected = Array.from(e.target.selectedOptions, (opt) =>
-      Number(opt.value)
-    );
-    setFormData((prev) => ({ ...prev, district_ids: selected }));
+  // Hàm xử lý khi chọn/bỏ chọn checkbox quận
+  const handleDistrictCheckboxChange = (e) => {
+    const districtId = Number(e.target.value);
+    const isChecked = e.target.checked;
+
+    setFormData((prev) => {
+      const currentDistrictIds = prev.district_ids || [];
+      let newDistrictIds;
+      if (isChecked) {
+        newDistrictIds = [...currentDistrictIds, districtId];
+      } else {
+        newDistrictIds = currentDistrictIds.filter((id) => id !== districtId);
+      }
+      return { ...prev, district_ids: newDistrictIds };
+    });
+
     if (errors.district_ids) {
       setErrors((prev) => ({ ...prev, district_ids: "" }));
     }
@@ -232,18 +367,16 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("[UserForm] Đã bấm nút Cập nhật!");
-    if (validateForm()) {
-      console.log(
-        "[DEBUG] Giá trị của formData.avatar TRƯỚC KHI tạo FormData:",
-        formData.avatar
-      );
-      console.log(
-        "[DEBUG] formData.avatar instanceof File:",
-        formData.avatar instanceof File
-      );
+    console.log("[UserForm] Đã bấm nút Cập nhật/Thêm mới!");
 
+    if (validateForm()) {
       const formDataToSend = new FormData();
+
+      // Chỉ thêm user_id nếu đang ở chế độ cập nhật
+      if (initialData && formData.user_id) {
+        formDataToSend.append("user_id", formData.user_id);
+      }
+
       formDataToSend.append("full_name", formData.full_name || "");
       formDataToSend.append("email", formData.email || "");
       formDataToSend.append("phone", formData.phone || "");
@@ -251,51 +384,94 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
       formDataToSend.append("birth_date", formData.birth_date || "");
       formDataToSend.append("gender", formData.gender || "");
 
-      // Thêm user_id nếu đang edit
-      // if (initialData && formData.user_id) {
-      //   formDataToSend.append("user_id", formData.user_id);
-      // }
+      console.log("[UserForm] Submitting role:", formData.role);
+      console.log("[UserForm] Role type:", typeof formData.role);
 
-      // Xử lý password - chỉ thêm khi có giá trị
-      if (!initialData || formData.password) {
-        if (formData.password) {
-          formDataToSend.append("password", formData.password);
-          formDataToSend.append(
-            "password_confirmation",
-            formData.password_confirmation
-          );
-        }
+      // === Logic gửi password và password_confirmation ===
+      // Chỉ gửi password và password_confirmation nếu chúng có giá trị (người dùng đã nhập)
+      if (formData.password && formData.password.length > 0) {
+        formDataToSend.append("password", formData.password);
+        formDataToSend.append(
+          "password_confirmation",
+          formData.password_confirmation
+        );
       }
 
-      // Xử lý avatar file: CHỈ THÊM VÀO NẾU NÓ THỰC SỰ LÀ MỘT FILE MỚI ĐƯỢC CHỌN
+      // === Logic gửi avatar (file hoặc url) ===
       if (formData.avatar instanceof File) {
         formDataToSend.append("avatar", formData.avatar);
+      } else if (formData.avatar_url_from_backend) {
+        // Nếu không có file mới được chọn, nhưng có avatar_url từ backend,
+        // thì gửi avatar_url này để backend biết giữ lại ảnh cũ
+        formDataToSend.append("avatar_url", formData.avatar_url_from_backend);
+      } else {
+        // Nếu không có file mới và không có avatar_url từ backend (người dùng đã xóa hoặc chưa có)
+        // Gửi một giá trị rỗng/null cho avatar_url để backend xóa ảnh nếu có,
+        // hoặc không làm gì nếu backend mặc định là 'nullable'.
+        // Tùy thuộc vào cách backend xử lý việc xóa ảnh cũ khi không gửi trường 'avatar'
+        // Tôi khuyến nghị gửi một trường báo hiệu việc xóa nếu muốn xóa ảnh cũ
+        // formDataToSend.append("avatar_url", ""); // Hoặc một cờ delete_avatar
       }
-      // QUAN TRỌNG: Không thêm trường 'avatar' nào khác nếu không có file mới được chọn.
-      // Laravel sẽ tự động giữ ảnh cũ nếu trường 'avatar' không có trong request.
 
-      // Xử lý district_ids cho district_manager
+      // === Logic gửi district_ids và cinema_id dựa trên vai trò ===
+      console.log("[UserForm] Submitting with role:", formData.role);
+      console.log("[UserForm] formData.district_ids:", formData.district_ids);
+      console.log("[UserForm] formData.cinema_id:", formData.cinema_id);
+
+      console.log("[UserForm] Processing role in submit:", formData.role);
       if (formData.role === "district_manager") {
         if (
           Array.isArray(formData.district_ids) &&
           formData.district_ids.length > 0
         ) {
-          formData.district_ids.forEach((id, index) => {
-            formDataToSend.append(`district_ids[${index}]`, Number(id));
+          // Laravel mong đợi district_ids[] hoặc district_ids[0], district_ids[1]...
+          formData.district_ids.forEach((id) => {
+            formDataToSend.append(`district_ids[]`, Number(id)); // Đúng định dạng cho mảng
           });
+          console.log(
+            "[UserForm] Added district_ids to FormData:",
+            formData.district_ids
+          );
+        } else {
+          console.log("[UserForm] No district_ids to add or empty array");
         }
-      }
-
-      // Xử lý cinema_id cho showtime_manager và booking_manager
-      if (["showtime_manager", "booking_manager"].includes(formData.role)) {
+        // Nếu district_manager nhưng không chọn quận nào, Laravel sẽ báo lỗi qua withValidator
+        // Không cần append gì thêm cho district_ids ở đây nếu mảng rỗng.
+        formDataToSend.delete("cinema_id"); // Đảm bảo không gửi cinema_id khi là district_manager
+        console.log("[UserForm] Deleted cinema_id for district_manager");
+      } else if (
+        ["showtime_manager", "booking_manager"].includes(formData.role)
+      ) {
+        console.log(
+          "[UserForm] Processing showtime_manager/booking_manager role"
+        );
         if (formData.cinema_id) {
           formDataToSend.append("cinema_id", Number(formData.cinema_id));
+          console.log(
+            "[UserForm] Added cinema_id to FormData:",
+            formData.cinema_id
+          );
+        } else {
+          console.log("[UserForm] No cinema_id to add");
         }
+        // Nếu showtime_manager/booking_manager nhưng không chọn rạp, Laravel sẽ báo lỗi qua withValidator
+        formDataToSend.delete("district_ids"); // Đảm bảo không gửi district_ids khi là showtime/booking manager
+        console.log(
+          "[UserForm] Deleted district_ids for showtime/booking manager"
+        );
+      } else {
+        // Với các vai trò khác ('user', 'admin'), không gửi cinema_id hay district_ids
+        console.log("[UserForm] Processing other roles (user, admin)");
+        formDataToSend.delete("cinema_id");
+        formDataToSend.delete("district_ids");
+        console.log(
+          "[UserForm] Deleted cinema_id and district_ids for other roles"
+        );
       }
 
-      // Luôn append _method cho PATCH khi cập nhật
-      // if (initialData && formData.user_id) {
-      //   // Chỉ thêm _method: PATCH khi là update
+      // === Thêm _method cho Laravel ===
+      // Chỉ thêm _method nếu đây là request cập nhật (initialData tồn tại)
+      // if (initialData) {
       //   formDataToSend.append("_method", "PATCH");
       // }
 
@@ -303,12 +479,17 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
         "[UserForm] Dữ liệu trong state formData trước khi submit:",
         formData
       );
-      // Log toàn bộ FormData trước khi submit
       console.log("[UserForm] Dữ liệu thực tế trong FormDataToSend:");
       for (let pair of formDataToSend.entries()) {
+        // Lưu ý: FormData.entries() không hiển thị nội dung của File object, chỉ tên và loại.
         console.log("[FormData entry]", pair[0] + ":", pair[1]);
       }
-      onSubmit(formDataToSend);
+      console.log(
+        "[UserForm] Total FormData entries:",
+        formDataToSend.entries().length
+      );
+
+      onSubmit(formDataToSend); // Gọi hàm onSubmit từ prop, truyền FormData
     } else {
       console.log("[UserForm] Validate lỗi, không submit!");
       toast.error("Vui lòng kiểm tra lại thông tin");
@@ -316,14 +497,14 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6 bg-white rounded-xl shadow-md mt-10">
+    <div className="max-w-xl mx-auto p-2 mt-10 max-h-[80vh] overflow-y-auto">
       <h2 className="text-2xl font-bold mb-6 text-center">
         {initialData ? "Chỉnh sửa người dùng" : "Thêm người dùng mới"}
       </h2>
       <form
         onSubmit={handleSubmit}
         className="space-y-4"
-        encType="multipart/form-data" // Quan trọng cho upload file
+        encType="multipart/form-data" // Đảm bảo enctype này để gửi FormData
       >
         <div>
           <input
@@ -381,50 +562,50 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
             accept="image/*"
             className="w-full border rounded p-2 border-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           />
-          {/* Lỗi avatar_url nên được đổi thành errors.avatar nếu bạn muốn hiển thị lỗi cho trường avatar */}
           {errors.avatar && (
             <p className="text-red-500 text-sm mt-1">{errors.avatar}</p>
           )}
         </div>
 
-        {!initialData || formData.password ? (
-          <div className="space-y-4">
-            <div>
-              <input
-                type="password"
-                name="password"
-                placeholder="Mật khẩu"
-                value={formData.password}
-                onChange={handleChange}
-                className={`w-full border rounded p-2 ${
-                  errors.password ? "border-red-500" : "border-gray-300"
-                }`}
-              />
-              {errors.password && (
-                <p className="text-red-500 text-sm mt-1">{errors.password}</p>
-              )}
-            </div>
-            <div>
-              <input
-                type="password"
-                name="password_confirmation"
-                placeholder="Xác nhận mật khẩu"
-                value={formData.password_confirmation}
-                onChange={handleChange}
-                className={`w-full border rounded p-2 ${
-                  errors.password_confirmation
-                    ? "border-red-500"
-                    : "border-gray-300"
-                }`}
-              />
-              {errors.password_confirmation && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.password_confirmation}
-                </p>
-              )}
-            </div>
+        {/* Luôn hiển thị trường mật khẩu, nhưng validation frontend sẽ có điều kiện */}
+        {/* Điều kiện !initialData đảm bảo trường mật khẩu luôn required khi thêm mới */}
+        {/* Với trường hợp cập nhật, người dùng có thể nhập để thay đổi hoặc bỏ trống */}
+        <div className="space-y-4">
+          <div>
+            <input
+              type="password"
+              name="password"
+              placeholder="Mật khẩu (để trống nếu không đổi)"
+              value={formData.password}
+              onChange={handleChange}
+              className={`w-full border rounded p-2 ${
+                errors.password ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
           </div>
-        ) : null}
+          <div>
+            <input
+              type="password"
+              name="password_confirmation"
+              placeholder="Xác nhận mật khẩu"
+              value={formData.password_confirmation}
+              onChange={handleChange}
+              className={`w-full border rounded p-2 ${
+                errors.password_confirmation
+                  ? "border-red-500"
+                  : "border-gray-300"
+              }`}
+            />
+            {errors.password_confirmation && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.password_confirmation}
+              </p>
+            )}
+          </div>
+        </div>
 
         <div>
           <input
@@ -463,24 +644,41 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
         {formData.role === "district_manager" && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Chọn cụm rạp quản lý (có thể chọn nhiều)
+              Chọn cụm rạp quản lý
             </label>
-            <select
-              multiple
-              name="district_ids"
-              value={formData.district_ids}
-              onChange={handleDistrictChange}
-              className="w-full border border-gray-300 rounded p-2 h-32"
+            <div
+              className={`border rounded p-2 grid grid-cols-2 gap-2 max-h-48 overflow-y-auto ${
+                errors.district_ids ? "border-red-500" : "border-gray-300"
+              }`}
             >
-              {districts.map((district) => (
-                <option key={district.district_id} value={district.district_id}>
-                  {district.district_name}
-                </option>
-              ))}
-            </select>
-            <p className="text-sm text-gray-500 mt-1">
-              Giữ Ctrl (hoặc Cmd) để chọn nhiều cụm rạp
-            </p>
+              {loadingDistricts ? (
+                <p className="col-span-2 text-gray-500">Đang tải quận...</p>
+              ) : districts.length > 0 ? (
+                districts.map((district) => (
+                  <label
+                    key={district.district_id}
+                    className="inline-flex items-center"
+                  >
+                    <input
+                      type="checkbox"
+                      value={district.district_id}
+                      checked={formData.district_ids.includes(
+                        district.district_id
+                      )}
+                      onChange={handleDistrictCheckboxChange}
+                      className="form-checkbox h-4 w-4 text-blue-600 rounded"
+                    />
+                    <span className="ml-2 text-gray-700">
+                      {district.district_name}
+                    </span>
+                  </label>
+                ))
+              ) : (
+                <p className="col-span-2 text-gray-500">
+                  Không có quận nào được tìm thấy.
+                </p>
+              )}
+            </div>
             {errors.district_ids && (
               <p className="text-red-500 text-sm mt-1">{errors.district_ids}</p>
             )}
@@ -496,14 +694,20 @@ const UserForm = ({ onSubmit, initialData, onCancel }) => {
               name="cinema_id"
               value={formData.cinema_id}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded p-2"
+              className={`w-full border rounded p-2 ${
+                errors.cinema_id ? "border-red-500" : "border-gray-300"
+              }`}
             >
               <option value="">Chọn rạp</option>
-              {cinemas.map((cinema) => (
-                <option key={cinema.cinema_id} value={cinema.cinema_id}>
-                  {cinema.cinema_name}
-                </option>
-              ))}
+              {cinemas.length > 0 ? (
+                cinemas.map((cinema) => (
+                  <option key={cinema.cinema_id} value={cinema.cinema_id}>
+                    {cinema.cinema_name}
+                  </option>
+                ))
+              ) : (
+                <option value="">Không có rạp nào được tìm thấy.</option>
+              )}
             </select>
             {errors.cinema_id && (
               <p className="text-red-500 text-sm mt-1">{errors.cinema_id}</p>

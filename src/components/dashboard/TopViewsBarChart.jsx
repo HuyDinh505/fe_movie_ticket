@@ -9,19 +9,24 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const TopViewsBarChart = ({ data, title, dataKey, color }) => {
-  const yourDesiredName = "Số vé:"; // <--- Tên bạn muốn thay thế
+const TopViewsBarChart = ({
+  data,
+  title,
+  dataKey,
+  color,
+  xAxisTick,
+  xAxisDataKey,
+}) => {
+  const yourDesiredName = "Số vé:";
 
   // Hàm tùy chỉnh nội dung Tooltip
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
-      const dataItem = payload[0]; // Lấy dữ liệu của cột đang rê chuột
-      let displayText = dataItem.name; // Mặc định là tên của dataKey
+      const dataItem = payload[0];
+      let displayText = dataItem.name;
 
-      // Kiểm tra nếu dataKey là 'sold' thì đổi tên
-      if (dataItem.name === "sold") {
-        // 'sold' là dataKey bạn truyền vào
-        displayText = yourDesiredName; // Thay thế bằng tên bạn muốn
+      if (dataItem.name === "sold" || dataItem.name === "views") {
+        displayText = yourDesiredName;
       }
       return (
         <div
@@ -40,13 +45,30 @@ const TopViewsBarChart = ({ data, title, dataKey, color }) => {
     }
     return null;
   };
+
+  // Hàm để rút gọn tên (ví dụ: giới hạn 20 ký tự)
+  const formatXAxisTick = (tickItem) => {
+    const maxLength = 10; // Đặt độ dài tối đa mong muốn
+    if (tickItem && tickItem.length > maxLength) {
+      return tickItem.substring(0, maxLength - 3) + "...";
+    }
+    return tickItem;
+  };
+
   return (
-    <div className="bg-white p-4 rounded shadow">
+    <div className="bg-white p-4 rounded shadow ml-2">
       <h3 className="text-lg font-semibold mb-4">{title}</h3>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
+          <XAxis
+            dataKey={xAxisDataKey}
+            tick={xAxisTick || { fontSize: 10 }}
+            tickFormatter={
+              xAxisDataKey === "name" ? formatXAxisTick : undefined
+            } // Chỉ áp dụng cho dataKey là "name"
+            interval="preserveStartEnd" // Giúp tránh các nhãn bị chồng chéo
+          />
           <YAxis />
           <Tooltip content={<CustomTooltip />} />
           <Bar dataKey={dataKey} fill={color} barSize={100} />

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import StatCard from "../../../components/dashboard/StatCard";
 import TopViewsBarChart from "../../../components/dashboard/TopViewsBarChart";
 import RevenueLineChart from "../../../components/dashboard/RevenueLineChart";
@@ -7,123 +7,192 @@ import RevenueByCinemaTable from "../../../components/dashboard/RevenueByCinemaT
 import { useLocation } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useGetTotalRevenueUS } from "../../../api/homePage/queries";
-import { getTotalRevenueAPI } from "../../../api/homePage/request";
+import {
+  useGetTimeSeriesRevenueUS,
+  useGetAllMoviesRevenueUS,
+  useGetAllRapRevenueUS,
+} from "../../../api/homePage/queries";
 
 const Dashboard = () => {
-  // State cho period và date
-  const [period, setPeriod] = React.useState("day");
-  const [date, setDate] = React.useState(() => {
+  // State cho period, startDate và endDate từ bộ lọc chính
+  const [period, setPeriod] = useState("day");
+  const [startDate, setStartDate] = useState(() => {
     const today = new Date();
-    return today.toISOString().slice(0, 10);
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    return thirtyDaysAgo.toISOString().slice(0, 10); // Định dạng YYYY-MM-DD
   });
-  // State để lưu params thực sự dùng để fetch
-  const [searchParams, setSearchParams] = React.useState(null);
-
-  // Gọi API doanh thu chỉ khi searchParams có giá trị
-  const { data, isLoading } = useGetTotalRevenueUS(searchParams || {}, {
-    enabled: !!searchParams,
+  const [endDate, setEndDate] = useState(() => {
+    const today = new Date();
+    return today.toISOString().slice(0, 10); // Mặc định là ngày hiện tại
   });
-  const totalRevenue = Number(data?.data?.total_revenue || 0);
-  const currency = data?.data?.currency || "VNĐ";
-  const bookingsCount = data?.data?.bookings_count || 0;
 
-  const selectedPeriod = searchParams?.period;
-  const displayPeriod =
-    selectedPeriod === "day"
-      ? data?.data?.display_period
-      : data?.data?.date_range_start && data?.data?.date_range_end
-      ? `${data.data.date_range_start.split(" ")[0]} ~ ${
-          data.data.date_range_end.split(" ")[0]
-        }`
-      : "-";
+  // State để lưu params thực sự dùng để fetch dữ liệu
+  // Khởi tạo ngay lập tức với giá trị mặc định để các hook có thể fetch ngay
+  const [requestParams, setRequestParams] = useState({
+    period: "day", // Hoặc giá trị mặc định ban đầu của `period`
+    startDate: (() => {
+      const today = new Date();
+      const thirtyDaysAgo = new Date(today);
+      thirtyDaysAgo.setDate(today.getDate() - 30);
+      return thirtyDaysAgo.toISOString().slice(0, 10);
+    })(),
+    endDate: new Date().toISOString().slice(0, 10),
+  });
 
-  // Dummy data cho các stat khác
+  // --- HOOKS LẤY DỮ LIỆU ---
+
+  // 1. Lấy dữ liệu chuỗi thời gian (sẽ dùng cho cả StatCard và RevenueLineChart)
+  const {
+    data: timeSeriesData,
+    isLoading: isLoadingTimeSeries,
+    isError: isErrorTimeSeries,
+  } = useGetTimeSeriesRevenueUS(
+    {
+      group_by: requestParams.period, // Dùng requestParams
+      start_date: requestParams.startDate, // Dùng requestParams
+      end_date: requestParams.endDate, // Dùng requestParams
+    },
+    {
+      enabled: !!requestParams.startDate && !!requestParams.endDate, // Chỉ fetch khi có cả 2 ngày
+    }
+  );
+
+  // Tính toán tổng doanh thu từ dữ liệu chuỗi thời gian
+  const totalRevenue = useMemo(() => {
+    return (timeSeriesData?.data?.data || []).reduce(
+      (sum, item) => sum + Number(item.total_revenue || 0),
+      0
+    );
+  }, [timeSeriesData]);
+
+  // Tính toán tổng số vé bán ra từ dữ liệu chuỗi thời gian
+  const bookingsCount = useMemo(() => {
+    return (timeSeriesData?.data?.data || []).reduce(
+      (sum, item) => sum + Number(item.booking_count || 0),
+      0
+    );
+  }, [timeSeriesData]);
+
+  // Lấy đơn vị tiền tệ từ dữ liệu timeSeriesData
+  const currency = timeSeriesData?.data?.currency || "VNĐ";
+
+  // Xử lý displayPeriod từ data_range_start và data_range_end/and của timeSeriesData
+  const displayPeriod = useMemo(() => {
+    if (!timeSeriesData?.data) return "-";
+
+    const {
+      group_by,
+      date_range_start,
+      date_range_end,
+      date_range_and,
+      display_period: apiDisplayPeriod,
+    } = timeSeriesData.data;
+
+    if (group_by === "day" && apiDisplayPeriod) {
+      return apiDisplayPeriod;
+    } else if (date_range_start) {
+      const start = date_range_start.split(" ")[0];
+      const end = (date_range_end || date_range_and)?.split(" ")[0];
+      return end ? `${start} ~ ${end}` : start;
+    }
+    return "-";
+  }, [timeSeriesData]);
+
+  const revenueByMonth = useMemo(() => {
+    // Dữ liệu cho RevenueLineChart trực tiếp từ timeSeriesData
+    return (timeSeriesData?.data?.data || []).map((item) => ({
+      month: item.period_key, // period_key có thể là "YYYY-MM", "YYYY-WXX", "YYYY-MM-DD"
+      revenue: Number(item.total_revenue || 0),
+    }));
+  }, [timeSeriesData]);
+
+  // 2. Lấy doanh thu theo phim (cho RevenueByMovieTable và TopViewsBarChart)
+  const {
+    data: allMoviesRevenueData,
+    isLoading: isLoadingAllMoviesRevenue,
+    isError: isErrorAllMoviesRevenue,
+  } = useGetAllMoviesRevenueUS(
+    // Sử dụng requestParams để đồng bộ với nút Tìm kiếm
+    {
+      group_by: requestParams.period,
+      start_date: requestParams.startDate,
+      end_date: requestParams.endDate,
+    },
+    {
+      enabled: !!requestParams.startDate && !!requestParams.endDate,
+    }
+  );
+
+  const movieRevenue = useMemo(() => {
+    // Sắp xếp theo doanh thu giảm dần và chỉ lấy TOP 5
+    return (allMoviesRevenueData?.data?.["all movies revenue"] || [])
+      .sort((a, b) => Number(b.total_revenue) - Number(a.total_revenue))
+      .slice(0, 5) // Chỉ lấy 5 mục tượng trưng
+      .map((item) => ({
+        name: item.movie_name,
+        tickets: item.book_count,
+        revenue: Number(item.total_revenue),
+      }));
+  }, [allMoviesRevenueData]);
+
+  // TopViewsData cho biểu đồ bar chart (lấy từ movieRevenue)
+  const topViewsData = useMemo(() => {
+    // Sắp xếp theo số vé bán ra và lấy top 5
+    return [...movieRevenue]
+      .sort((a, b) => b.tickets - a.tickets)
+      .slice(0, 5)
+      .map((item) => ({ name: item.name, views: item.tickets }));
+  }, [movieRevenue]);
+
+  // 3. Lấy doanh thu theo rạp (cho RevenueByCinemaTable)
+  const {
+    data: allRapsRevenueData,
+    isLoading: isLoadingAllRapsRevenue,
+    isError: isErrorAllRapsRevenue,
+  } = useGetAllRapRevenueUS(
+    // Sử dụng requestParams để đồng bộ với nút Tìm kiếm
+    {
+      group_by: requestParams.period,
+      start_date: requestParams.startDate,
+      end_date: requestParams.endDate,
+    },
+    {
+      enabled: !!requestParams.startDate && !!requestParams.endDate,
+    }
+  );
+
+  const cinemaRevenue = useMemo(() => {
+    // Sắp xếp theo doanh thu giảm dần và chỉ lấy TOP 5
+    return (allRapsRevenueData?.data?.["all cinema revenue"] || [])
+      .sort((a, b) => Number(b.total_revenue) - Number(a.total_revenue))
+      .slice(0, 5) // Chỉ lấy 5 mục tượng trưng
+      .map((item) => ({
+        name: item.cinema_name,
+        tickets: item.booking_count,
+        revenue: Number(item.total_revenue),
+      }));
+  }, [allRapsRevenueData]);
+
+  // Cập nhật stats data
   const stats = [
     {
       title: `Doanh thu (${displayPeriod})`,
-      value: isLoading
+      value: isLoadingTimeSeries // Sử dụng isLoadingTimeSeries cho loading state
         ? "..."
         : totalRevenue.toLocaleString("vi-VN") + " " + currency,
       color: "blue",
     },
     {
       title: "Tổng vé bán ra",
-      value: isLoading ? "..." : bookingsCount,
+      value: isLoadingTimeSeries ? "..." : bookingsCount, // Sử dụng isLoadingTimeSeries cho loading state
       color: "orange",
     },
-    // Các stat khác có thể cập nhật sau
   ];
 
-  // Dummy data
-  const topViewsData = [
-    { name: "Điểm mặt L...", views: 25 },
-    { name: "Chị Chị Em...", views: 14 },
-    { name: "15 phim bộ...", views: 12 },
-    { name: "Top 10 phim...", views: 11 },
-    { name: "13 phim lẻ...", views: 10 },
-  ];
-
-  const movieRevenue = [
-    { name: "Monkey Man Báo Thù", tickets: 5, revenue: 1_066_000 },
-    { name: "Cái Giá Của Hạnh Phúc", tickets: 4, revenue: 760_000 },
-  ];
-
-  const cinemaRevenue = [
-    { name: "HCinema Aeon Hà Đông", tickets: 9, revenue: 1_826_000 },
-  ];
-
-  // State cho dữ liệu doanh thu theo tháng
-  const [revenueByMonth, setRevenueByMonth] = React.useState([]);
-  const [loadingRevenueByMonth, setLoadingRevenueByMonth] =
-    React.useState(false);
-
-  // Hàm lấy danh sách tháng từ 1 đến tháng hiện tại
-  const getMonthsOfYear = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const currentMonth = now.getMonth() + 1; // 1-12
-    const months = [];
-    for (let m = 1; m <= currentMonth; m++) {
-      const monthStr = m < 10 ? `0${m}` : `${m}`;
-      months.push({
-        label: `${m}/${year}`,
-        date: `${year}-${monthStr}-01`,
-      });
-    }
-    return months;
-  };
-
-  // Fetch doanh thu từng tháng khi mount
-  React.useEffect(() => {
-    const fetchRevenueByMonth = async () => {
-      setLoadingRevenueByMonth(true);
-      const months = getMonthsOfYear();
-      try {
-        const results = await Promise.all(
-          months.map(async (m) => {
-            const res = await getTotalRevenueAPI({
-              period: "month",
-              date: m.date,
-            });
-            return {
-              month: m.label,
-              revenue: Number(res?.data?.total_revenue || 0),
-            };
-          })
-        );
-        setRevenueByMonth(results);
-      } catch {
-        setRevenueByMonth([]);
-      } finally {
-        setLoadingRevenueByMonth(false);
-      }
-    };
-    fetchRevenueByMonth();
-  }, []);
-
+  // Logic hiển thị toast khi đăng nhập thành công
   const location = useLocation();
-  React.useEffect(() => {
+  useEffect(() => {
     if (location.state?.loginSuccess) {
       toast.success("Đăng nhập thành công!", {
         position: "top-right",
@@ -134,13 +203,38 @@ const Dashboard = () => {
         draggable: true,
         progress: undefined,
       });
+      // Xóa state để toast không xuất hiện lại khi refresh
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
 
+  // Console logs để kiểm tra giá trị và trạng thái
+  useEffect(() => {
+    console.log("Current period:", period);
+    console.log("Current startDate:", startDate);
+    console.log("Current endDate:", endDate);
+    console.log("requestParams for fetch:", requestParams);
+    console.log("isLoadingTimeSeries:", isLoadingTimeSeries);
+    console.log("timeSeriesData:", timeSeriesData);
+    console.log("Calculated totalRevenue:", totalRevenue);
+    console.log("Calculated bookingsCount:", bookingsCount);
+    console.log("displayPeriod:", displayPeriod);
+  }, [
+    period,
+    startDate,
+    endDate,
+    requestParams,
+    isLoadingTimeSeries,
+    timeSeriesData,
+    totalRevenue,
+    bookingsCount,
+    displayPeriod,
+  ]);
+
   return (
     <div className="pl-2">
-      <ToastContainer
+      {/* ToastContainer đã bị comment trong code của bạn, tôi giữ nguyên */}
+      {/* <ToastContainer
         position="top-right"
         autoClose={5000}
         hideProgressBar={false}
@@ -151,16 +245,12 @@ const Dashboard = () => {
         draggable
         pauseOnHover
         theme="light"
-      />
-      {/* <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center sm:p-6 bg-white rounded-xl shadow-lg sticky top-0 z-30">
-        <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight mb-4 sm:mb-0">
-          Tổng quan
-        </h1>
-      </div> */}
+      /> */}
+
       {/* Bộ lọc doanh thu */}
       <div
         className="w-full mx-auto bg-white rounded-xl shadow-md p-4 flex flex-col
-       sm:flex-row sm:items-end gap-4 mb-2 mt-1"
+        sm:flex-row sm:items-end gap-4 mb-2 mt-1"
       >
         <div className="flex-1 w-full">
           <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -179,22 +269,34 @@ const Dashboard = () => {
         </div>
         <div className="flex-1 w-full">
           <label className="block text-sm font-semibold text-gray-700 mb-1">
-            Chọn ngày
+            Từ ngày
           </label>
           <input
             type="date"
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            disabled={period === "year"}
+          />
+        </div>
+        <div className="flex-1 w-full">
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Đến ngày
+          </label>
+          <input
+            type="date"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
             disabled={period === "year"}
           />
         </div>
         <div className="w-full sm:w-auto">
           <button
-            className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded-lg 
+            className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded-lg
             font-semibold shadow hover:bg-blue-700 transition cursor-pointer"
-            style={{ minHeight: "42px" }} // Đảm bảo chiều cao bằng input
-            onClick={() => setSearchParams({ period, date })}
+            style={{ minHeight: "42px" }}
+            onClick={() => setRequestParams({ period, startDate, endDate })} // Kích hoạt fetch dữ liệu
           >
             Tìm kiếm
           </button>
@@ -208,21 +310,82 @@ const Dashboard = () => {
       </div>
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-        {/* <TopViewsBarChart
-          data={topViewsData}
-          title="Top bài viết được xem nhiều nhất"
-          dataKey="views"
-          color="#3b82f6"
-        /> */}
-        <RevenueLineChart
-          data={revenueByMonth}
-          loading={loadingRevenueByMonth}
-        />
+        {/* Biểu đồ Top Views/Tickets (Doanh thu theo phim) */}
+        {/* {isLoadingAllMoviesRevenue ? (
+          <div className="text-center py-4">Đang tải dữ liệu phim...</div>
+        ) : isErrorAllMoviesRevenue ? (
+          <div className="text-center py-4 text-red-500">
+            Lỗi khi tải dữ liệu phim!
+          </div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <div
+              style={{
+                minWidth: `${Math.max(topViewsData.length * 150, 600)}px`,
+                height: "300px",
+              }}
+            >
+              <TopViewsBarChart
+                data={topViewsData}
+                title="Top phim bán chạy nhất"
+                dataKey="views"
+                xAxisDataKey="name"
+                color="#3b82f6"
+                xAxisTick={{ fontSize: 12, angle: -30, textAnchor: "end" }}
+                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+              />
+            </div>
+          </div>
+        )} */}
+
+        {/* Biểu đồ Doanh thu theo thời gian */}
+        {isLoadingTimeSeries ? (
+          <div className="text-center py-4">
+            Đang tải dữ liệu doanh thu theo thời gian...
+          </div>
+        ) : isErrorTimeSeries ? (
+          <div className="text-center py-4 text-red-500">
+            Lỗi khi tải dữ liệu doanh thu theo thời gian!
+          </div>
+        ) : (
+          <div style={{ overflowX: "auto", paddingBottom: "10px" }}>
+            <div
+              style={{
+                minWidth: `${Math.max(revenueByMonth.length * 70, 600)}px`,
+                height: "380px",
+              }}
+            >
+              <RevenueLineChart
+                data={revenueByMonth}
+                loading={isLoadingTimeSeries}
+              />
+            </div>
+          </div>
+        )}
       </div>
       {/* Tables */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-        <RevenueByMovieTable data={movieRevenue} />
-        <RevenueByCinemaTable data={cinemaRevenue} />
+        {isLoadingAllMoviesRevenue ? (
+          <div className="text-center py-4">
+            Đang tải bảng doanh thu phim...
+          </div>
+        ) : isErrorAllMoviesRevenue ? (
+          <div className="text-center py-4 text-red-500">
+            Lỗi khi tải bảng doanh thu phim!
+          </div>
+        ) : (
+          <RevenueByMovieTable data={movieRevenue} />
+        )}
+
+        {isLoadingAllRapsRevenue ? (
+          <div className="text-center py-4">Đang tải bảng doanh thu rạp...</div>
+        ) : isErrorAllRapsRevenue ? (
+          <div className="text-center py-4 text-red-500">
+            Lỗi khi tải bảng doanh thu rạp!
+          </div>
+        ) : (
+          <RevenueByCinemaTable data={cinemaRevenue} />
+        )}
       </div>
     </div>
   );

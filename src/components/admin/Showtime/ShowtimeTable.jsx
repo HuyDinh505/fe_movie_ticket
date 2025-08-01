@@ -64,12 +64,12 @@ const ShowtimeTable = ({
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Thời gian
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Loại màn hình
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Phụ đề
-            </th>
+            </th> */}
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Trạng thái
             </th>
@@ -96,7 +96,7 @@ const ShowtimeTable = ({
                   {showtime.time_range}
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              {/* <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm text-gray-900">
                   {showtime.screen_type}
                 </div>
@@ -105,10 +105,12 @@ const ShowtimeTable = ({
                 <div className="text-sm text-gray-900">
                   {showtime.translation_type}
                 </div>
-              </td>
+              </td> */}
               <td className="px-6 py-4 whitespace-nowrap">
                 <span
-                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(getShowtimeStatus(showtime))}`}
+                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(
+                    getShowtimeStatus(showtime)
+                  )}`}
                 >
                   {getShowtimeStatus(showtime)}
                 </span>

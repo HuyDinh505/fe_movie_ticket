@@ -10,9 +10,10 @@ import {
   useRestoreGenreUS,
 } from "../../../api/homePage/queries";
 import { toast } from "react-toastify";
-import { useQueryClient } from "@tanstack/react-query";
-import Modal from "../../../components/ui/Modal";
+// import { useQueryClient } from "@tanstack/react-query"; // Không cần dùng trực tiếp nếu dùng refetch
+// import Modal from "../../../components/ui/Modal"; // Không cần dùng cho xác nhận xóa nữa
 import { handleApiError, getApiMessage } from "../../../Utilities/apiMessage";
+import Swal from "sweetalert2";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -21,87 +22,147 @@ const GenreManagement = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [confirmDelete, setConfirmDelete] = useState({
-    open: false,
-    genreId: null,
-  });
+  // State confirmDelete không còn cần thiết vì Swal sẽ xử lý xác nhận trực tiếp
 
   // React Query hooks
-  const { data: genresData, isLoading } = useGetAllGenresUS();
-  const createGenre = useCreateGenreUS();
-  const updateGenre = useUpdateGenreUS();
-  const deleteGenre = useDeleteGenreUS();
-  const restoreGenre = useRestoreGenreUS();
+  const {
+    data: genresData,
+    isLoading: loading, // Đổi tên isLoading thành loading để đồng nhất
+    error,
+    refetch: fetchGenres, // Sử dụng refetch thay vì invalidateQueries
+  } = useGetAllGenresUS();
 
-  const queryClient = useQueryClient();
+  // Tạo, Cập nhật, Xóa, Khôi phục - Đồng bộ cách khai báo và xử lý
+  const { mutate: createGenre, isLoading: isCreating } = useCreateGenreUS({
+    onSuccess: (response) => {
+      if (response?.data?.status === false) {
+        handleApiError(response.data, "Thêm thể loại mới thất bại");
+        return;
+      }
+      toast.success("Thêm thể loại thành công!");
+      setIsFormVisible(false);
+      fetchGenres(); // Gọi lại dữ liệu sau khi thêm
+    },
+    onError: (error) => {
+      toast.error(getApiMessage(error, "Không thể thêm thể loại mới"));
+    },
+  });
+
+  const { mutate: updateGenre, isLoading: isUpdating } = useUpdateGenreUS({
+    onSuccess: (response) => {
+      if (response?.data?.status === false) {
+        handleApiError(response.data, "Cập nhật thể loại thất bại");
+        return;
+      }
+      toast.success("Cập nhật thể loại thành công!");
+      setIsFormVisible(false);
+      setEditingGenre(null); // Reset editingGenre sau khi cập nhật
+      fetchGenres(); // Gọi lại dữ liệu sau khi cập nhật
+    },
+    onError: (error) => {
+      toast.error(getApiMessage(error, "Không thể cập nhật thể loại"));
+    },
+  });
+
+  const { mutate: deleteGenre, isLoading: isDeleting } = useDeleteGenreUS({
+    onSuccess: (response) => {
+      // Kiểm tra lỗi nghiệp vụ từ phản hồi API
+      if (response?.data?.status === false) {
+        Swal.fire(
+          "Thất bại!",
+          response?.data?.message || "Xóa thể loại thất bại",
+          "error"
+        );
+        // Có thể loại bỏ handleApiError ở đây nếu Swal là thông báo chính
+        // handleApiError(response.data, "Xóa thể loại thất bại");
+        return;
+      }
+      // Nếu thành công hoàn toàn
+      Swal.fire(
+        "Thành công!",
+        response?.data?.message || "Xóa thể loại thành công!",
+        "success"
+      );
+      fetchGenres(); // Gọi lại dữ liệu sau khi xóa
+    },
+    onError: (error) => {
+      // Lỗi HTTP hoặc mạng
+      Swal.fire(
+        "Thất bại!",
+        getApiMessage(error, "Có lỗi xảy ra khi xóa thể loại!"),
+        "error"
+      );
+    },
+  });
+
+  const { mutate: restoreGenre, isLoading: isRestoring } = useRestoreGenreUS({
+    onSuccess: () => {
+      toast.success("Khôi phục thể loại thành công!");
+      fetchGenres(); // Gọi lại dữ liệu sau khi khôi phục
+    },
+    onError: (error) => {
+      toast.error("Khôi phục thể loại thất bại: " + error.message);
+    },
+  });
+
+  const handleAddGenre = () => {
+    setEditingGenre(null);
+    setIsFormVisible(true);
+  };
 
   const handleEdit = (genre) => {
     setEditingGenre(genre);
     setIsFormVisible(true);
   };
 
-  const handleDelete = (genreId) => {
-    setConfirmDelete({ open: true, genreId });
-  };
-
-  const handleRestore = (genreId) => {
-    restoreGenre.mutate(genreId, {
-      onSuccess: () => {
-        toast.success("Khôi phục thể loại thành công!");
-        queryClient.invalidateQueries({ queryKey: ["GetAllGenresAPI"] });
-      },
-      onError: (error) => {
-        toast.error("Khôi phục thể loại thất bại: " + error.message);
-      },
-    });
-  };
-
-  const handleAddOrUpdateGenre = (genreData) => {
-    if (genreData) {
+  const handleSaveGenre = async (genreData) => {
+    try {
       if (genreData.genre_id) {
-        // Update existing genre
-        updateGenre.mutate(
-          { genreId: genreData.genre_id, genreData: genreData },
-          {
-            onSuccess: (response) => {
-              if (response?.data?.status === false) {
-                handleApiError(response.data, "Cập nhật thể loại thất bại");
-                return;
-              }
-              toast.success("Cập nhật thể loại thành công!");
-              setIsFormVisible(false);
-              setEditingGenre(null);
-              queryClient.invalidateQueries({ queryKey: ["GetAllGenresAPI"] });
-            },
-            onError: (error) => {
-              toast.error(getApiMessage(error, "Không thể thêm dịch vụ mới"));
-            },
-          }
-        );
+        updateGenre({ genreId: genreData.genre_id, genreData });
       } else {
-        // Create new genre
-        createGenre.mutate(genreData, {
-          onSuccess: (response) => {
-            console.log("API Response:", response);
-            if (response?.data?.status === false) {
-              handleApiError(response.data, "Thêm thể loại mới thất bại");
-              return;
-            }
-            toast.success("Thêm thể loại thành công!");
-            setIsFormVisible(false);
-            queryClient.invalidateQueries({ queryKey: ["GetAllGenresAPI"] });
-          },
-          onError: (error) => {
-            toast.error(getApiMessage(error, "Không thể thêm dịch vụ mới"));
-          },
-        });
+        createGenre(genreData);
       }
+    } catch (err) {
+      console.error("Error saving genre:", err);
+      toast.error(getApiMessage(err, "Có lỗi xảy ra khi lưu thể loại!"));
     }
   };
 
-  const handleAddGenre = () => {
-    setEditingGenre(null);
-    setIsFormVisible(true);
+  const handleDelete = (genreId) => {
+    Swal.fire({
+      title: "Bạn có chắc chắn muốn xóa?",
+      text: "Hành động này không thể hoàn tác!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Xóa",
+      cancelButtonText: "Hủy",
+      reverseButtons: true,
+      confirmButtonColor: "#dc2626",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        deleteGenre(genreId);
+      }
+    });
+  };
+
+  const handleRestore = (genreId) => {
+    // Swal.fire cho xác nhận khôi phục cũng là một lựa chọn tốt
+    Swal.fire({
+      title: "Xác nhận khôi phục!",
+      text: "Bạn có chắc chắn muốn khôi phục thể loại này không?",
+      icon: "info",
+      showCancelButton: true,
+      confirmButtonText: "Khôi phục",
+      cancelButtonText: "Hủy bỏ",
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        restoreGenre(genreId);
+      }
+    });
   };
 
   const handleCancelEdit = () => {
@@ -109,46 +170,18 @@ const GenreManagement = () => {
     setEditingGenre(null);
   };
 
-  const handleConfirmDelete = () => {
-    deleteGenre.mutate(confirmDelete.genreId, {
-      onSuccess: (response) => {
-        // Đổi tên 'data' thành 'response'
-        // Kiểm tra lỗi nghiệp vụ cho xóa nếu API có trả về
-        console.log("api respo:", response);
-        if (response?.data?.status === false) {
-          //
-          console.log("API Response:", response);
-          handleApiError(response.data, "Xóa thể loại phim thất bại");
-          return;
-        }
-        if (response?.status === true)
-          toast.success(response.message || "Xóa thể loại phim11 thành công");
-        queryClient.invalidateQueries({ queryKey: ["GetAllGenresAPI"] });
-      },
-      onError: (error) => {
-        toast.error(getApiMessage(error, "Có lỗi xảy ra khi lưu dịch vụ!"));
-      },
-    });
-    setConfirmDelete({ open: false, genreId: null });
-  };
+  // Xử lý dữ liệu thể loại
+  // genresData?.data?.genres => genresData?.data nếu API trả về trực tiếp mảng
+  const genres = Array.isArray(genresData?.data) ? genresData.data : [];
+  console.log("Genres data from API hook (GenreManagement):", genres);
+  const filteredGenres = genres.filter((genre) => {
+    const matchSearch = (genre.genre_name || "") // Đảm bảo genre_name không null
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    return matchSearch;
+  });
 
-  // Log the data to inspect its structure
-  //   console.log("genresData from API:", genresData);
-  //   console.log("genresData.data from API:", genresData?.data);
-  //   console.log(
-  //     "genresData.data.data (expected array):",
-  //     genresData?.data?.genres
-  //   );
-
-  const filteredGenres = Array.isArray(genresData?.data)
-    ? genresData.data.filter((genre) => {
-        const matchSearch = genre.genre_name
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase());
-        return matchSearch;
-      })
-    : [];
-
+  // Phân trang
   const totalPages = Math.ceil(filteredGenres.length / ITEMS_PER_PAGE);
   const paginatedGenres = filteredGenres.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
@@ -158,6 +191,26 @@ const GenreManagement = () => {
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
+
+  // Hiển thị lỗi chung nếu có lỗi từ useGetAllGenresUS
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-red-500 text-center">
+          <p className="text-xl font-bold mb-2">
+            Đã xảy ra lỗi khi tải dữ liệu
+          </p>
+          <p>{error.message}</p>
+          <button
+            onClick={() => fetchGenres()}
+            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 cursor-pointer"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -169,12 +222,14 @@ const GenreManagement = () => {
         {!isFormVisible && (
           <button
             onClick={handleAddGenre}
-            className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2 bg-gradient-to-r 
-            from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600 
-            hover:to-blue-800 font-semibold shadow-md transition-all text-sm sm:text-base cursor-pointer"
+            disabled={isCreating} // Vô hiệu hóa khi đang tạo
+            className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2 bg-gradient-to-r
+            from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600
+            hover:to-blue-800 font-semibold shadow-md transition-all text-sm sm:text-base cursor-pointer
+            disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FaPlus className="mr-2" />
-            Thêm thể loại mới
+            {isCreating ? "Đang thêm..." : "Thêm thể loại mới"}
           </button>
         )}
       </div>
@@ -197,84 +252,63 @@ const GenreManagement = () => {
       )}
 
       <div className="w-full pt-6">
-        <div className="bg-white rounded-xl shadow-lg overflow-auto">
-          <GenreTable
-            genres={paginatedGenres}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onRestore={handleRestore}
-            loading={isLoading}
-            currentPage={currentPage}
-            itemsPerPage={ITEMS_PER_PAGE}
-          />
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center space-x-2 py-4 border-t">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 
-                disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
-                Trước
-              </button>
-              {[...Array(totalPages)].map((_, index) => (
-                <button
-                  key={index + 1}
-                  onClick={() => handlePageChange(index + 1)}
-                  className={`px-3 py-1 rounded-lg cursor-pointer ${
-                    currentPage === index + 1
-                      ? "bg-blue-500 text-white"
-                      : "border border-gray-300 hover:bg-gray-50"
-                  }`}
-                >
-                  {index + 1}
-                </button>
-              ))}
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 
-                disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
-                Sau
-              </button>
-            </div>
-          )}
-        </div>
-        <Modal open={isFormVisible} onClose={handleCancelEdit}>
-          <div className="max-w-md mx-auto">
+        {isFormVisible ? (
+          <div className="bg-white rounded-xl shadow-lg max-w-md mx-auto">
+            {" "}
+            {/* Giới hạn chiều rộng của form */}
             <GenreForm
               initialData={editingGenre}
-              onSubmit={handleAddOrUpdateGenre}
+              onSubmit={handleSaveGenre}
               onCancel={handleCancelEdit}
+              isSubmitting={isCreating || isUpdating} // Truyền trạng thái đang submit
             />
           </div>
-        </Modal>
-        <Modal
-          open={confirmDelete.open}
-          onClose={() => setConfirmDelete({ open: false, genreId: null })}
-        >
-          <div className="p-4">
-            <h2 className="text-lg font-semibold mb-4">
-              Xác nhận xóa thể loại
-            </h2>
-            <p>Bạn có chắc chắn muốn xóa thể loại này không?</p>
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                onClick={() => setConfirmDelete({ open: false, genreId: null })}
-                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 cursor-pointer"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer"
-              >
-                Xóa
-              </button>
-            </div>
+        ) : (
+          <div className="bg-white rounded-xl shadow-lg overflow-auto">
+            <GenreTable
+              genres={paginatedGenres}
+              onEdit={handleEdit}
+              onDelete={handleDelete} // Gọi hàm handleDelete đã được sửa đổi
+              onRestore={handleRestore} // Gọi hàm handleRestore đã được sửa đổi
+              loading={loading} // Truyền isLoading thành loading
+              isDeleting={isDeleting} // Truyền trạng thái đang xóa
+              isRestoring={isRestoring} // Truyền trạng thái đang khôi phục
+            />
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center space-x-2 py-4 border-t">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Trước
+                </button>
+                {[...Array(totalPages)].map((_, index) => (
+                  <button
+                    key={index + 1}
+                    onClick={() => handlePageChange(index + 1)}
+                    className={`px-3 py-1 rounded-lg cursor-pointer ${
+                      currentPage === index + 1
+                        ? "bg-blue-500 text-white"
+                        : "border border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Sau
+                </button>
+              </div>
+            )}
           </div>
-        </Modal>
+        )}
       </div>
     </div>
   );

@@ -28,6 +28,5 @@ export const useAgeCalculation = (birthDate) => {
       return null;
     }
   }, [birthDate]);
-
   return age;
 };

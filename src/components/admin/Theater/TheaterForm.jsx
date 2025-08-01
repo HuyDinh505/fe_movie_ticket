@@ -96,9 +96,9 @@ const TheaterForm = ({
         fd.append("cinema_id", initialData.cinema_id);
       }
       // Log lại để kiểm tra
-      console.log('[TheaterForm] Địa chỉ gửi lên:', formData.address);
+      // console.log("[TheaterForm] Địa chỉ gửi lên:", formData.address);
       for (let pair of fd.entries()) {
-        console.log('[TheaterForm][FormData gửi lên]', pair[0] + ':', pair[1]);
+        console.log("[TheaterForm][FormData gửi lên]", pair[0] + ":", pair[1]);
       }
       onSubmit(fd);
     }

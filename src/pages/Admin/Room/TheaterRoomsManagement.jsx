@@ -152,36 +152,18 @@ const TheaterRoomsManagement = () => {
           roomData: payload,
         });
         if (res?.data?.status === false) {
-          Swal.fire(
-            "Thất bại!",
-            res?.data?.message || "Cập nhật phòng chiếu thất bại",
-            "error"
-          );
           handleApiError(res.data, "Cập nhật phòng chiếu thất bại");
           return;
         }
-        Swal.fire(
-          "Thành công!",
-          res?.data?.message || "Cập nhật phòng chiếu thành công",
-          "success"
-        );
+        toast.success(res?.message || "Cập nhật phòng chiếu thành công111!");
       } else {
         // Create new room
         const res = await createRoom.mutateAsync(payload);
         if (res?.data?.status === false) {
-          Swal.fire(
-            "Thất bại!",
-            res?.data?.message || "Thêm phòng chiếu thất bại",
-            "error"
-          );
           handleApiError(res.data, "Thêm phòng chiếu thất bại");
           return;
         }
-        Swal.fire(
-          "Thành công!",
-          res?.data?.message || "Thêm phòng chiếu thành công",
-          "success"
-        );
+        toast.success(res?.message || "Thêm phòng chiếu thành công111!");
       }
       setIsFormVisible(false);
       setEditingRoom(null);

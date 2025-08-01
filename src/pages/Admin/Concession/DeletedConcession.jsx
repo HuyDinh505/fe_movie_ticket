@@ -59,7 +59,10 @@ const DeletedConcession = () => {
         setSelectedConcessionName("");
       },
     });
-
+  console.log(
+    "DeletedConcession - deletedConcessionsData:",
+    deletedConcessionsData
+  );
   // Lọc theo tên
   const filteredConcessions = Array.isArray(
     deletedConcessionsData?.data?.concessions

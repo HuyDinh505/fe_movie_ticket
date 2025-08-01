@@ -23,47 +23,86 @@ const ShowtimeForm = ({
 }) => {
   const [formData, setFormData] = useState({
     movieId: "",
-    date: defaultDate || "",
-    startTime: "",
-    endTime: "",
-    screenType: "2D",
-    translationType: "Phụ đề",
+    date: defaultDate || "", // Ngày bắt đầu
+    startTime: "", // Giờ bắt đầu
+    endTime: "", // Giờ kết thúc (cần được tính toán cả ngày nếu qua đêm)
+    screenType: "2D", // Đã bỏ comment để sử dụng lại
+    translationType: "Phụ đề", // Đã bỏ comment để sử dụng lại
   });
 
-  console.log("initialData vào form:", initialData);
-
   useEffect(() => {
-    console.log("setFormData với:", initialData);
     if (initialData) {
+      // Khi có initialData (chế độ chỉnh sửa)
+      const startDate = initialData.start_time
+        ? initialData.start_time.slice(0, 10)
+        : defaultDate || "";
+      const startTime = initialData.start_time
+        ? initialData.start_time.slice(11, 16)
+        : ""; // Chỉ lấy giờ:phút
+      const endTime = initialData.end_time
+        ? initialData.end_time.slice(11, 16)
+        : ""; // Chỉ lấy giờ:phút
+
       setFormData({
         movieId: initialData.movieId || initialData.movie_id || "",
-        date: initialData.date || defaultDate || "",
-        startTime: initialData.startTime || "",
-        endTime: initialData.endTime || "",
-        screenType: initialData.screen_type || "2D",
-        translationType: initialData.translation_type || "Phụ đề",
+        date: startDate, // Ngày bắt đầu của suất chiếu
+        startTime: startTime,
+        endTime: endTime,
+        screenType: initialData.screen_type || "2D", // Đảm bảo lấy từ initialData
+        translationType: initialData.translation_type || "Phụ đề", // Đảm bảo lấy từ initialData
       });
     } else {
+      // Chế độ thêm mới, chỉ cập nhật ngày mặc định
       setFormData((prev) => ({
         ...prev,
         date: defaultDate || "",
+        // Giữ nguyên screenType và translationType mặc định hoặc từ state trước đó
+        screenType: prev.screenType || "2D",
+        translationType: prev.translationType || "Phụ đề",
       }));
     }
   }, [initialData, defaultDate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Để hàm onSubmit ở component cha có thể xử lý, chúng ta cần truyền đủ dữ liệu.
+    // formData.date sẽ là ngày bắt đầu.
+    // formData.startTime là giờ bắt đầu.
+    // formData.endTime là giờ kết thúc.
+    // Component cha sẽ cần kết hợp chúng thành start_time và end_time đầy đủ.
     onSubmit(formData);
   };
 
   const handleMovieChange = (e) => {
     const movieId = e.target.value;
+    const newSelectedMovie = movies.find(
+      (m) => String(m.movie_id) === String(movieId)
+    );
 
-    setFormData((prev) => ({
-      ...prev,
-      movieId: movieId,
-      endTime: "", // Reset endTime khi chọn phim mới
-    }));
+    setFormData((prev) => {
+      const updatedFormData = {
+        ...prev,
+        movieId: movieId,
+        endTime: "", // Reset endTime khi đổi phim
+        // Giữ lại screenType và translationType hoặc đặt mặc định nếu cần
+        screenType: newSelectedMovie?.screen_type || "2D", // Có thể lấy từ movie data nếu có
+        translationType: newSelectedMovie?.translation_type || "Phụ đề", // Có thể lấy từ movie data nếu có
+      };
+
+      // Nếu có startTime và phim mới được chọn, tính toán endTime lại
+      if (updatedFormData.startTime && newSelectedMovie?.duration) {
+        const startDateTime = new Date(
+          `${updatedFormData.date} ${updatedFormData.startTime}`
+        );
+        const endDateTime = new Date(
+          startDateTime.getTime() + newSelectedMovie.duration * 60000
+        );
+
+        updatedFormData.endTime = endDateTime.toTimeString().slice(0, 5); // Giờ:phút
+      }
+      return updatedFormData;
+    });
   };
 
   const handleStartTimeChange = (e) => {
@@ -73,12 +112,21 @@ const ShowtimeForm = ({
     );
 
     let newEndTime = "";
-    if (newStartTime && selectedMovie?.duration) {
+    // Đảm bảo có ngày, giờ bắt đầu và thời lượng phim để tính toán
+    if (formData.date && newStartTime && selectedMovie?.duration) {
       const startDateTime = new Date(`${formData.date} ${newStartTime}`);
+      // Thêm thời lượng phim vào thời gian bắt đầu
       const endDateTime = new Date(
         startDateTime.getTime() + selectedMovie.duration * 60000
       );
+
+      // Định dạng giờ kết thúc thành HH:MM
       newEndTime = endDateTime.toTimeString().slice(0, 5);
+
+      // Cập nhật ngày nếu suất chiếu kéo dài sang ngày hôm sau
+      // Lấy ngày của startDateTime và endDateTime
+      // const startDate = startDateTime.toISOString().slice(0, 10);
+      // const endDate = endDateTime.toISOString().slice(0, 10);
     }
 
     setFormData((prev) => ({
@@ -178,12 +226,12 @@ const ShowtimeForm = ({
                 }
                 className="border rounded p-2 w-full"
                 required
+                // disabled // Có thể disable để ngăn chỉnh sửa thủ công nếu luôn muốn tự tính toán
               />
             </div>
           </div>
         </div>
-        {/* Hình thức chiếu */}
-        <div>
+        {/* <div>
           <label className="block font-semibold mb-1">
             Hình thức chiếu <span className="text-red-500">*</span>
           </label>
@@ -203,9 +251,8 @@ const ShowtimeForm = ({
               </option>
             ))}
           </select>
-        </div>
-        {/* Hình thức dịch */}
-        <div>
+        </div> */}
+        {/* <div>
           <label className="block font-semibold mb-1">
             Hình thức dịch <span className="text-red-500">*</span>
           </label>
@@ -228,7 +275,7 @@ const ShowtimeForm = ({
               </option>
             ))}
           </select>
-        </div>
+        </div> */}
         <button
           type="submit"
           className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 font-semibold cursor-pointer"

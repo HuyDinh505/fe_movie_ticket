@@ -28,12 +28,6 @@ import Swal from "sweetalert2";
 
 const ShowtimeManagement = () => {
   const { userData } = useAuth();
-
-  console.log("ShowtimeManagement - Component loaded");
-  console.log("ShowtimeManagement - userData:", userData);
-  console.log("ShowtimeManagement - userData.role:", userData?.role);
-  console.log("ShowtimeManagement - userData.cinema_id:", userData?.cinema_id);
-
   const [cinemas, setCinemas] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [selectedCinema, setSelectedCinema] = useState("");
@@ -97,19 +91,19 @@ const ShowtimeManagement = () => {
       if (userCinemaData?.data && userData.cinema_id) {
         finalCinemasList = [userCinemaData.data]; // Đảm bảo là một mảng
         defaultSelectedCinemaId = userData.cinema_id;
-        console.log(
-          "ShowtimeManagement - Manager: Fetched user's cinema:",
-          finalCinemasList
-        );
+        // console.log(
+        //   "ShowtimeManagement - Manager: Fetched user's cinema:",
+        //   finalCinemasList
+        // );
       } else if (isLoadingUserCinema) {
-        console.log("ShowtimeManagement - Manager: Loading user's cinema...");
+        // console.log("ShowtimeManagement - Manager: Loading user's cinema...");
       } else if (userData.cinema_id && !userCinemaData?.data) {
         // Có cinema_id nhưng không fetch được data, có thể do lỗi API hoặc không tìm thấy
-        console.warn(
-          "ShowtimeManagement - Manager: Could not fetch cinema for ID:",
-          userData.cinema_id,
-          userCinemaData
-        );
+        // console.warn(
+        //   "ShowtimeManagement - Manager: Could not fetch cinema for ID:",
+        //   userData.cinema_id,
+        //   userCinemaData
+        // );
         toast.error(
           "Không thể tải thông tin rạp của bạn. Vui lòng kiểm tra lại."
         );
@@ -143,10 +137,10 @@ const ShowtimeManagement = () => {
       defaultSelectedCinemaId
     ) {
       setSelectedCinema(defaultSelectedCinemaId);
-      console.log(
-        "ShowtimeManagement - Auto-selected cinema:",
-        defaultSelectedCinemaId
-      );
+      // console.log(
+      //   "ShowtimeManagement - Auto-selected cinema:",
+      //   defaultSelectedCinemaId
+      // );
     }
   }, [
     allCinemasData,
@@ -215,9 +209,33 @@ const ShowtimeManagement = () => {
         date: selectedDate,
       };
       const res = await filteredShowtimesMutation.mutateAsync(filter);
-      console.log("Raw API response:", res.data); // Debug log
+      // console.log("Raw API response:", res.data); // Debug log
       let mappedShowtimes = (res.data || []).map((item) => {
         console.log("Mapping item:", item); // Debug log
+        // Định dạng ngày (vd: "30/07/2025")
+        const startDateTime = new Date(item.start_time);
+        const endDateTime = new Date(item.end_time);
+        const formattedDateStart = startDateTime.toLocaleDateString("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+        const formattedDateEnd = endDateTime.toLocaleDateString("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+
+        // Định dạng giờ (vd: "10:00")
+        const formattedStartTime = startDateTime.toLocaleTimeString("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        const formattedEndTime = endDateTime.toLocaleTimeString("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
         return {
           id: item.showtime_id,
           movie_id: item.movie_id || item.movie?.movie_id,
@@ -226,13 +244,7 @@ const ShowtimeManagement = () => {
           translation_type: item.translation_type || "Phụ đề",
           time_range:
             item.start_time && item.end_time
-              ? `${new Date(item.start_time).toLocaleTimeString("vi-VN", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })} - ${new Date(item.end_time).toLocaleTimeString("vi-VN", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}`
+              ? `${formattedDateStart} ${formattedStartTime} - ${formattedDateEnd} ${formattedEndTime}`
               : "",
           show_type: item.show_type || "",
           status: item.status || "",
@@ -317,6 +329,10 @@ const ShowtimeManagement = () => {
       showCancelButton: true,
       confirmButtonText: "Xóa",
       cancelButtonText: "Hủy",
+      reverseButtons: true,
+      confirmButtonColor: "#d33",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
     }).then((result) => {
       if (result.isConfirmed) {
         handleDeleteConfirm(showtimeId);
@@ -371,73 +387,83 @@ const ShowtimeManagement = () => {
       return;
     }
 
-    const startDateTime = new Date(`${formData.date} ${formData.startTime}`);
-    const endDateTime = new Date(`${formData.date} ${formData.endTime}`);
-    const durationMinutes = (endDateTime - startDateTime) / 60000;
+    // 1. Tạo đối tượng Date cho thời gian bắt đầu (dựa trên múi giờ địa phương)
+    // Lưu ý: Đảm bảo startDateTime được tạo đúng cách để có thể tính toán chính xác
+    const startDateTime = new Date(`${formData.date}T${formData.startTime}:00`); // Sử dụng 'T' và thêm ':00' cho giây để đảm bảo parsing tốt hơn
 
-    if (durationMinutes < selectedMovie.duration) {
-      toast.error(
-        `Thời gian kết thúc phải lớn hơn hoặc bằng thời lượng phim (${selectedMovie.duration} phút)!`
-      );
+    // Kiểm tra tính hợp lệ của startDateTime
+    if (isNaN(startDateTime.getTime())) {
+      toast.error("Định dạng ngày hoặc giờ bắt đầu không hợp lệ.");
       return;
     }
 
-    if (!selectedRoom) {
-      toast.error("Vui lòng chọn phòng chiếu");
-      return;
-    }
+    // 2. Tính toán thời gian kết thúc bằng cách thêm thời lượng phim (milliseconds)
+    const calculatedEndDateTime = new Date(
+      startDateTime.getTime() + selectedMovie.duration * 60000
+    );
+
+    // 3. Chuẩn bị các chuỗi thời gian cho payload
+    // Sử dụng toISOString() để có định dạng chuẩn, sau đó cắt bỏ phần không cần thiết
+    // Lưu ý: toISOString() trả về giờ GMT/UTC, bạn có thể cần điều chỉnh múi giờ nếu backend của bạn mong đợi múi giờ địa phương.
+    // Tuy nhiên, thường thì backend sẽ tự chuyển đổi từ ISO String (UTC) sang múi giờ của nó.
+    // Nếu backend mong muốn múi giờ địa phương, bạn cần viết hàm format thủ công hơn.
+    // Với Laravel (backend phổ biến), ISO string thường hoạt động tốt.
+
+    const start_time_iso = startDateTime
+      .toISOString()
+      .slice(0, 16)
+      .replace("T", " "); // "YYYY-MM-DD HH:MM"
+    const end_time_iso = calculatedEndDateTime
+      .toISOString()
+      .slice(0, 16)
+      .replace("T", " "); // "YYYY-MM-DD HH:MM"
+
+    // HOẶC, nếu bạn muốn đảm bảo định dạng giờ địa phương (như trong ảnh của bạn)
+    // và không muốn dùng toISOString() trực tiếp nếu có vấn đề về múi giờ với backend:
+    const formatLocalToApi = (dateObj) => {
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+      const day = String(dateObj.getDate()).padStart(2, "0");
+      const hours = String(dateObj.getHours()).padStart(2, "0");
+      const minutes = String(dateObj.getMinutes()).padStart(2, "0");
+      return `${year}-${month}-${day} ${hours}:${minutes}`;
+    };
 
     const payload = {
       movie_id: parseInt(formData.movieId),
-      room_id: parseInt(selectedRoom),
-      start_time: `${formData.date} ${formData.startTime}`,
-      end_time: `${formData.date} ${formData.endTime}`,
+      room_id: parseInt(selectedRoom), // Đảm bảo selectedRoom có giá trị
+      // start_time: start_time_iso, // Dùng ISO string đã định dạng
+      // end_time: end_time_iso,     // Dùng ISO string đã định dạng
+
+      // Hoặc dùng hàm formatLocalToApi nếu muốn giữ định dạng múi giờ địa phương chính xác
+      start_time: formatLocalToApi(startDateTime),
+      end_time: formatLocalToApi(calculatedEndDateTime),
+
       screen_type: formData.screenType,
       translation_type: formData.translationType,
     };
 
-    console.log("Form data:", formData);
-    console.log("Selected movie:", selectedMovie);
-    console.log("Payload being sent:", payload);
-    console.log("Selected room:", selectedRoom);
-    console.log("Start time:", `${formData.date} ${formData.startTime}`);
-    console.log("End time:", `${formData.date} ${formData.endTime}`);
+    console.log("Payload being sent:", payload); // Kiểm tra lại payload trước khi gửi
+
     try {
+      let res;
       if (editingShowtime && editingShowtime.id) {
-        const res = await updateShowtime.mutateAsync({
+        res = await updateShowtime.mutateAsync({
           showtimeId: editingShowtime.id,
           showtimeData: payload,
         });
         if (res?.data?.status === false) {
-          Swal.fire(
-            "Thất bại!",
-            res?.data?.message || "Cập nhật suất chiếu thất bại",
-            "error"
-          );
-          handleApiError(res.data, "Cập nhật suất chiếu thất bại");
+          toast.error(res?.data?.message || "Cập nhật suất chiếu thất bại");
           return;
         }
-        Swal.fire(
-          "Thành công!",
-          res?.data?.message || "Cập nhật suất chiếu thành công",
-          "success"
-        );
+        toast.success(res?.data?.message || "Cập nhật suất chiếu thành công");
       } else {
-        const res = await createShowtime.mutateAsync(payload);
+        res = await createShowtime.mutateAsync(payload);
         if (res?.data?.status === false) {
-          Swal.fire(
-            "Thất bại!",
-            res?.data?.message || "Thêm suất chiếu thất bại",
-            "error"
-          );
-          handleApiError(res.data, "Thêm suất chiếu thất bại");
+          toast.error(res?.data?.message || "Thêm suất chiếu thất bại");
           return;
         }
-        Swal.fire(
-          "Thành công!",
-          res?.data?.message || "Thêm suất chiếu thành công",
-          "success"
-        );
+        toast.success(res?.data?.message || "Thêm suất chiếu thành công");
       }
       setEditingShowtime(null);
       setIsFormVisible(false);
@@ -446,9 +472,20 @@ const ShowtimeManagement = () => {
       if (err?.response?.data?.errors) {
         const validationErrors = err.response.data.errors;
         const errorMessages = Object.values(validationErrors).flat();
-        errorMessages.forEach((msg) => Swal.fire("Thất bại!", msg, "error"));
+
+        Swal.fire({
+          title: "Thất bại!",
+          html: errorMessages
+            .map(
+              (msg) =>
+                `<div><FaExclamationTriangle className="inline mr-1"/> ${msg}</div>`
+            )
+            .join("<br/>"),
+          icon: "error",
+        });
         return;
       }
+
       Swal.fire(
         "Thất bại!",
         getApiMessage(err, "Có lỗi khi thêm/sửa suất chiếu!"),
@@ -629,7 +666,7 @@ const ShowtimeManagement = () => {
               disabled={!selectedRoom || !selectedCinema || movies.length === 0}
             >
               <FaPlus className="mr-2" />
-              Thêm lịch chiếu
+              Thêm suất chiếu
             </button>
           </div>
         </div>

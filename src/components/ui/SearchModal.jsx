@@ -37,10 +37,10 @@ const SearchModal = ({ isOpen, onClose }) => {
   const movies = searchResults?.data?.movies?.movies || [];
 
   // Debug
-  console.log("SearchModal - searchParams:", searchParams);
-  console.log("SearchModal - searchResults:", searchResults);
-  console.log("SearchModal - movies:", movies);
-  console.log("SearchModal - error:", error);
+  // console.log("SearchModal - searchParams:", searchParams);
+  // console.log("SearchModal - searchResults:", searchResults);
+  // console.log("SearchModal - movies:", movies);
+  // console.log("SearchModal - error:", error);
 
   const handleMovieClick = (movieId) => {
     navigate(`/movie/${movieId}`);
@@ -106,7 +106,6 @@ const SearchModal = ({ isOpen, onClose }) => {
           {/* Filters */}
           {showFilters && (
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Độ tuổi */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Độ tuổi tối đa
@@ -212,7 +211,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                     </div>
                   </div>
                   <div className="p-4">
-                    <h3 className="font-semibold text-lg mb-2 line-clamp-2">
+                    <h3 className="text-gray-600 font-semibold text-lg mb-2 line-clamp-2">
                       {movie.movie_name}
                     </h3>
                     <p className="text-gray-600 text-sm mb-2 line-clamp-2">

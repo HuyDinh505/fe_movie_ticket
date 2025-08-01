@@ -39,6 +39,10 @@ import {
   updateConcessionAPI,
   deleteConcessionAPI,
   restoreConcessionAPI,
+  getAllDistrictsAPI,
+  createDistrictAPI,
+  updateDistrictAPI,
+  deleteDistrictAPI,
   getTheaterRoomsByCinemaAPI,
   getAllTheaterRoomsAPI,
   getTheaterRoomByIdAPI,
@@ -96,6 +100,9 @@ import {
   getRevenueByMovieIdAPI,
   getAllMoviesRevenueAPI,
   getMoviesRevenueByIDAPI,
+  getAllRapRevenueAPI,
+  getRapRevenueByIDAPI,
+  getTimeSeriesRevenueAPI,
 } from "./request";
 import { optionsUseQuery } from "../../Utilities/common";
 
@@ -107,7 +114,7 @@ export const useGetPhimUS = (option) => {
   return useQuery({
     queryKey: ["GetPhimAPI"],
     queryFn: getPhimAPI,
-    optionsUseQuery,
+    ...optionsUseQuery,
     ...option,
   });
 };
@@ -119,7 +126,7 @@ export const useSearchMoviesUS = (searchParams, option) => {
     enabled:
       !!searchParams &&
       Object.keys(searchParams).some((key) => searchParams[key]),
-    optionsUseQuery,
+    ...optionsUseQuery,
     ...option,
   });
 };
@@ -181,6 +188,7 @@ export const useGetDeletedMoviesUS = (option) => {
   return useQuery({
     queryKey: ["GetDeletedMoviesAPI"],
     queryFn: getDeletedMoviesAPI,
+    ...optionsUseQuery,
     ...option,
   });
 };
@@ -215,7 +223,7 @@ export const useGetAllTicketTypesUS = (option) => {
   return useQuery({
     queryKey: ["GetAllTicketTypesAPI"],
     queryFn: getAllTicketTypesAPI,
-    optionsUseQuery,
+    ...optionsUseQuery,
     ...option,
   });
 };
@@ -246,6 +254,7 @@ export const useUpdateTicketTypeUS = (option) => {
 export const useDeleteTicketTypeUS = (option) => {
   return useMutation({
     mutationFn: deleteTicketTypeAPI,
+    ...optionsUseQuery,
     ...option,
   });
 };
@@ -281,11 +290,10 @@ export const useGetAllCinemasUS = (option) => {
   return useQuery({
     queryKey: ["GetAllCinemasAPI"],
     queryFn: getAllCinemasAPI,
-    optionsUseQuery,
+    ...optionsUseQuery,
     ...option,
   });
 };
-
 export const useGetCinemaByIdUS = (cinemaId, option) => {
   return useQuery({
     queryKey: ["GetCinemaByIdAPI", cinemaId],
@@ -458,6 +466,7 @@ export const useUpdateShowtimeUS = (option) => {
 export const useDeleteShowtimeUS = (option) => {
   return useMutation({
     mutationFn: deleteShowtimeAPI,
+    ...optionsUseQuery,
     ...option,
   });
 };
@@ -524,6 +533,7 @@ export const useUpdateConcessionUS = (option) => {
 export const useDeleteConcessionUS = (option) => {
   return useMutation({
     mutationFn: deleteConcessionAPI,
+    ...optionsUseQuery,
     ...option,
   });
 };
@@ -570,12 +580,42 @@ export const useGetTheaterRoomsListByCinemaUS = (cinemaId, options) => {
     ...options, // Để bạn có thể truyền thêm các tùy chọn useQuery khác (ví dụ: onSuccess, onError)
   });
 };
+
+//District hooks
+export const useGetAllDistrictsUS = (option) => {
+  return useQuery({
+    queryKey: ["GetAllDistrictsAPI"],
+    queryFn: getAllDistrictsAPI,
+    ...optionsUseQuery,
+    ...option,
+  });
+};
+export const useCreateDistrictUS = (option) => {
+  return useMutation({
+    mutationFn: createDistrictAPI,
+    ...option,
+  });
+};
+export const useUpdateDistrictUS = (option) => {
+  return useMutation({
+    mutationFn: ({ districtId, districtData }) =>
+      updateDistrictAPI(districtId, districtData),
+    ...option,
+  });
+};
+export const useDeleteDistrictUS = (option) => {
+  return useMutation({
+    mutationFn: deleteDistrictAPI,
+    ...optionsUseQuery,
+    ...option,
+  });
+};
 // Genre hooks
 export const useGetAllGenresUS = (option) => {
   return useQuery({
     queryKey: ["GetAllGenresAPI"],
     queryFn: getAllGenreAPI,
-    optionsUseQuery,
+    ...optionsUseQuery,
     ...option,
   });
 };
@@ -607,6 +647,7 @@ export const useUpdateGenreUS = (option) => {
 export const useDeleteGenreUS = (option) => {
   return useMutation({
     mutationFn: deleteGenreAPI,
+    ...optionsUseQuery,
     ...option,
   });
 };
@@ -646,13 +687,7 @@ export const useCreateUserUS = (option) => {
 
 export const useUpdateUserUS = (option) => {
   return useMutation({
-    mutationFn: ({ userId, userData }) => {
-      console.log("[useUpdateUserUS] Gọi updateUserAPI với:", {
-        userId,
-        userData,
-      });
-      return updateUserAPI(userId, userData);
-    },
+    mutationFn: ({ userId, userData }) => updateUserAPI(userId, userData),
     ...option,
   });
 };
@@ -660,6 +695,7 @@ export const useUpdateUserUS = (option) => {
 export const useDeleteUserUS = (option) => {
   return useMutation({
     mutationFn: deleteUserAPI,
+    ...optionsUseQuery,
     ...option,
   });
 };
@@ -744,6 +780,7 @@ export const useUpdateMovieScheduleUS = (option) => {
 export const useDeleteMovieScheduleUS = (option) => {
   return useMutation({
     mutationFn: deleteMovieScheduleAPI,
+    ...optionsUseQuery,
     ...option,
   });
 };
@@ -898,7 +935,13 @@ export const useGetTotalRevenueUS = (params = {}, option) => {
     ...option,
   });
 };
-
+export const useGetTimeSeriesRevenueUS = (params = {}, option) => {
+  return useQuery({
+    queryKey: ["getTimeSeriesRevenueAPI", params],
+    queryFn: () => getTimeSeriesRevenueAPI(params),
+    ...option,
+  });
+};
 // Thêm custom hook lấy doanh thu theo movieId
 export const useGetRevenueByMovieIdUS = (movieId, startDate, endDate) => {
   // Chuẩn hóa ngày thành định dạng YYYY-MM-DD
@@ -946,6 +989,21 @@ export const useGetMoviesRevenueByIDUS = (movieId, params = {}, option) => {
     queryKey: ["GetMoviesRevenueByIDAPI", movieId, params],
     queryFn: () => getMoviesRevenueByIDAPI(movieId, params),
     enabled: !!movieId,
+    ...option,
+  });
+};
+export const useGetAllRapRevenueUS = (params = {}, option) => {
+  return useQuery({
+    queryKey: ["GetAllRapRevenueAPI", params],
+    queryFn: () => getAllRapRevenueAPI(params),
+    ...option,
+  });
+};
+export const useGetRapRevenueByIDUS = (rapId, params = {}, option) => {
+  return useQuery({
+    queryKey: ["GetRapRevenueByIDAPI", rapId, params],
+    queryFn: () => getRapRevenueByIDAPI(rapId, params),
+    enabled: !!rapId,
     ...option,
   });
 };

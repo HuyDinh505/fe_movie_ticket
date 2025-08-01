@@ -39,7 +39,7 @@ function LoginPage() {
           }
           return next;
         });
-      }, 5000);
+      }, 60000);
       return () => clearInterval(interval);
     }
   }, [posters.length]);
@@ -57,24 +57,20 @@ function LoginPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     if (loading) return;
-
     setLoading(true);
     try {
       const response = await authAPI.login(email, password);
-      console.log("Login API response full:", response);
-
+      // console.log("Login API response full:", response);
       // Kiểm tra token trong response
       const token = response.data?.access_token;
       const refreshToken = response.data?.refresh_token;
-      console.log("Extracted token:", token);
-
+      // console.log("Extracted token:", token);
       if (token) {
         // Lưu token và refresh token vào localStorage
         localStorage.setItem("token", token);
         if (refreshToken) {
           localStorage.setItem("refreshToken", refreshToken);
         }
-
         // Lưu thông tin user nếu cần
         if (response.data?.user) {
           // Xử lý role từ mảng roles
@@ -83,51 +79,29 @@ function LoginPage() {
             userData.roles && userData.roles.length > 0
               ? userData.roles[0]
               : "user";
-
           // Tạo object user với role đơn lẻ để tương thích với code hiện tại
           const userInfo = {
             ...userData,
             role: userRole,
           };
-
           localStorage.setItem("user", JSON.stringify(userInfo));
           // Cập nhật trạng thái đăng nhập trong context
           login(userInfo);
-
           // Chuyển trang dựa trên role
           const redirectPath = getRedirectPathByRole(userRole);
           navigate(redirectPath, { state: { loginSuccess: true } });
-
-          // Hiển thị thông báo thành công
-          toast.success(
-            `Đăng nhập thành công! Chào mừng ${
-              userData.full_name || userData.name || "bạn"
-            }`,
-            {
-              position: "top-right",
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-            }
-          );
         } else {
-          // console.error("Token not found in response:", response);
           throw new Error("Không nhận được token từ server");
         }
       } else {
-        // console.error("Token not found in response:", response);
         throw new Error("Không nhận được token từ server");
       }
     } catch (error) {
       console.error("Login error details:", error);
-      // Hiển thị thông báo lỗi chi tiết
       const errorMessage = error.message || "Đăng nhập thất bại!";
       toast.error(errorMessage, {
         position: "top-right",
-        autoClose: 2000,
+        autoClose: 10000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -138,7 +112,6 @@ function LoginPage() {
       setLoading(false);
     }
   };
-
   // Hàm xác định đường dẫn chuyển hướng dựa trên role
   const getRedirectPathByRole = (role) => {
     switch (role) {
@@ -151,7 +124,7 @@ function LoginPage() {
       case "showtime_manager":
         return "/manage/showtime";
       case "cinema_manager":
-        return "/manage/theater";
+        return "/manage/theater_rooms";
       case "finance_manager":
         return "/finance/revenue";
       case "content_manager":
@@ -162,7 +135,6 @@ function LoginPage() {
         return "/"; // User thường
     }
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-8 mb-4">
       {/* <ToastContainer
@@ -177,7 +149,7 @@ function LoginPage() {
         pauseOnHover
         theme="light"
       /> */}
-      <div className="flex lg:w-[60%] bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div className="flex lg:w-[60%] bg-white rounded-2xl shadow-lg overflow-hidden mt-4">
         {isLoading || movies.length === 0 ? (
           <div
             className="w-1/2 flex items-center justify-center"
@@ -190,7 +162,7 @@ function LoginPage() {
         ) : (
           <AuthLeftBanner image={currentPoster} />
         )}
-        <div className="w lg:w-1/2 flex flex-col justify-center p-16">
+        <div className="w lg:w-1/2 flex flex-col justify-center p-16 mt-2">
           <h2 className="text-4xl font-bold mb-8 text-center">
             Đăng nhập tài khoản
           </h2>
@@ -234,7 +206,7 @@ function LoginPage() {
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600"
+                  className="-mt-2 absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600"
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={loading}
                 >

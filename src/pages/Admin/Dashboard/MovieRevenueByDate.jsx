@@ -1,28 +1,36 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import MovieRevenueTable from "../../../components/dashboard/MovieRevenueTable";
 import TopViewsBarChart from "../../../components/dashboard/TopViewsBarChart";
 import {
   useGetAllMoviesRevenueUS,
   useGetPhimUS,
-  useGetMoviesRevenueByIDUS, // <-- Thêm dòng này!
+  useGetMoviesRevenueByIDUS,
 } from "../../../api/homePage/queries";
 import Papa from "papaparse";
 
 const MovieRevenueByDate = () => {
-  const [startDate, setStartDate] = useState("2025-07-01");
-  const [endDate, setEndDate] = useState("2025-07-31");
-  const [selectedMovieId, setSelectedMovieId] = useState(null); // State để lưu ID phim được chọn
-  const [shouldFetchAll, setShouldFetchAll] = useState(false); // Để kiểm soát việc fetch tất cả phim
-  const [shouldFetchSingle, setShouldFetchSingle] = useState(false); // Để kiểm soát việc fetch một phim
+  const getFormattedDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+  const [period, setPeriod] = useState("day");
+  const [startDate, setStartDate] = useState(getFormattedDate(new Date()));
+  const [endDate, setEndDate] = useState(getFormattedDate(new Date()));
+  const [selectedMovieId, setSelectedMovieId] = useState(null);
+  const [shouldFetchAll, setShouldFetchAll] = useState(true);
+  const [shouldFetchSingle, setShouldFetchSingle] = useState(false);
 
-  // Hook để lấy danh sách tất cả các phim (dùng cho dropdown chọn phim nếu cần)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+
   const {
     data: allMoviesList,
     isLoading: loadingAllMoviesList,
     error: errorAllMoviesList,
   } = useGetPhimUS();
 
-  // Hook để lấy doanh thu của TẤT CẢ PHIM trong khoảng thời gian
   const {
     data: allMoviesRevenueData,
     isLoading: isLoadingAllMoviesRevenue,
@@ -30,13 +38,13 @@ const MovieRevenueByDate = () => {
     refetch: refetchAllMoviesRevenue,
   } = useGetAllMoviesRevenueUS(
     {
+      group_by: period,
       start_date: startDate,
       end_date: endDate,
     },
-    { enabled: shouldFetchAll } // Chỉ fetch khi shouldFetchAll là true
+    { enabled: shouldFetchAll }
   );
 
-  // Hook để lấy doanh thu của MỘT PHIM CỤ THỂ theo ID và khoảng thời gian
   const {
     data: singleMovieRevenueData,
     isLoading: isLoadingSingleMovieRevenue,
@@ -45,63 +53,107 @@ const MovieRevenueByDate = () => {
   } = useGetMoviesRevenueByIDUS(
     selectedMovieId,
     {
+      group_by: period,
       start_date: startDate,
       end_date: endDate,
     },
     { enabled: shouldFetchSingle && !!selectedMovieId }
   );
 
+  // Lấy dữ liệu doanh thu từng kỳ của 1 phim (nếu có)
+  // Đặt trước singleMovie vì singleMovie sẽ dùng singleMoviePeriods
+  const singleMoviePeriods = useMemo(() => {
+    return singleMovieRevenueData?.data?.data || [];
+  }, [singleMovieRevenueData]);
+
   // Xử lý dữ liệu doanh thu của tất cả phim để hiển thị
-  const allMovies = (
-    allMoviesRevenueData?.data?.["all movies revenue"] || []
-  ).map((item) => ({
-    name: item.movie_name,
-    sold: item.bookings_count,
-    revenue: Number(item.total_revenue),
-  }));
+  const allMovies = useMemo(() => {
+    return (allMoviesRevenueData?.data?.["all movies revenue"] || []).map(
+      (item) => ({
+        name: item.movie_name,
+        sold: item.book_count,
+        revenue: Number(item.total_revenue),
+      })
+    );
+  }, [allMoviesRevenueData]);
 
   // Xử lý dữ liệu doanh thu của một phim cụ thể để hiển thị
-  const singleMovie = singleMovieRevenueData?.data?.movie
-    ? [
-        {
-          name: singleMovieRevenueData.data.movie.movie_name, // Truy cập qua .movie.movie_name
-          sold: singleMovieRevenueData.data.booking_count, // Truy cập qua .booking_count (không phải bookings_count)
-          revenue: Number(singleMovieRevenueData.data.total_revenue),
-        },
-      ]
-    : [];
+  // Cần tính tổng từ singleMoviePeriods
+  const singleMovie = useMemo(() => {
+    if (!singleMovieRevenueData?.data) {
+      return [];
+    }
 
-  // Hàm xử lý khi nhấn nút "Tìm kiếm" (áp dụng cho tất cả phim)
+    const movieName = singleMovieRevenueData.data.movie_name;
+
+    // Tính tổng doanh thu và tổng số vé từ mảng singleMoviePeriods
+    let totalRevenueSum = 0;
+    let totalBookingCountSum = 0;
+
+    singleMoviePeriods.forEach((item) => {
+      // Đảm bảo chuyển đổi sang số và xử lý null/undefined
+      totalRevenueSum += Number(item.total_revenue || 0);
+      totalBookingCountSum += Number(item.booking_count || 0);
+    });
+
+    return [
+      {
+        name: movieName,
+        sold: totalBookingCountSum,
+        revenue: totalRevenueSum,
+      },
+    ];
+  }, [singleMovieRevenueData, singleMoviePeriods]); // Thêm singleMoviePeriods vào dependency array
+
+  const displayMovies =
+    selectedMovieId && singleMovie.length > 0 ? singleMovie : allMovies;
+  const displayIsLoading =
+    isLoadingSingleMovieRevenue || isLoadingAllMoviesRevenue;
+  const displayIsError = isErrorSingleMovieRevenue || isErrorAllMoviesRevenue;
+
+  const totalPages = Math.ceil(displayMovies.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItemsForTable = displayMovies.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+
+  const currentItemsForChart = selectedMovieId
+    ? singleMoviePeriods
+    : displayMovies.slice(indexOfFirstItem, indexOfLastItem);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [period, startDate, endDate, selectedMovieId, displayMovies.length]);
+
   const handleLoadData = () => {
     setShouldFetchAll(true);
-    setShouldFetchSingle(false); // Đảm bảo không fetch phim đơn lẻ cùng lúc
-    setSelectedMovieId(null); // Reset phim được chọn trong dropdown
+    setShouldFetchSingle(false);
+    setSelectedMovieId(null);
+    setCurrentPage(1);
     refetchAllMoviesRevenue();
   };
 
-  // Hàm xử lý khi chọn một phim từ dropdown
   const handleFetchSingleMovieRevenue = (movieId) => {
     setSelectedMovieId(movieId);
     setShouldFetchSingle(true);
-    setShouldFetchAll(false); // Đảm bảo không fetch tất cả phim cùng lúc
+    setShouldFetchAll(false);
+    setCurrentPage(1);
     refetchSingleMovieRevenue();
   };
 
-  // Hàm xuất báo cáo CSV
   const handleExport = () => {
     let dataToExport = [];
     let fileNamePrefix = "bao_cao_doanh_thu";
 
     if (selectedMovieId && singleMovie.length > 0) {
-      // Nếu có phim được chọn và có dữ liệu doanh thu của phim đó
       dataToExport = singleMovie;
       const movieName = singleMovie[0].name;
-      // Tạo tên file an toàn bằng cách thay thế các ký tự không hợp lệ
       fileNamePrefix = `bao_cao_doanh_thu_phim_${movieName
         .replace(/[^a-z0-9]/gi, "_")
         .toLowerCase()}`;
     } else if (allMovies.length > 0) {
-      // Nếu không có phim nào được chọn hoặc không có dữ liệu phim đơn lẻ, xuất tất cả phim
       dataToExport = allMovies;
       fileNamePrefix = "bao_cao_doanh_thu_tat_ca_phim";
     } else {
@@ -109,7 +161,6 @@ const MovieRevenueByDate = () => {
       return;
     }
 
-    // Tạo dữ liệu cho CSV với tên cột tiếng Việt
     const exportData = dataToExport.map((item) => ({
       "Tên Phim": item.name,
       "Số Vé Bán Ra": item.sold,
@@ -117,11 +168,10 @@ const MovieRevenueByDate = () => {
     }));
 
     const csv = Papa.unparse(exportData);
-    const BOM = "\uFEFF"; // Byte Order Mark cho tiếng Việt để tránh lỗi font
+    const BOM = "\uFEFF";
     const csvContent = BOM + csv;
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
 
-    // Chuyển đổi định dạng ngày cho tên file
     const formatDate = (dateString) => {
       const date = new Date(dateString);
       return date.toLocaleDateString("vi-VN");
@@ -139,21 +189,75 @@ const MovieRevenueByDate = () => {
     document.body.removeChild(link);
   };
 
-  // Lấy dữ liệu, trạng thái loading và error để hiển thị trên UI
-  // Ưu tiên hiển thị dữ liệu của một phim nếu có phim được chọn và có dữ liệu
-  // Ngược lại, hiển thị dữ liệu của tất cả phim
-  const displayMovies =
-    selectedMovieId && singleMovie.length > 0 ? singleMovie : allMovies;
-  const displayIsLoading =
-    isLoadingSingleMovieRevenue || isLoadingAllMoviesRevenue;
-  const displayIsError = isErrorSingleMovieRevenue || isErrorAllMoviesRevenue;
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const renderPaginationButtons = () => {
+    const pageNumbers = [];
+    for (let i = 1; i <= totalPages; i++) {
+      pageNumbers.push(i);
+    }
+
+    return (
+      <nav className="flex justify-center mt-4">
+        <ul className="inline-flex items-center -space-x-px">
+          <li>
+            <button
+              onClick={() => paginate(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Trước
+            </button>
+          </li>
+          {pageNumbers.map((number) => (
+            <li key={number}>
+              <button
+                onClick={() => paginate(number)}
+                className={`px-3 py-2 leading-tight border border-gray-300 hover:bg-gray-100 hover:text-gray-700 ${
+                  currentPage === number
+                    ? "text-blue-600 bg-blue-50"
+                    : "text-gray-500 bg-white"
+                }`}
+              >
+                {number}
+              </button>
+            </li>
+          ))}
+          <li>
+            <button
+              onClick={() => paginate(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Sau
+            </button>
+          </li>
+        </ul>
+      </nav>
+    );
+  };
 
   return (
     <div className="">
       <div
         className="w-full mx-auto bg-white rounded-xl shadow-md p-4 flex flex-col
-      sm:flex-row sm:items-end gap-4 mb-2 mt-2"
+        sm:flex-row sm:items-end gap-4 mb-2 mt-2"
       >
+        <div className="flex-1">
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Chọn kỳ
+          </label>
+          <select
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
+          >
+            <option value="day">Ngày</option>
+            <option value="week">Tuần</option>
+            <option value="month">Tháng</option>
+            <option value="year">Năm</option>
+          </select>
+        </div>
         <div className="flex-1">
           <label className="block text-sm font-semibold text-gray-700 mb-1">
             Từ ngày
@@ -181,18 +285,16 @@ const MovieRevenueByDate = () => {
             Chọn phim (tùy chọn)
           </label>
           <select
-            value={selectedMovieId || ""} // Đảm bảo giá trị rỗng nếu không có gì được chọn
+            value={selectedMovieId || ""}
             onChange={(e) => {
               const movieId = e.target.value;
               if (movieId) {
-                // Nếu người dùng chọn một phim cụ thể
                 handleFetchSingleMovieRevenue(movieId);
               } else {
-                // Nếu người dùng chọn "Tất cả phim"
                 setSelectedMovieId(null);
-                setShouldFetchSingle(false); // Ngừng fetch phim đơn lẻ
-                setShouldFetchAll(true); // Kích hoạt fetch tất cả phim
-                refetchAllMoviesRevenue(); // Fetch lại dữ liệu tất cả phim
+                setShouldFetchSingle(false);
+                setShouldFetchAll(true);
+                refetchAllMoviesRevenue();
               }
             }}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -205,7 +307,7 @@ const MovieRevenueByDate = () => {
               <option disabled>Lỗi tải danh sách phim</option>
             )}
             {allMoviesList?.data?.movies.map((movie) => (
-              <option key={movie.id} value={movie.movie_id}>
+              <option key={movie.movie_id} value={movie.movie_id}>
                 {movie.movie_name}
               </option>
             ))}
@@ -236,22 +338,100 @@ const MovieRevenueByDate = () => {
 
       {!displayIsLoading && !displayIsError && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <TopViewsBarChart
-              data={displayMovies}
-              title="Số vé bán ra"
-              dataKey="sold"
-              color="#60a5fa"
-            />
-            <TopViewsBarChart
-              data={displayMovies}
-              title="Doanh thu"
-              dataKey="revenue"
-              color="#f472b6"
-            />
-          </div>
+          {/* Hiển thị biểu đồ cho 1 phim cụ thể nếu có dữ liệu */}
+          {selectedMovieId && singleMoviePeriods.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mt-6">
+              <div style={{ overflowX: "auto" }}>
+                <div
+                  style={{
+                    minWidth: `${Math.max(
+                      singleMoviePeriods.length * 120,
+                      700
+                    )}px`,
+                  }}
+                >
+                  <TopViewsBarChart
+                    data={singleMoviePeriods}
+                    title="Doanh thu theo kỳ"
+                    dataKey="total_revenue"
+                    xAxisDataKey="period_key"
+                    color="#60a5fa"
+                    xAxisTick={{ fontSize: 14, angle: 0, dy: 14 }}
+                  />
+                </div>
+              </div>
+              <div style={{ overflowX: "auto" }}>
+                <div
+                  style={{
+                    minWidth: `${Math.max(
+                      singleMoviePeriods.length * 120,
+                      700
+                    )}px`,
+                  }}
+                >
+                  <TopViewsBarChart
+                    data={singleMoviePeriods}
+                    title="Số vé bán ra theo kỳ"
+                    dataKey="booking_count"
+                    xAxisDataKey="period_key"
+                    color="#f472b6"
+                    xAxisTick={{ fontSize: 14, angle: 0, dy: 14 }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
-          <MovieRevenueTable data={displayMovies} />
+          {/* Hiển thị biểu đồ cho tất cả phim nếu không có phim được chọn */}
+          {!selectedMovieId && displayMovies.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mt-6">
+              <div style={{ overflowX: "auto" }}>
+                <div
+                  style={{
+                    minWidth: `${Math.max(
+                      currentItemsForChart.length * 150,
+                      1000
+                    )}px`,
+                  }}
+                >
+                  <TopViewsBarChart
+                    data={currentItemsForChart}
+                    title="Doanh thu theo phim"
+                    dataKey="revenue"
+                    xAxisDataKey="name"
+                    color="#60a5fa"
+                    xAxisTick={{ fontSize: 14, angle: 0, dy: 14 }}
+                  />
+                </div>
+              </div>
+              <div style={{ overflowX: "auto" }}>
+                <div
+                  style={{
+                    minWidth: `${Math.max(
+                      currentItemsForChart.length * 150,
+                      1000
+                    )}px`,
+                  }}
+                >
+                  <TopViewsBarChart
+                    data={currentItemsForChart}
+                    title="Số vé bán ra theo phim"
+                    dataKey="sold"
+                    xAxisDataKey="name"
+                    color="#f472b6"
+                    xAxisTick={{ fontSize: 14, angle: 0, dy: 14 }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-6">
+            <MovieRevenueTable data={currentItemsForTable} />
+            {!selectedMovieId &&
+              displayMovies.length > itemsPerPage &&
+              renderPaginationButtons()}
+          </div>
         </>
       )}
     </div>

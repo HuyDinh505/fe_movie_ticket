@@ -36,7 +36,6 @@ const initialMovieState = {
   screening_types: [],
   trailer_url: "",
 };
-// console.log("jahsdj", initialMovieState);
 const MovieForm = ({
   movieToEdit,
   onSave,
@@ -44,7 +43,6 @@ const MovieForm = ({
   isSubmitting,
   screenTypes: propScreenTypes,
 }) => {
-  // Nếu có propScreenTypes thì dùng, không thì fallback về mảng cứng
   const screeningTypes =
     Array.isArray(propScreenTypes) && propScreenTypes.length > 0
       ? propScreenTypes
@@ -245,7 +243,9 @@ const MovieForm = ({
     if (!selectedFile && !movieToEdit) {
       newErrors.poster = "Ảnh poster là bắt buộc";
     }
-
+    if (!movie.age_rating) {
+      newErrors.age_rating = "Độ tuổi là bắt buộc";
+    }
     if (!movie.genres_ids.length) {
       newErrors.genres_ids = "Vui lòng chọn ít nhất một thể loại";
     }
@@ -329,7 +329,20 @@ const MovieForm = ({
               disabled={isSubmitting}
             />
           </div>
-
+          <div className="form-group">
+            <label className={styles.lable}>Độ tuổi</label>
+            <input
+              type="number"
+              name="age_rating"
+              value={movie.age_rating}
+              onChange={handleChange}
+              className={`${styles.input} ${
+                errors.age_rating ? "border-red-500" : ""
+              }`}
+              required
+              disabled={isSubmitting}
+            />
+          </div>
           <div className="form-group">
             <label className={styles.label}>Quốc gia</label>
             <input

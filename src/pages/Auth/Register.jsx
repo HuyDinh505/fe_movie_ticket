@@ -34,7 +34,7 @@ function RegisterPage() {
           }
           return next;
         });
-      }, 5000);
+      }, 600000);
       return () => clearInterval(interval);
     }
   }, [posters.length]);
@@ -194,7 +194,7 @@ function RegisterPage() {
 
         setTimeout(() => {
           navigate("/");
-        }, 3000);
+        }, 600000);
       }
     } catch (error) {
       console.error("Register error:", error);
@@ -213,8 +213,8 @@ function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-8 mb-4">
-      <ToastContainer
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-8 mb-4 mt-4">
+      {/* <ToastContainer
         position="top-right"
         autoClose={5000}
         hideProgressBar={false}
@@ -225,7 +225,7 @@ function RegisterPage() {
         draggable
         pauseOnHover
         theme="light"
-      />
+      /> */}
       <div className="flex lg:w-[60%] bg-white rounded-2xl shadow-lg overflow-hidden">
         {isLoading || movies.length === 0 ? (
           <div
@@ -353,19 +353,6 @@ function RegisterPage() {
                     onBlur={handleBlur}
                   />
                   <span className="ml-2 text-gray-700">Nữ</span>
-                </label>
-                <label className="inline-flex items-center">
-                  <input
-                    type="radio"
-                    className="form-radio"
-                    style={{ accentColor: "var(--color-hover)" }}
-                    name="gender"
-                    value="Khác"
-                    checked={formData.gender === "Khác"}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                  <span className="ml-2 text-gray-700">Khác</span>
                 </label>
               </div>
             </div>

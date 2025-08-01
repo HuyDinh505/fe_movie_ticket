@@ -9,9 +9,9 @@ import {
   useUpdateConcessionUS,
   useDeleteConcessionUS,
 } from "../../../api/homePage/queries";
-
+import Modal from "../../../components/ui/Modal";
 import { handleApiError, getApiMessage } from "../../../Utilities/apiMessage";
-
+import Swal from "sweetalert2";
 const ITEMS_PER_PAGE = 10;
 
 const CATEGORY_OPTIONS = [
@@ -40,40 +40,25 @@ const ConcessionManagement = () => {
   const { mutate: createConcession, isLoading: isCreating } =
     useCreateConcessionUS({
       onSuccess: (response) => {
-        // Đổi tên 'data' thành 'response' cho rõ ràng
-        // Kiểm tra lỗi nghiệp vụ từ phản hồi của server
-        // Dựa vào hình ảnh bạn cung cấp, lỗi nghiệp vụ có data.status === false
-        // và data.code (ví dụ 500) nằm trong response.data
         if (response?.data?.status === false) {
           //
           console.log("API Response:", response);
-          // GỌI HÀM handleApiError VỚI response.data
-          // response.data chính là payload lỗi nghiệp vụ: { code: 500, message: "...", status: false, ... }
           handleApiError(response.data, "Thêm dịch vụ mới thất bại"); //
-          return; // Dừng lại vì đã xử lý lỗi
+          return;
         }
-        // Nếu không có lỗi nghiệp vụ (tức là thành công hoàn toàn)
-        toast.success("Thêm dịch vụ mới thành công");
+        toast.success(response.message || "Thêm dịch vụ mới thành công");
         setIsFormVisible(false);
         fetchConcessions();
       },
       onError: (error) => {
-        // onError được gọi khi có lỗi HTTP (ví dụ: 4xx, 5xx) hoặc lỗi mạng
-        // Sử dụng getApiMessage để lấy thông báo lỗi từ đối tượng lỗi
-        toast.error(getApiMessage(error, "Không thể thêm dịch vụ mới")); //
-        // Bạn có thể thêm logic cụ thể cho các lỗi HTTP ở đây nếu cần,
-        // ví dụ: if (error.response?.status === 401) { /* xử lý lỗi unauthorized */ }
+        toast.error(getApiMessage(error, "Không thể thêm dịch vụ mới"));
       },
     });
 
   const { mutate: updateConcession, isLoading: isUpdating } =
     useUpdateConcessionUS({
       onSuccess: (response) => {
-        // Đổi tên 'data' thành 'response'
         if (response?.data?.status === false) {
-          //
-          // console.log("API Response:", response);/
-          // Gọi handleApiError tương tự cho cập nhật nếu API trả về lỗi nghiệp vụ
           handleApiError(response.data, "Cập nhật dịch vụ thất bại"); //
           return;
         }
@@ -89,19 +74,29 @@ const ConcessionManagement = () => {
   const { mutate: deleteConcession, isLoading: isDeleting } =
     useDeleteConcessionUS({
       onSuccess: (response) => {
-        // Đổi tên 'data' thành 'response'
-        // Kiểm tra lỗi nghiệp vụ cho xóa nếu API có trả về
         if (response?.data?.status === false) {
           //
-          console.log("API Response:", response);
+          Swal.fire(
+            "Thất bại!",
+            response?.data?.message || "Xóa dịch vụ thất bại",
+            "error"
+          );
           handleApiError(response.data, "Xóa dịch vụ thất bại"); //
           return;
         }
-        toast.success("Xóa dịch vụ thành công");
+        Swal.fire(
+          "Thành công!",
+          response?.data?.message || "Xóa dịch vụ thành công",
+          "success"
+        );
         fetchConcessions();
       },
       onError: (error) => {
-        toast.error(getApiMessage(error, "Không thể xóa dịch vụ")); //
+        Swal.file(
+          "Thất bại!",
+          getApiMessage(error, "Không thể xóa dịch vụ"),
+          "error"
+        );
       },
     });
 
@@ -126,19 +121,28 @@ const ConcessionManagement = () => {
         createConcession(concessionData);
       }
     } catch (error) {
-      // Lỗi này sẽ hiếm khi xảy ra với React Query vì nó bắt lỗi ở onError hook
       console.error("Error saving concession:", error);
       toast.error(getApiMessage(error, "Có lỗi xảy ra khi lưu dịch vụ!")); //
     }
   };
 
   const handleDeleteConcession = async (id) => {
-    const confirmed = window.confirm(
-      "Bạn có chắc chắn muốn xóa dịch vụ này không? Hành động này không thể hoàn tác."
-    );
-    if (confirmed) {
-      deleteConcession(id);
-    }
+    Swal.fire({
+      title: "Bạn có chắc chắn muốn xóa?",
+      text: "Hành động này không thể hoàn tác!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Xóa",
+      cancelButtonText: "Hủy",
+      reverseButtons: true, // Đảo ngược vị trí nút để "Hủy" bên trái, "Xóa" bên phải
+      confirmButtonColor: "#dc2626",
+      allowOutsideClick: false, // Ngăn đóng khi click ra ngoài
+      allowEscapeKey: false,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        deleteConcession(id); // Gọi mutation xóa dịch vụ
+      }
+    });
   };
 
   const handleCancelEdit = () => {
@@ -246,8 +250,54 @@ const ConcessionManagement = () => {
       )}
 
       <div className="w-full">
-        {isFormVisible ? (
-          <div className="bg-white rounded-xl shadow-lg max-w-3xl mx-auto">
+        <div className="bg-white rounded-xl shadow-lg overflow-auto">
+          <ConcessionTable
+            concessions={paginatedConcessions}
+            onEdit={handleEditConcession}
+            onDelete={handleDeleteConcession}
+            loading={loading}
+            isDeleting={isDeleting}
+          />
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center space-x-2 py-4 border-t">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Trước
+              </button>
+              {[...Array(totalPages)].map((_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => handlePageChange(index + 1)}
+                  className={`px-3 py-1 rounded-lg cursor-pointer ${
+                    currentPage === index + 1
+                      ? "bg-blue-500 text-white"
+                      : "border border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Sau
+              </button>
+            </div>
+          )}
+        </div>
+        <Modal
+          open={isFormVisible}
+          onClose={handleCancelEdit}
+          widthClass="min-w-[500px]"
+        >
+          <div className="mx-auto">
             <ConcessionForm
               initialData={editingConcession}
               onSubmit={handleSaveConcession}
@@ -256,50 +306,7 @@ const ConcessionManagement = () => {
               categoryOptions={CATEGORY_OPTIONS}
             />
           </div>
-        ) : (
-          <div className="bg-white rounded-xl shadow-lg overflow-auto">
-            <ConcessionTable
-              concessions={paginatedConcessions}
-              onEdit={handleEditConcession}
-              onDelete={handleDeleteConcession}
-              loading={loading}
-              isDeleting={isDeleting}
-            />
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center space-x-2 py-4 border-t">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Trước
-                </button>
-                {[...Array(totalPages)].map((_, index) => (
-                  <button
-                    key={index + 1}
-                    onClick={() => handlePageChange(index + 1)}
-                    className={`px-3 py-1 rounded-lg ${
-                      currentPage === index + 1
-                        ? "bg-blue-500 text-white"
-                        : "border border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Sau
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+        </Modal>
       </div>
     </div>
   );

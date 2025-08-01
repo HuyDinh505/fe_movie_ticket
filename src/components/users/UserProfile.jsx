@@ -78,17 +78,6 @@ const UserProfile = ({ user = {}, onUpdate }) => {
       // Nếu có avatar mới được chọn (là một File object)
       if (formData.avatar instanceof File) {
         formDataToSubmit.append("avatar", formData.avatar);
-      } else if (formData.avatar_url) {
-        // Nếu không có avatar mới, nhưng có avatar_url (tức là avatar cũ)
-        // Đây là cách bạn báo cho backend biết giữ lại avatar cũ nếu không có avatar mới.
-        // Bạn cần thống nhất với backend về việc gửi một giá trị đặc biệt
-        // hoặc không gửi trường 'avatar' nếu muốn giữ lại ảnh cũ.
-        // Ví dụ: formDataToSubmit.append("avatar_action", "keep_existing");
-        // Hoặc đơn giản là không append trường 'avatar' nếu nó không phải File mới.
-        // Đối với Laravel, nếu không gửi trường 'avatar', nó sẽ giữ lại ảnh cũ.
-        // Nếu gửi 'null' hoặc rỗng, Laravel có thể hiểu là muốn xóa ảnh.
-        // => Cách tốt nhất là CHỈ GỬI TRƯỜNG 'AVATAR' NẾU CÓ FILE MỚI.
-        // Vì vậy, else if này có thể không cần thiết nếu Laravel hiểu như vậy.
       } else {
         // Nếu không có avatar mới và cũng không có avatar_url (trường hợp xóa avatar hoặc ban đầu không có)
         // Bạn có thể gửi một giá trị null hoặc chuỗi rỗng để backend xử lý việc xóa avatar
@@ -164,6 +153,7 @@ const UserProfile = ({ user = {}, onUpdate }) => {
             <span className="mr-3 text-xl">👤</span>
             Thông tin khách hàng
           </a>
+
           <a
             href="#"
             className="flex items-center p-3 rounded-lg hover:bg-gray-700 transition-colors text-white"

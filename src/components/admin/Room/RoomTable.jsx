@@ -1,5 +1,8 @@
 import React, { useState } from "react";
-import { useGetTheaterRoomsByCinemaUS } from "../../../api/homePage/queries";
+import {
+  useGetTheaterRoomsByCinemaUS,
+  useGetSeatMapByRoomIdUS,
+} from "../../../api/homePage/queries";
 import {
   FaEdit,
   FaTrash,
@@ -11,7 +14,6 @@ import {
   FaTable,
 } from "react-icons/fa";
 import Seat from "./Seat";
-import { useGetSeatMapByRoomIdUS } from "../../../api/homePage/queries";
 
 const RoomTable = ({
   cinemaId,

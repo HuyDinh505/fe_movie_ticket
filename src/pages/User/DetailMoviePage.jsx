@@ -5,16 +5,16 @@ import {
   useGetMovieWithShowtimesUS,
   useGetDVAnUongUS,
   useGetCurrentUserUS,
-} from "../api/homePage/queries";
-import MovieDetailPageLayout from "../layouts/Home/MovieDetailPage.jsx";
-import TicketTypeSelector from "../layouts/Home/TicketTypeSelector.jsx";
-import ShowtimeSection from "../layouts/Home/ShowtimeSection.jsx";
-import SeatSelector from "../components/ui/SeatSelector.jsx";
-import ComboSelectorSection from "../layouts/Home/ComboSelectorSection.jsx";
-import TicketSummaryPage from "../layouts/Home/TicketSummaryPage.jsx";
-import AgeRestrictionModal from "../components/ui/AgeRestrictionModal.jsx";
-import { useAgeCalculation } from "../hooks/useAgeCalculation.js";
-import { useAuth } from "../contexts/AuthContext.jsx";
+} from "../../api/homePage/queries";
+import MovieDetailPageLayout from "../../layouts/Home/MovieDetailPage.jsx";
+import TicketTypeSelector from "../../layouts/Home/TicketTypeSelector.jsx";
+import ShowtimeSection from "../../layouts/Home/ShowtimeSection.jsx";
+import SeatSelector from "../../components/ui/SeatSelector.jsx";
+import ComboSelectorSection from "../../layouts/Home/ComboSelectorSection.jsx";
+import TicketSummaryPage from "../../layouts/Home/TicketSummaryPage.jsx";
+import AgeRestrictionModal from "../../components/ui/AgeRestrictionModal.jsx";
+import { useAgeCalculation } from "../../hooks/useAgeCalculation.js";
+import { useAuth } from "../../contexts/AuthContext.jsx";
 
 const DetailMoviePage = () => {
   const { id } = useParams();
@@ -59,7 +59,10 @@ const DetailMoviePage = () => {
   const movie = movieDetailData?.data || null;
 
   // Lấy thông tin đầy đủ của người dùng hiện tại
-  const { data: currentUserData } = useGetCurrentUserUS();
+  // const { data: currentUserData } = useGetCurrentUserUS();
+  const { data: currentUserData } = useGetCurrentUserUS({
+    enabled: isLoggedIn,
+  });
   const currentUser = currentUserData?.data || null;
 
   // Tính tuổi người dùng từ ngày sinh

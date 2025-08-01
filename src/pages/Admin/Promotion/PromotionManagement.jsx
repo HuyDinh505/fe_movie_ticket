@@ -83,7 +83,7 @@ const PromotionManagement = () => {
     // Map lại status về giá trị gốc trước khi truyền vào form
     setEditPromotion({
       ...promotion,
-      status: promotion.status === "Kích hoạt" ? "active" : "inactive"
+      status: promotion.status === "Kích hoạt" ? "active" : "inactive",
     });
     setIsFormVisible(true);
   };

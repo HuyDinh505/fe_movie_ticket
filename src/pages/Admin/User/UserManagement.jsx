@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import UserTable from "../../../components/admin/User/UserTable.jsx";
 import UserForm from "../../../components/admin/User/UserForm.jsx";
 import { FaPlus, FaSearch } from "react-icons/fa";
@@ -7,114 +7,176 @@ import {
   useCreateUserUS,
   useUpdateUserUS,
   useDeleteUserUS,
+  useGetAllDistrictsUS,
+  useGetUserByIdUS,
 } from "../../../api/homePage/queries.jsx";
 import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../../../contexts/AuthContext.jsx";
 import Modal from "../../../components/ui/Modal.jsx";
-import { getApiMessage } from "../../../Utilities/apiMessage";
+import { handleApiError, getApiMessage } from "../../../Utilities/apiMessage"; // Đảm bảo handleApiError được import
+import Swal from "sweetalert2";
 
 const ITEMS_PER_PAGE = 10;
 
 const UserManagement = () => {
   const [editingUser, setEditingUser] = useState(null);
+  //thêm vào để lấy chi tiết user
+  const [editingUserId, setEditingUserId] = useState(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [confirmModal, setConfirmModal] = useState({ open: false, id: null });
 
   const { userData } = useAuth();
-
-  // Khởi tạo query client
   const queryClient = useQueryClient();
 
-  // Sử dụng các hooks API
-  const { data: usersData, isLoading } = useGetAllUsersUS();
-  const createUser = useCreateUserUS();
-  const updateUser = useUpdateUserUS();
-  const deleteUser = useDeleteUserUS();
+  // Sử dụng các hooks API và di chuyển logic onSuccess/onError vào đây
+  const {
+    data: usersData,
+    isLoading: loadingUsers,
+    error, // Thêm error để xử lý lỗi khi fetch dữ liệu
+    refetch: fetchUsers, // Thêm refetch để có thể thử lại khi lỗi
+  } = useGetAllUsersUS();
+  const { data: detailedUserData, isLoading: loadingDetailedUser } =
+    useGetUserByIdUS(editingUserId, {
+      enabled: !!editingUserId, // Chỉ gọi khi có user_id
+    });
+  const { data: districtsData, isLoading: loadingDistricts } =
+    useGetAllDistrictsUS();
+  const districts = districtsData?.data || [];
 
-  // Đã sửa đổi để truy cập đúng mảng dữ liệu người dùng
+  useEffect(() => {
+    if (detailedUserData?.data && editingUserId) {
+      // Sử dụng dữ liệu chi tiết từ API thay vì dữ liệu từ danh sách
+      setEditingUser(detailedUserData.data);
+    }
+  }, [detailedUserData, editingUserId]);
+
+  const { mutate: createUser, isPending: isCreatingUser } = useCreateUserUS({
+    onSuccess: (response) => {
+      // Kiểm tra lỗi nghiệp vụ từ phản hồi API
+      if (response?.data?.status === false) {
+        handleApiError(response.data, "Thêm người dùng mới thất bại");
+        return;
+      }
+      toast.success(response.message || "Thêm người dùng mới thành công");
+      setIsFormVisible(false);
+      setEditingUser(null); // Đảm bảo reset editingUser sau khi tạo thành công
+      queryClient.invalidateQueries(["GetAllUsersAPI"]);
+    },
+    onError: (error) => {
+      toast.error(getApiMessage(error, "Không thể thêm người dùng mới"));
+    },
+  });
+
+  const { mutate: updateUser, isPending: isUpdatingUser } = useUpdateUserUS({
+    onSuccess: (response) => {
+      // Kiểm tra lỗi nghiệp vụ từ phản hồi API
+      if (response?.data?.status === false) {
+        handleApiError(response.data, "Cập nhật người dùng thất bại");
+        return;
+      }
+      toast.success(response.message || "Cập nhật người dùng thành công");
+      setIsFormVisible(false);
+      setEditingUser(null); // Đảm bảo reset editingUser sau khi cập nhật thành công
+      queryClient.invalidateQueries(["GetAllUsersAPI"]);
+    },
+    onError: (error) => {
+      toast.error(getApiMessage(error, "Không thể cập nhật người dùng"));
+    },
+  });
+
+  const { mutate: deleteUserMutation, isPending: isDeletingUser } =
+    useDeleteUserUS({
+      onSuccess: (response) => {
+        if (response?.data?.status === false) {
+          Swal.fire(
+            "Thất bại!",
+            response?.data?.message || "Xóa người dùng thất bại",
+            "error"
+          );
+          return;
+        }
+        Swal.fire(
+          "Đã xóa!",
+          response?.data?.message || "Xóa người dùng thành công",
+          "success"
+        );
+        queryClient.invalidateQueries(["GetAllUsersAPI"]);
+      },
+      onError: (error) => {
+        Swal.fire(
+          "Thất bại!",
+          getApiMessage(error, "Xóa người dùng thất bại."),
+          "error"
+        );
+      },
+    });
+
   const users = usersData?.data || [];
 
-  // Kiểm tra xem users có phải là một mảng không
+  // Xử lý lỗi khi fetch dữ liệu ban đầu
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-red-500 text-center">
+          <p className="text-xl font-bold mb-2">Đã xảy ra lỗi</p>
+          <p>{error.message}</p>
+          <button
+            onClick={() => fetchUsers()}
+            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 cursor-pointer"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Kiểm tra xem users có phải là một mảng không (vẫn giữ để đảm bảo an toàn)
   if (!Array.isArray(users)) {
     console.error("users is not an array:", users);
-    return; // hoặc xử lý lỗi theo cách khác
+    return (
+      <div className="flex items-center justify-center h-screen text-red-500 text-xl">
+        Đã xảy ra lỗi khi tải dữ liệu người dùng.
+      </div>
+    );
   }
 
   const handleEdit = (user) => {
+    setEditingUserId(user.user_id);
     setEditingUser(user);
     setIsFormVisible(true);
   };
 
   const handleDelete = (userId) => {
-    setConfirmModal({ open: true, id: userId });
+    Swal.fire({
+      title: "Bạn có chắc chắn muốn xóa người dùng này không?",
+      text: "Hành động này không thể hoàn tác!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Xóa",
+      cancelButtonText: "Hủy",
+      confirmButtonColor: "#d33",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        deleteUserMutation(userId);
+      }
+    });
   };
 
-  //Hàm xác nhận xóa
-  const handleConfirmDelete = () => {
-    if (confirmModal.id) {
-      deleteUser.mutate(confirmModal.id, {
-        onSuccess: () => {
-          toast.success("Xóa người dùng thành công");
-          queryClient.invalidateQueries(["GetAllUsersAPI"]);
-        },
-        onError: (error) => {
-          toast.error(getApiMessage(error, "Xóa người dùng thất bại."));
-        },
-      });
-    }
-    setConfirmModal({ open: false, id: null });
-  };
-
-  // Trong UserManagement.jsx
+  // Hàm này giờ chỉ gọi mutate mà không cần xử lý onSuccess/onError ở đây nữa
   const handleAddOrUpdateUser = (formDataFromUserForm) => {
     if (formDataFromUserForm) {
       const userId = formDataFromUserForm.get("user_id");
-      console.log("[UserManagement] userId khi submit:", userId);
-      console.log(
-        "[UserManagement] formDataFromUserForm:",
-        formDataFromUserForm
-      );
       if (userId) {
-        updateUser.mutate(
-          { userId: userId, userData: formDataFromUserForm }, // Truyền userId riêng và FormData đầy đủ
-          {
-            onSuccess: (data) => {
-              if (data?.status === false) {
-                toast.error(data?.message || "Cập nhật người dùng thất bại");
-                return;
-              }
-              toast.success("Cập nhật người dùng thành công");
-              setIsFormVisible(false);
-              setEditingUser(null);
-              queryClient.invalidateQueries(["GetAllUsersAPI"]);
-            },
-            onError: (error) => {
-              toast.error(
-                getApiMessage(error, "Cập nhật người dùng thất bại.")
-              );
-            },
-          }
-        );
+        updateUser({ userId: userId, userData: formDataFromUserForm });
       } else {
-        createUser.mutate(formDataFromUserForm, {
-          onSuccess: (data) => {
-            // Nếu backend trả về status=false thì coi là lỗi
-            if (data?.status === false) {
-              toast.error(data?.message || "Thêm người dùng thất bại");
-              return;
-            }
-            toast.success("Thêm người dùng thành công");
-            setIsFormVisible(false);
-            queryClient.invalidateQueries(["GetAllUsersAPI"]);
-          },
-          onError: (error) => {
-            toast.error(getApiMessage(error, "Thêm người dùng thất bại."));
-          },
-        });
+        createUser(formDataFromUserForm);
       }
     }
   };
@@ -127,14 +189,15 @@ const UserManagement = () => {
   const handleCancelEdit = () => {
     setIsFormVisible(false);
     setEditingUser(null);
+    setEditingUserId(null);
   };
 
   // Filtering logic
   const filteredUsers = users.filter((user) => {
     const matchSearch =
-      user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.phone.toLowerCase().includes(searchTerm.toLowerCase());
+      (user.full_name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.phone || "").toLowerCase().includes(searchTerm.toLowerCase());
     const matchRole = filterRole
       ? Array.isArray(user.roles) && user.roles.includes(filterRole)
       : true;
@@ -156,17 +219,20 @@ const UserManagement = () => {
     <div className="space-y-6 sm:space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center sm:p-6 bg-white rounded-xl shadow-lg sticky top-0 z-30">
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight mb-4 sm:mb-0">
-          Quản lý Người dùng {users.length}
+          Quản lý Người dùng ({users.length})
         </h1>
         {!isFormVisible && (
           <button
             onClick={handleAddUser}
-            className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2 bg-gradient-to-r 
-            from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600 
-            hover:to-blue-800 font-semibold shadow-md transition-all text-sm sm:text-base cursor-pointer"
+            // Thêm disabled khi đang tạo người dùng
+            disabled={isCreatingUser}
+            className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2 bg-gradient-to-r
+            from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600
+            hover:to-blue-800 font-semibold shadow-md transition-all text-sm sm:text-base cursor-pointer
+            disabled:opacity-50 disabled:cursor-not-allowed" // Thêm style disabled
           >
             <FaPlus className="mr-2" />
-            Thêm người dùng mới
+            {isCreatingUser ? "Đang thêm..." : "Thêm người dùng mới"}
           </button>
         )}
       </div>
@@ -203,86 +269,69 @@ const UserManagement = () => {
       )}
 
       <div className="w-full">
-        {isFormVisible ? (
-          <div className="bg-white rounded-xl shadow-lg max-w-7xl mx-auto">
+        <div className="bg-white rounded-xl shadow-lg overflow-auto max-h-[70vh]">
+          <UserTable
+            users={paginatedUsers}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            loading={loadingUsers}
+            isDeleting={isDeletingUser}
+            currentLoggedInUserId={userData.user_id}
+          />
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center space-x-2 py-4 border-t">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50
+                  disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Trước
+              </button>
+              {[...Array(totalPages)].map((_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => handlePageChange(index + 1)}
+                  className={`px-3 py-1 rounded-lg cursor-pointer ${
+                    currentPage === index + 1
+                      ? "bg-blue-500 text-white"
+                      : "border border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50
+                  disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Sau
+              </button>
+            </div>
+          )}
+        </div>
+        <Modal
+          open={isFormVisible}
+          onClose={handleCancelEdit}
+          widthClass="min-w-[500px]"
+        >
+          <div className="mx-auto">
             <UserForm
               initialData={editingUser}
               onSubmit={handleAddOrUpdateUser}
               onCancel={handleCancelEdit}
+              isSubmitting={isCreatingUser || isUpdatingUser}
+              districts={districts} // Truyền danh sách quận vào UserForm
+              loadingDistricts={loadingDistricts}
+              loadingDetailedUser={loadingDetailedUser}
             />
           </div>
-        ) : (
-          <div className="bg-white rounded-xl shadow-lg overflow-auto max-h-[70vh]">
-            <UserTable
-              users={paginatedUsers}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              loading={isLoading}
-              currentLoggedInUserId={userData.user_id}
-            />
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center space-x-2 py-4 border-t">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 
-                  disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  Trước
-                </button>
-                {[...Array(totalPages)].map((_, index) => (
-                  <button
-                    key={index + 1}
-                    onClick={() => handlePageChange(index + 1)}
-                    className={`px-3 py-1 rounded-lg cursor-pointer ${
-                      currentPage === index + 1
-                        ? "bg-blue-500 text-white"
-                        : "border border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 
-                  disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  Sau
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+        </Modal>
       </div>
-
-      <Modal
-        open={confirmModal.open}
-        onClose={() => setConfirmModal({ open: false, id: null })}
-      >
-        <div>
-          <h2 className="text-lg font-semibold mb-4">
-            Bạn có chắc chắn muốn xóa người dùng này không?
-          </h2>
-          <div className="flex justify-end gap-2">
-            <button
-              onClick={handleConfirmDelete}
-              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 cursor-pointer"
-            >
-              Xác nhận
-            </button>
-            <button
-              onClick={() => setConfirmModal({ open: false, id: null })}
-              className="bg-gray-300 px-4 py-2 rounded cursor-pointer"
-            >
-              Hủy
-            </button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 };

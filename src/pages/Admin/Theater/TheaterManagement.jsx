@@ -13,12 +13,14 @@ import {
   useUpdateTheaterRoomUS,
   useDeleteTheaterRoomUS,
   useRestoreTheaterRoomUS,
+  useGetAllDistrictsUS,
 } from "../../../api/homePage/queries";
 import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
-import Modal from "../../../components/ui/Modal";
+import Modal from "../../../components/ui/Modal"; // Đảm bảo import Modal
 import { getApiMessage, handleApiError } from "../../../Utilities/apiMessage";
 import Swal from "sweetalert2";
+
 const ITEMS_PER_PAGE = 10;
 
 const TheaterManagement = () => {
@@ -28,45 +30,54 @@ const TheaterManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCinemaIdForRooms, setSelectedCinemaIdForRooms] =
     useState(null);
-  const [isRoomFormVisible, setIsRoomFormVisible] = useState(false);
+  const [isRoomFormVisible, setIsRoomFormVisible] = useState(false); // State để điều khiển Modal cho RoomForm
   const [editingRoom, setEditingRoom] = useState(null);
-  const [confirmModal, setConfirmModal] = useState({
-    open: false,
-    type: null, // "deleteRoom" | "restoreRoom" | "deleteTheater"
-    id: null,
-  });
 
   // React Query hooks
-  const { data: cinemasData, isLoading } = useGetAllCinemasUS();
-  const createCinema = useCreateCinemaUS();
-  const updateCinema = useUpdateCinemaUS();
-  const deleteCinema = useDeleteCinemaUS();
-  const createRoom = useCreateTheaterRoomUS();
-  const updateRoom = useUpdateTheaterRoomUS();
-  const deleteRoom = useDeleteTheaterRoomUS();
-  const restoreRoom = useRestoreTheaterRoomUS();
+  const { data: cinemasData, isLoading: loadingCinemas } = useGetAllCinemasUS(); // Đổi tên isLoading để rõ ràng hơn
+  const { data: districtsData, isLoading: loadingDistricts } =
+    useGetAllDistrictsUS();
+  const { mutate: createCinema, isPending: isCreatingCinema } =
+    useCreateCinemaUS();
+  const { mutate: updateCinema, isPending: isUpdatingCinema } =
+    useUpdateCinemaUS();
+  const { mutate: deleteCinema, isPending: isDeletingCinema } =
+    useDeleteCinemaUS();
+  const { mutate: createRoom, isPending: isCreatingRoom } =
+    useCreateTheaterRoomUS();
+  const { mutate: updateRoom, isPending: isUpdatingRoom } =
+    useUpdateTheaterRoomUS();
+  const { mutate: deleteRoom, isPending: isDeletingRoom } =
+    useDeleteTheaterRoomUS();
+  const { mutate: restoreRoom, isPending: isRestoringRoom } =
+    useRestoreTheaterRoomUS();
   const queryClient = useQueryClient();
 
-  // Handle Google Maps loading error
   const handleEdit = (theater) => {
     setEditingTheater(theater);
     setIsFormVisible(true);
     setSelectedCinemaIdForRooms(theater.cinema_id);
-    setIsRoomFormVisible(false);
+    setIsRoomFormVisible(false); // Đảm bảo đóng RoomForm Modal khi mở TheaterForm
     setEditingRoom(null);
   };
 
+  // --- HÀM XÓA RẠP ĐÃ SỬA ĐỔI ĐỂ DÙNG SWAL CHO XÁC NHẬN ---
   const handleDelete = (theaterId) => {
-    // setConfirmModal({ open: true, type: "deleteTheater", id: theaterId });
     Swal.fire({
       title: "Bạn có chắc chắn muốn xóa rạp chiếu này không?",
       text: "Hành động này không thể hoàn tác!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Xóa",
+      cancelButtonText: "Hủy",
+      confirmButtonColor: "#d33", // Màu đỏ cho nút xóa
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        deleteCinema.mutate(theaterId, {
+        deleteCinema(theaterId, {
+          // Gọi mutate trực tiếp
           onSuccess: (response) => {
             if (response?.data?.status === false) {
               Swal.fire(
@@ -97,77 +108,47 @@ const TheaterManagement = () => {
   };
 
   const handleAddOrUpdateTheater = (theaterData) => {
-    if (theaterData) {
-      // Lấy id từ FormData nếu là FormData, hoặc từ object nếu là object
-      let cinemaId = theaterData.get
-        ? theaterData.get("cinema_id")
-        : theaterData.cinema_id;
-      console.log(
-        "[TheaterManagement] handleAddOrUpdateTheater - cinemaId:",
-        cinemaId
-      );
-      console.log(
-        "[TheaterManagement] handleAddOrUpdateTheater - theaterData:",
-        theaterData
-      );
-      if (cinemaId) {
-        console.log(
-          `[TheaterManagement] Gọi updateCinema với endpoint: /cinema/${cinemaId}`
-        );
-        updateCinema.mutate(
-          { cinemaId: cinemaId, cinemaData: theaterData },
-          {
-            onSuccess: (response) => {
-              // Đổi tên 'data' thành 'response'
-              if (response?.data?.status === false) {
-                //
-                console.log("API Response:", response);
-                // Gọi handleApiError tương tự cho cập nhật nếu API trả về lỗi nghiệp vụ
-                handleApiError(response.data, "Cập nhật rạp chiếu thất bại"); //
-                return;
-              }
-              toast.success("Cập nhật rạp chiếu thành công!");
-              setIsFormVisible(false);
-              setEditingTheater(null);
-              setSelectedCinemaIdForRooms(null);
-              setIsRoomFormVisible(false);
-              setEditingRoom(null);
-              queryClient.invalidateQueries({ queryKey: ["GetAllCinemasAPI"] });
-            },
-            onError: (error) => {
-              toast.error(getApiMessage(error, "Không thể cập nhật rạp chiếu"));
-            },
-          }
-        );
-      } else {
-        console.log("[TheaterManagement] Gọi createCinema");
-        // Create new theater
-        createCinema.mutate(theaterData, {
+    if (editingTheater) {
+      updateCinema(
+        { cinemaId: editingTheater.cinema_id, cinemaData: theaterData },
+        {
           onSuccess: (response) => {
-            // Đổi tên 'data' thành 'response' cho rõ ràng
-            // Kiểm tra lỗi nghiệp vụ từ phản hồi của server
-            // Dựa vào hình ảnh bạn cung cấp, lỗi nghiệp vụ có data.status === false
-            // và data.code (ví dụ 500) nằm trong response.data
             if (response?.data?.status === false) {
-              //
-              console.log("API Response:", response);
-              // GỌI HÀM handleApiError VỚI response.data
-              // response.data chính là payload lỗi nghiệp vụ: { code: 500, message: "...", status: false, ... }
-              handleApiError(response.data, "Thêm rạp mới thất bại"); //
-              return; // Dừng lại vì đã xử lý lỗi
+              handleApiError(response.data, "Cập nhật rạp chiếu thất bại");
+              return;
             }
-            toast.success(response.message, "Thêm rạp chiếu11 thành công!");
+            toast.success("Cập nhật rạp chiếu thành công!");
             setIsFormVisible(false);
+            setEditingTheater(null);
             setSelectedCinemaIdForRooms(null);
             setIsRoomFormVisible(false);
             setEditingRoom(null);
             queryClient.invalidateQueries({ queryKey: ["GetAllCinemasAPI"] });
           },
           onError: (error) => {
-            toast.error(getApiMessage(error, "Không thể thêm rạp mới"));
+            toast.error(getApiMessage(error, "Không thể cập nhật rạp chiếu"));
           },
-        });
-      }
+        }
+      );
+    } else {
+      createCinema(theaterData, {
+        // Gọi mutate trực tiếp
+        onSuccess: (response) => {
+          if (response?.data?.status === false) {
+            handleApiError(response.data, "Thêm rạp mới thất bại");
+            return;
+          }
+          toast.success(response.message || "Thêm rạp chiếu thành công!"); // Sửa lỗi response.message
+          setIsFormVisible(false);
+          setSelectedCinemaIdForRooms(null);
+          setIsRoomFormVisible(false);
+          setEditingRoom(null);
+          queryClient.invalidateQueries({ queryKey: ["GetAllCinemasAPI"] });
+        },
+        onError: (error) => {
+          toast.error(getApiMessage(error, "Không thể thêm rạp mới"));
+        },
+      });
     }
   };
 
@@ -199,30 +180,23 @@ const TheaterManagement = () => {
 
   const handleSaveRoom = (roomData) => {
     if (editingRoom) {
-      // Update existing room
-      updateRoom.mutate(
+      updateRoom(
         {
           roomId: editingRoom.room_id,
-          roomData: { ...roomData, cinema_id: selectedCinemaIdForRooms },
+          roomData: { cinema_id: selectedCinemaIdForRooms, ...roomData },
         },
         {
           onSuccess: (response) => {
-            // Đổi tên 'data' thành 'response' cho rõ ràng
-            // Kiểm tra lỗi nghiệp vụ từ phản hồi của server
-            // Dựa vào hình ảnh bạn cung cấp, lỗi nghiệp vụ có data.status === false
-            // và data.code (ví dụ 500) nằm trong response.data
             if (response?.data?.status === false) {
-              //
-              console.log("API Response:", response);
-              // GỌI HÀM handleApiError VỚI response.data
-              // response.data chính là payload lỗi nghiệp vụ: { code: 500, message: "...", status: false, ... }
               handleApiError(
                 response.data,
                 "Cập nhật phòng chiếu mới thất bại"
-              ); //
-              return; // Dừng lại vì đã xử lý lỗi
+              );
+              return;
             }
-            toast.success(response.message, "Cập nhật phòng chiếu thành công!");
+            toast.success(
+              response.message || "Cập nhật phòng chiếu thành công!"
+            ); // Sửa lỗi response.message
             setIsRoomFormVisible(false);
             setEditingRoom(null);
             queryClient.invalidateQueries({
@@ -240,22 +214,13 @@ const TheaterManagement = () => {
         }
       );
     } else {
-      // Create new room
-      createRoom.mutate(
+      createRoom(
         { ...roomData, cinema_id: selectedCinemaIdForRooms },
         {
           onSuccess: (response) => {
-            // Đổi tên 'data' thành 'response' cho rõ ràng
-            // Kiểm tra lỗi nghiệp vụ từ phản hồi của server
-            // Dựa vào hình ảnh bạn cung cấp, lỗi nghiệp vụ có data.status === false
-            // và data.code (ví dụ 500) nằm trong response.data
             if (response?.data?.status === false) {
-              //
-              console.log("API Response:", response);
-              // GỌI HÀM handleApiError VỚI response.data
-              // response.data chính là payload lỗi nghiệp vụ: { code: 500, message: "...", status: false, ... }
-              handleApiError(response.data, "Thêm phòng chiếu mới thất bại"); //
-              return; // Dừng lại vì đã xử lý lỗi
+              handleApiError(response.data, "Thêm phòng chiếu mới thất bại");
+              return;
             }
             toast.success("Thêm phòng chiếu thành công!");
             setIsRoomFormVisible(false);
@@ -275,91 +240,108 @@ const TheaterManagement = () => {
   };
 
   const handleDeleteRoom = (roomId) => {
-    setConfirmModal({ open: true, type: "deleteRoom", id: roomId });
+    Swal.fire({
+      title: "Bạn có chắc chắn muốn xóa phòng chiếu này không?",
+      text: "Hành động này không thể hoàn tác!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Xóa",
+      cancelButtonText: "Hủy",
+      confirmButtonColor: "#d33",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        deleteRoom(roomId, {
+          // Gọi mutate trực tiếp
+          onSuccess: (response) => {
+            if (response?.data?.status === false) {
+              Swal.fire(
+                "Thất bại!",
+                response?.data?.message || "Xóa phòng chiếu thất bại",
+                "error"
+              );
+              handleApiError(response.data, "Xóa phòng chiếu thất bại");
+              return;
+            }
+            Swal.fire(
+              "Đã xóa!",
+              response?.data?.message || "Xóa phòng chiếu thành công!",
+              "success"
+            );
+            queryClient.invalidateQueries({
+              queryKey: [
+                "GetTheaterRoomsByCinemaAPI",
+                selectedCinemaIdForRooms,
+              ],
+            });
+          },
+          onError: (error) => {
+            Swal.fire(
+              "Thất bại!",
+              getApiMessage(error, "Không thể xóa phòng chiếu"),
+              "error"
+            );
+          },
+        });
+      }
+    });
   };
 
   const handleRestoreRoom = (roomId) => {
-    setConfirmModal({ open: true, type: "restoreRoom", id: roomId });
+    Swal.fire({
+      title: "Bạn có chắc chắn muốn khôi phục phòng chiếu này không?",
+      text: "Phòng sẽ được kích hoạt lại.",
+      icon: "info",
+      showCancelButton: true,
+      confirmButtonText: "Khôi phục",
+      cancelButtonText: "Hủy",
+      confirmButtonColor: "#3085d6", // Màu xanh cho khôi phục
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        restoreRoom(roomId, {
+          // Gọi mutate trực tiếp
+          onSuccess: (response) => {
+            if (response?.data?.status === false) {
+              Swal.fire(
+                "Thất bại!",
+                response?.data?.message || "Khôi phục phòng chiếu thất bại",
+                "error"
+              );
+              handleApiError(response.data, "Khôi phục phòng chiếu thất bại");
+              return;
+            }
+            Swal.fire(
+              "Đã khôi phục!",
+              response?.data?.message || "Khôi phục phòng chiếu thành công!",
+              "success"
+            );
+            queryClient.invalidateQueries({
+              queryKey: [
+                "GetTheaterRoomsByCinemaAPI",
+                selectedCinemaIdForRooms,
+              ],
+            });
+          },
+          onError: (error) => {
+            Swal.fire(
+              "Thất bại!",
+              getApiMessage(error, "Không thể khôi phục phòng chiếu"),
+              "error"
+            );
+          },
+        });
+      }
+    });
   };
 
   const handleCancelRoomForm = () => {
     setIsRoomFormVisible(false);
     setEditingRoom(null);
-  };
-
-  const handleConfirmAction = () => {
-    if (confirmModal.type === "deleteRoom") {
-      deleteRoom.mutate(confirmModal.id, {
-        onSuccess: (response) => {
-          // Đổi tên 'data' thành 'response' cho rõ ràng
-          // Kiểm tra lỗi nghiệp vụ từ phản hồi của server
-          // Dựa vào hình ảnh bạn cung cấp, lỗi nghiệp vụ có data.status === false
-          // và data.code (ví dụ 500) nằm trong response.data
-          if (response?.data?.status === false) {
-            //
-            console.log("API Response:", response);
-            // GỌI HÀM handleApiError VỚI response.data
-            // response.data chính là payload lỗi nghiệp vụ: { code: 500, message: "...", status: false, ... }
-            handleApiError(response.data, "Xóa phòng chiếu thất bại"); //
-            return; // Dừng lại vì đã xử lý lỗi
-          }
-          toast.success("Xóa phòng chiếu thành công!");
-          queryClient.invalidateQueries({
-            queryKey: ["GetTheaterRoomsByCinemaAPI", selectedCinemaIdForRooms],
-          });
-        },
-        onError: (error) => {
-          toast.error(getApiMessage(error, "Không thể xóa phòng chiếu"));
-        },
-      });
-    } else if (confirmModal.type === "restoreRoom") {
-      restoreRoom.mutate(confirmModal.id, {
-        onSuccess: (response) => {
-          // Đổi tên 'data' thành 'response' cho rõ ràng
-          // Kiểm tra lỗi nghiệp vụ từ phản hồi của server
-          // Dựa vào hình ảnh bạn cung cấp, lỗi nghiệp vụ có data.status === false
-          // và data.code (ví dụ 500) nằm trong response.data
-          if (response?.data?.status === false) {
-            //
-            console.log("API Response:", response);
-            // GỌI HÀM handleApiError VỚI response.data
-            // response.data chính là payload lỗi nghiệp vụ: { code: 500, message: "...", status: false, ... }
-            handleApiError(response.data, "Khôi phục phòng chiếu thất bại"); //
-            return; // Dừng lại vì đã xử lý lỗi
-          }
-          toast.success("Khôi phục phòng chiếu thành công!");
-          queryClient.invalidateQueries({
-            queryKey: ["GetTheaterRoomsByCinemaAPI", selectedCinemaIdForRooms],
-          });
-        },
-        onError: (error) => {
-          toast.error(getApiMessage(error, "Không thể khôi phục phòng chiếu"));
-        },
-      });
-    } else if (confirmModal.type === "deleteTheater") {
-      deleteCinema.mutate(confirmModal.id, {
-        onSuccess: (response) => {
-          // Đổi tên 'data' thành 'response' cho rõ ràng
-          // Kiểm tra lỗi nghiệp vụ từ phản hồi của server
-          // Dựa vào hình ảnh bạn cung cấp, lỗi nghiệp vụ có data.status === false
-          // và data.code (ví dụ 500) nằm trong response.data
-          if (response?.data?.status === false) {
-            //
-            console.log("API Response:", response);
-            // GỌI HÀM handleApiError VỚI response.data
-            // response.data chính là payload lỗi nghiệp vụ: { code: 500, message: "...", status: false, ... }
-            handleApiError(response.data, "Xóa rạp chiếu thất bại"); //
-            return; // Dừng lại vì đã xử lý lỗi
-          }
-          toast.success(response.message, "Xóa rạp chiếu thành công!");
-          queryClient.invalidateQueries({ queryKey: ["GetAllCinemasAPI"] });
-        },
-        onError: (error) => {
-          toast.error(getApiMessage(error, "Không thể xóa phòng chiếu"));
-        },
-      });
-    }
-    setConfirmModal({ open: false, type: null, id: null });
   };
 
   const filteredTheaters = (cinemasData?.data || []).filter((theater) => {
@@ -399,12 +381,10 @@ const TheaterManagement = () => {
     geocodeAddress(address);
   };
 
-  // Get the map URL from editing theater or use a default
   const getMapUrl = () => {
     if (editingTheater && editingTheater.map_address) {
       return editingTheater.map_address;
     }
-    // Default map URL if no map_address is available
     return "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.435373360717!2d106.69937787427165!3d10.777928659167632!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f48779307a5%3A0x9ba2ed64e9e3ef7b!2zQ0dWIFZpbmNvbSDEkOG7k25nIEto4bufaQ!5e0!3m2!1sen!2s!4v1750994606691!5m2!1sen!2s";
   };
 
@@ -417,8 +397,8 @@ const TheaterManagement = () => {
         {!isFormVisible && (
           <button
             onClick={handleAddTheater}
-            className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2 bg-gradient-to-r 
-            from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600 
+            className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2 bg-gradient-to-r
+            from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600
             hover:to-blue-800 font-semibold shadow-md transition-all text-sm sm:text-base cursor-pointer"
           >
             <FaPlus className="mr-2" />
@@ -455,26 +435,12 @@ const TheaterManagement = () => {
                   onCancel={handleCancelEdit}
                   onAddressChange={handleAddressChange}
                   cinemas={cinemasData?.data || []}
+                  // districts={districtsData?.data || []}
+                  isSubmitting={isCreatingCinema || isUpdatingCinema} // Truyền trạng thái submit
                 />
               </div>
               <div className="w-full lg:w-1/2 flex flex-col space-y-8">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
-                  {/* <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
-                    <h3 className="text-white font-semibold text-lg flex items-center">
-                      <svg
-                        className="w-5 h-5 mr-2"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      Vị trí Rạp chiếu
-                    </h3>
-                  </div> */}
                   <div className="relative">
                     <iframe
                       src={getMapUrl()}
@@ -516,16 +482,22 @@ const TheaterManagement = () => {
                 onEditRoom={handleEditRoom}
                 onDeleteRoom={handleDeleteRoom}
                 onRestoreRoom={handleRestoreRoom}
+                isDeletingRoom={isDeletingRoom} // Truyền trạng thái xóa phòng
+                isRestoringRoom={isRestoringRoom} // Truyền trạng thái khôi phục phòng
               />
             )}
 
-            {isRoomFormVisible && (
-              <RoomForm
-                onSubmit={handleSaveRoom}
-                onCancel={handleCancelRoomForm}
-                initialData={editingRoom}
-              />
-            )}
+            {/* Modal cho RoomForm */}
+            <Modal open={isRoomFormVisible} onClose={handleCancelRoomForm}>
+              <div className="max-w-md mx-auto">
+                <RoomForm
+                  onSubmit={handleSaveRoom}
+                  onCancel={handleCancelRoomForm}
+                  initialData={editingRoom}
+                  isSubmitting={isCreatingRoom || isUpdatingRoom} // Truyền trạng thái submit
+                />
+              </div>
+            </Modal>
           </>
         ) : (
           <div className="bg-white rounded-xl shadow-lg">
@@ -533,7 +505,8 @@ const TheaterManagement = () => {
               theaters={paginatedTheaters}
               onEdit={handleEdit}
               onDelete={handleDelete}
-              loading={isLoading}
+              loading={loadingCinemas}
+              isDeletingTheater={isDeletingCinema} // Truyền trạng thái xóa rạp
             />
 
             {/* Pagination */}
@@ -542,7 +515,7 @@ const TheaterManagement = () => {
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   Trước
                 </button>
@@ -550,7 +523,7 @@ const TheaterManagement = () => {
                   <button
                     key={index + 1}
                     onClick={() => handlePageChange(index + 1)}
-                    className={`px-3 py-1 rounded-lg ${
+                    className={`px-3 py-1 rounded-lg cursor-pointer ${
                       currentPage === index + 1
                         ? "bg-blue-500 text-white"
                         : "border border-gray-300 hover:bg-gray-50"
@@ -562,7 +535,7 @@ const TheaterManagement = () => {
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   Sau
                 </button>
@@ -570,38 +543,6 @@ const TheaterManagement = () => {
             )}
           </div>
         )}
-        {/* Modal xác nhận xóa/khôi phục */}
-        <Modal
-          open={confirmModal.open}
-          onClose={() => setConfirmModal({ open: false, type: null, id: null })}
-        >
-          <div>
-            <h2 className="text-lg font-semibold mb-4">
-              {confirmModal.type === "deleteRoom" &&
-                "Bạn có chắc chắn muốn xóa phòng chiếu này không?"}
-              {confirmModal.type === "restoreRoom" &&
-                "Bạn có chắc chắn muốn khôi phục phòng chiếu này không?"}
-              {confirmModal.type === "deleteTheater" &&
-                "Bạn có chắc chắn muốn xóa rạp chiếu này không?"}
-            </h2>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={handleConfirmAction}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              >
-                Xác nhận
-              </button>
-              <button
-                onClick={() =>
-                  setConfirmModal({ open: false, type: null, id: null })
-                }
-                className="bg-gray-300 px-4 py-2 rounded"
-              >
-                Hủy
-              </button>
-            </div>
-          </div>
-        </Modal>
       </div>
     </div>
   );

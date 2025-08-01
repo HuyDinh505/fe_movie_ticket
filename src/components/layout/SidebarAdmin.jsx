@@ -23,6 +23,7 @@ const SidebarAdmin = () => {
   const [isPhimDropdownOpen, setIsPhimDropdownOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isTheaterDropdownOpen, setIsTheaterDropdownOpen] = useState(false);
+  const [isDistrictDropdownOpen, setIsDistrictDropdownOpen] = useState(false);
   const [isShowtimeDropdownOpen, setIsShowtimeDropdownOpen] = useState(false);
   const [isGenreDropdownOpen, setIsGenreDropdownOpen] = useState(false);
   const [isConcessionOpen, setIsConcessionDropdownOpen] = useState(false);
@@ -42,6 +43,7 @@ const SidebarAdmin = () => {
     phim: ["/admin/movies", "/admin/movies/deleted"],
     user: ["/admin/user"],
     theater: ["/admin/theater", "/admin/delete_cinema"],
+    district: ["/admin/district", "/admin/delete_district"],
     schedule: ["/admin/schedule"],
     showtime: ["/admin/showtime"],
     genre: ["/admin/genre", "/admin/genre_delete"],
@@ -234,6 +236,47 @@ const SidebarAdmin = () => {
                     >
                       <FaTrash className="text-sm" />
                       <span>Danh sách rạp chiếu đã xóa</span>
+                    </li>
+                  </ul>
+                )}
+              </li>
+              {/* Quản lý quận huyện */}
+              <li>
+                <div
+                  className={`flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF] ${
+                    isActiveParent("/admin/district", ["/admin/delete_district"])
+                      ? "bg-[#3F72AF]"
+                      : ""
+                  }`}
+                  onClick={() => setIsDistrictDropdownOpen(!isDistrictDropdownOpen)}
+                >
+                  <span>Quản lý quận huyện</span>
+                  <span>{isDistrictDropdownOpen ? "▲" : "▼"}</span>
+                </div>
+                {isDistrictDropdownOpen && (
+                  <ul className="ml-4 mt-2 space-y-2">
+                    <li
+                      className={`p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2 ${
+                        isActiveItem("/admin/district") &&
+                        currentPath === "/admin/district"
+                          ? "bg-[#3F72AF]"
+                          : ""
+                      }`}
+                      onClick={() => navigate("/admin/district")}
+                    >
+                      <FaTags className="text-sm" />
+                      <span>Danh sách quận huyện</span>
+                    </li>
+                    <li
+                      className={`p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2 ${
+                        isActiveItem("/admin/district_delete")
+                          ? "bg-[#3F72AF]"
+                          : ""
+                      }`}
+                      onClick={() => navigate("/admin/district_delete")}
+                    >
+                      <FaTrash className="text-sm" />
+                      <span>Danh sách quận huyện đã xóa</span>
                     </li>
                   </ul>
                 )}
@@ -438,7 +481,7 @@ const SidebarAdmin = () => {
                 )}
               </li>
               {/* Quản lý khuyến mãi */}
-              <li>
+              {/* <li>
                 <div
                   className={`flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF] ${
                     isActiveGroup("promotion") ? "bg-[#3F72AF] " : ""
@@ -461,9 +504,9 @@ const SidebarAdmin = () => {
                     </li>
                   </ul>
                 )}
-              </li>
+              </li> */}
               {/* Quản lý bài viết */}
-              <li>
+              {/* <li>
                 <div
                   className={`flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF] ${
                     isActiveGroup("articles") ? "bg-[#3F72AF]" : ""
@@ -486,7 +529,7 @@ const SidebarAdmin = () => {
                     </li>
                   </ul>
                 )}
-              </li>
+              </li> */}
             </ul>{" "}
             {/* End of the promoted ul */}
           </ul>

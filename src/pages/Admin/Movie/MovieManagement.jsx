@@ -16,6 +16,7 @@ import MovieDetailModalContent from "../../../components/ui/MovieDetailModalCont
 import ModalPhim from "../../../components/ui/Modal_phim";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { getApiMessage, handleApiError } from "../../../Utilities/apiMessage";
+import Swal from "sweetalert2";
 const ITEMS_PER_PAGE = 10;
 
 const MovieManagement = () => {
@@ -24,10 +25,10 @@ const MovieManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [confirmModal, setConfirmModal] = useState({
-    open: false,
-    id: null,
-  });
+  // const [confirmModal, setConfirmModal] = useState({
+  //   open: false,
+  //   id: null,
+  // });
   const [detailModal, setDetailModal] = useState({ open: false, movie: null });
   const [trailerModal, setTrailerModal] = useState({ open: false, url: null });
 
@@ -70,12 +71,12 @@ const MovieManagement = () => {
 
   const { mutate: createMovie, isLoading: isCreating } = useCreatePhimUS({
     onSuccess: (response) => {
-      if (response?.data?.status === false) {
+      if (response?.status === false) {
         console.log("API Response:", response);
-        handleApiError(response.data, "Thêm phim mới thất bại");
+        handleApiError(response, "Thêm phim mới thất bại");
         return;
       }
-      handleApiError(response.data, "Thêm phim mới mới thất bại");
+      toast.success(response.message || "Thêm phim mới thành công");
       setIsFormVisible(false);
       fetchMovies();
     },
@@ -103,17 +104,28 @@ const MovieManagement = () => {
     onSuccess: (response) => {
       console.log("API Response:", response);
       if (response?.data?.status === false) {
-        console.log("API Response:", response);
+        Swal.fire(
+          "Thất bại!",
+          response?.message || "Xóa phim thất bại",
+          "error"
+        );
         handleApiError(response.data, "Xóa phim thất bại");
         return;
       }
-      toast.success(response.data.message || "Cập nhật phim thành công");
+      Swal.fire(
+        "Thành công!",
+        response.message || "Xóa phim thành công",
+        "success"
+      );
       fetchMovies();
     },
     onError: (error) => {
-      const errorMessage =
-        error.response?.data?.message || error.message || "Không thể xóa phim";
-      toast.error(errorMessage);
+      Swal.fire(
+        // <-- SỬ DỤNG SWEETALERT2
+        "Thất bại!",
+        getApiMessage(error, "Không thể xóa phim"),
+        "error"
+      );
     },
   });
 
@@ -131,15 +143,10 @@ const MovieManagement = () => {
     try {
       // Lấy id từ FormData
       const id = movieData.get("id") || movieData.get("movie_id");
-      console.log("[MovieManagement] handleSaveMovie - id:", id);
-      console.log("[MovieManagement] handleSaveMovie - movieData:", movieData);
       if (id) {
-        console.log(
-          `[MovieManagement] Gọi updateMovie với endpoint: /movie/${id}`
-        );
         updateMovie({ ma_phim: id, movieData });
       } else {
-        console.log("[MovieManagement] Gọi createMovie");
+        // console.log("[MovieManagement] Gọi createMovie");
         createMovie(movieData);
       }
     } catch (error) {
@@ -147,21 +154,28 @@ const MovieManagement = () => {
     }
   };
 
-  const handleDeleteMovie = async (id) => {
-    setConfirmModal({ open: true, id });
+  const handleDeleteMovie = (id) => {
+    Swal.fire({
+      title: "Bạn có chắc chắn muốn xóa?",
+      text: "Hành động này không thể hoàn tác!",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Xóa",
+      cancelButtonText: "Hủy",
+      reverseButtons: true, // Đảo ngược vị trí nút để "Hủy" bên trái, "Xóa" bên phải
+      confirmButtonColor: "#dc2626",
+      allowOutsideClick: false, // Ngăn đóng khi click ra ngoài
+      allowEscapeKey: false,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        deleteMovie(id); // Gọi mutation xóa phim
+      }
+    });
   };
-
   const handleCancelEdit = () => {
     setIsFormVisible(false);
     setEditingMovie(null);
   };
-  const handleConfirmDelete = () => {
-    if (confirmModal.id) {
-      deleteMovie(confirmModal.id);
-    }
-    setConfirmModal({ open: false, id: null });
-  };
-  // Xử lý dữ liệu phim
   const movies = moviesData?.data?.movies || moviesData?.data || [];
   const filteredMovies = Array.isArray(movies)
     ? movies.filter((movie) => {
@@ -202,7 +216,7 @@ const MovieManagement = () => {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-6 sm:space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center sm:p-6 bg-white rounded-xl shadow-lg sticky top-0 z-30">
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight mb-4 sm:mb-0">
           Quản lý Phim
@@ -267,7 +281,7 @@ const MovieManagement = () => {
             />
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-lg overflow-auto max-h-[70vh]">
+          <div className="bg-white rounded-xl shadow-lg max-h-[80vh] max-w-[1240px] mx-auto overflow-y-auto">
             <MovieTable
               movies={paginatedMovies}
               onEdit={handleEditMovie}
@@ -323,7 +337,7 @@ const MovieManagement = () => {
           <MovieDetailModalContent movie={detailModal.movie} />
         )}
       </Modal>
-      <Modal
+      {/* <Modal
         open={confirmModal.open}
         onClose={() => setConfirmModal({ open: false, id: null })}
       >
@@ -347,7 +361,7 @@ const MovieManagement = () => {
             </button>
           </div>
         </div>
-      </Modal>
+      </Modal> */}
       <ModalPhim
         open={trailerModal.open}
         onClose={() => setTrailerModal({ open: false, url: null })}

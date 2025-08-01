@@ -117,44 +117,6 @@ const TicketTable = ({ orders, onRowClick, onEditClick }) => {
           ))}
         </tbody>
       </table>
-      {/* Phân trang thực */}
-      {/* <div className="flex justify-between items-center mt-4">
-        <div></div>
-        <div className="flex items-center gap-2">
-          <button
-            className="px-2 py-1 rounded border border-gray-300 text-gray-600"
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-          >
-            Trước
-          </button>
-          {[...Array(totalPages)].map((_, idx) => (
-            <button
-              key={idx + 1}
-              className={`px-2 py-1 rounded border border-gray-300 text-gray-600 ${
-                currentPage === idx + 1 ? "bg-blue-500 text-white" : ""
-              }`}
-              onClick={() => setCurrentPage(idx + 1)}
-            >
-              {idx + 1}
-            </button>
-          ))}
-          <button
-            className="px-2 py-1 rounded border border-gray-300 text-gray-600"
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-          >
-            Sau
-          </button>
-          <select
-            className="ml-4 border border-gray-300 rounded px-2 py-1 text-sm"
-            value={ITEMS_PER_PAGE}
-            disabled
-          >
-            <option>10 / page</option>
-          </select>
-        </div>
-      </div> */}
     </div>
   );
 };

@@ -66,51 +66,6 @@ const TicketTypeForm = ({ onSubmit, onCancel, initialData }) => {
         {initialData ? "Chỉnh sửa loại vé" : "Thêm loại vé mới"}
       </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex space-x-2 mb-4">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 flex items-center justify-center bg-gray-200 text-gray-800 
-            py-2 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Hủy
-          </button>
-          <button
-            type="submit"
-            className="flex-1 flex items-center justify-center bg-blue-500 text-white py-2 
-            rounded-lg hover:bg-blue-600 transition-colors cursor-pointer"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            {initialData ? "Cập nhật loại vé" : "Lưu"}
-          </button>
-        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Tên loại vé <span className="text-red-500">*</span>
@@ -153,6 +108,51 @@ const TicketTypeForm = ({ onSubmit, onCancel, initialData }) => {
           {errors.ticket_price && (
             <p className="mt-1 text-sm text-red-500">{errors.ticket_price}</p>
           )}
+        </div>
+        <div className="flex space-x-2 mb-4">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 flex items-center justify-center bg-gray-200 text-gray-800 
+            py-2 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            Hủy
+          </button>
+          <button
+            type="submit"
+            className="flex-1 flex items-center justify-center bg-blue-500 text-white py-2 
+            rounded-lg hover:bg-blue-600 transition-colors cursor-pointer"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            {initialData ? "Cập nhật" : "Lưu"}
+          </button>
         </div>
       </form>
     </div>

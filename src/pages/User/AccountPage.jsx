@@ -1,11 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import UserProfile from "../components/users/UserProfile";
-import { useGetCurrentUserUS, useUpdateUserUS } from "../api/homePage";
-import { useAuth } from "../contexts/AuthContext";
+import UserProfile from "../../components/users/UserProfile";
+import { useGetCurrentUserUS, useUpdateUserUS } from "../../api/homePage";
+import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "react-toastify";
-import { getApiMessage, handleApiError } from "../Utilities/apiMessage";
+import { getApiMessage, handleApiError } from "../../Utilities/apiMessage";
 
 const AccountPage = () => {
   const navigate = useNavigate();

@@ -16,7 +16,7 @@ const UserTable = ({
   // };
 
   return (
-    <div className="overflow-x-auto bg-white rounded-xl shadow-md p-6">
+    <div className="overflow-x-auto bg-white rounded-xl shadow-md p-6 ">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gradient-to-r from-blue-100 to-blue-200">
           <tr>
