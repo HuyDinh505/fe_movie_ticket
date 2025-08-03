@@ -100,7 +100,7 @@ const PurchaseHistory = () => {
           return (
             <div
               key={booking.booking_id}
-              className="bg-[var(--color-button)] p-6 rounded-lg shadow-md flex flex-col md:flex-row justify-between items-start md:items-center cursor-pointer hover:bg-gray-700 transition-colors"
+              className="hover:bg-[var(--color-button)] p-6 rounded-lg shadow-md flex flex-col md:flex-row justify-between items-start md:items-center cursor-pointer bg-gray-700 transition-colors"
               onClick={() => handleOpenModal(booking.booking_id)}
             >
               <div className="flex-1">
