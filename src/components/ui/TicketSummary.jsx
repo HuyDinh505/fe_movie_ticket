@@ -47,7 +47,7 @@ const TicketSummary = ({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-center py-4 border-t border-gray-200">
+    <div className="flex flex-col sm:flex-row py-4 border-t border-gray-200">
       <div className="flex-1 text-left sm:text-left mb-4 sm:mb-0 px-4 text-white">
         <h3 className="text-lg sm:text-xl font-bold text-white">
           {movieTitle}

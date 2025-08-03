@@ -106,7 +106,7 @@ const PromotionFrom = ({
             <input
               type="date"
               name="start_date"
-              value={form.start_date?.slice(0, 10) || ""}
+              value={form.start_date || ""}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
               required
@@ -119,7 +119,7 @@ const PromotionFrom = ({
             <input
               type="date"
               name="end_date"
-              value={form.end_date?.slice(0, 10) || ""}
+              value={form.end_date || ""}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
               required

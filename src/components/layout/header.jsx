@@ -179,10 +179,6 @@ function Header() {
                     <FaAward className="w-4 h-4" />
                     {userData.name}
                   </div>
-                  {/* <div className="flex items-center gap-1 text-gray-600">
-                    <FaGift className="w-4 h-4" />
-                    {userData.stars} Stars
-                  </div> */}
                 </div>
               </div>
               {showUserDropdown && (
@@ -193,13 +189,6 @@ function Header() {
                   >
                     <FaUserTag />
                     Tài Khoản
-                  </Link>
-                  <Link
-                    to="/history"
-                    className="block px-4 py-2 hover:bg-[var(--color-button)] flex gap-2"
-                  >
-                    <FaHistory />
-                    Lịch Sử
                   </Link>
                   <button
                     onClick={handleLogout}
@@ -238,10 +227,10 @@ function Header() {
               onClick={() => setShowSearchModal(true)}
               className="p-2 rounded-full hover:text-orange-600 transition"
             >
-              <FiSearch className="w-5 h-5 text-black" />
+              <FiSearch className="w-5 h-5 text-white" />
             </button>
 
-            {isLoggedIn ? (
+            {/* {isLoggedIn ? (
               <div
                 className="flex items-center space-x-2 cursor-pointer"
                 onClick={handleUserToggleDropdown}
@@ -260,20 +249,16 @@ function Header() {
                     <FaAward className="w-4 h-4" />
                     {userData.name}
                   </div>
-                  {/* <div className="flex items-center gap-1 text-gray-600">
-                    <FaGift className="w-4 h-4" />
-                    {userData.stars} Stars
-                  </div> */}
                 </div>
               </div>
             ) : (
               <Link to="/login">
                 <FaUserCircle className="w-6 h-6 text-gray-700" />
               </Link>
-            )}
+            )} */}
             <button onClick={() => setShowMobileMenu(!showMobileMenu)}>
               <svg
-                className="w-6 h-6 text-gray-700"
+                className="w-6 h-6 text-white"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
@@ -335,10 +320,6 @@ function Header() {
                     <FaAward className="w-4 h-4" />
                     {userData.name}
                   </div>
-                  {/* <div className="flex items-center gap-1 text-gray-600">
-                    <FaGift className="w-4 h-4" />
-                    {userData.stars} Stars
-                  </div> */}
                 </div>
               </div>
               <Link
@@ -348,14 +329,6 @@ function Header() {
               >
                 <FaUserTag />
                 Tài Khoản
-              </Link>
-              <Link
-                to="/history"
-                className="block px-4 py-2 hover:bg-gray-100 flex gap-2 text-black"
-                onClick={() => setShowMobileMenu(false)} // Close menu on navigation
-              >
-                <FaHistory />
-                Lịch Sử
               </Link>
               <button
                 onClick={() => {

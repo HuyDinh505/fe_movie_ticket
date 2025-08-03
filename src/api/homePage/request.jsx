@@ -1423,12 +1423,11 @@ export const createBookingAPI = async (bookingData) => {
   }
 };
 
-export const updateBookingAPI = async (bookingId, bookingData) => {
+export const updateBookingAPI = async (bookingId) => {
   try {
     const response = await axios({
-      url: `${END_POINT.BOOKING}/${bookingId}`,
-      method: "POST",
-      data: bookingData,
+      url: `${END_POINT.BOOKING}/${bookingId}/approve-counter`,
+      method: "GET",
     });
     return response;
   } catch (error) {

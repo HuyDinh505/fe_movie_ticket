@@ -180,18 +180,6 @@ const SeatSelector = forwardRef(
 
     return (
       <div className=" p-6 rounded-lg shadow-md flex flex-col items-center mx-auto">
-        {/* Header với nút refresh */}
-        {/* <div className="w-full flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">Chọn ghế</h3>
-        <button
-          onClick={handleRefreshSeats}
-          className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-2 text-sm"
-          title="Cập nhật danh sách ghế"
-        >
-          <FaSyncAlt /> Làm mới
-        </button>
-      </div> */}
-
         {/* Container bọc màn hình + ghế */}
         <div className="inline-block">
           {/* Màn hình */}
@@ -231,7 +219,7 @@ const SeatSelector = forwardRef(
                         const isBooked = seat.status === "booked";
 
                         let style =
-                          "w-8 h-6 md:w-10 md:h-8 rounded border text-xs font-bold flex items-center justify-center select-none transition-colors duration-150 flex-shrink-0 ";
+                          "flex gap-2 md:ml-4 md:mb-2 w-4 w-6 sm:w-8 sm:h-6 md:w-10 md:h-8  rounded border text-xs font-bold flex items-center justify-center select-none transition-colors duration-150 flex-shrink-0 ";
 
                         if (isBooked) {
                           style +=

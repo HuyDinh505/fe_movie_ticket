@@ -439,6 +439,31 @@ const SidebarAdmin = () => {
                   </ul>
                 )}
               </li>
+              {/* Quản lý khuyến mãi */}
+              <li>
+                <div
+                  className={`flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF] ${
+                    isActiveGroup("promotion") ? "bg-[#3F72AF]" : ""
+                  }`}
+                  onClick={() => handleToggleDropdown("promotion")}
+                >
+                  <span>Quản lý khuyến mãi</span>
+                  <span>{openDropdown === "promotion" ? "▲" : "▼"}</span>
+                </div>
+                {openDropdown === "promotion" && (
+                  <ul className="ml-4 mt-2 space-y-2">
+                    <li
+                      className={`p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2 ${
+                        isActiveItem("/admin/promotion") ? "bg-[#3F72AF]" : ""
+                      }`}
+                      onClick={() => navigate("/admin/promotion")}
+                    >
+                      <FaTags className="text-sm" />
+                      <span>Danh sách khuyến mãi</span>
+                    </li>
+                  </ul>
+                )}
+              </li>
             </ul>{" "}
           </ul>
         </nav>

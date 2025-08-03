@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import UserTable from "../../../components/admin/User/UserTable.jsx";
 import UserForm from "../../../components/admin/User/UserForm.jsx";
 import { FaPlus, FaSearch } from "react-icons/fa";
@@ -227,7 +227,7 @@ const UserManagement = () => {
     <div className="ml-2 space-y-6 sm:space-y-2">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center sm:p-6 bg-white rounded-xl shadow-lg sticky top-0 z-30">
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight mb-4 sm:mb-0">
-          Quản lý Người dùng ({users.length})
+          Quản lý Người dùng
         </h1>
         {!isFormVisible && (
           <button

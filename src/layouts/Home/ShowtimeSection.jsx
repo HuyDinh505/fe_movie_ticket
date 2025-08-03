@@ -9,7 +9,7 @@ function ShowtimeSection({ onShowtimeSelect, selectedShowtime, cinemas }) {
 
   useEffect(() => {
     if (cinemas && cinemas.length > 0) {
-      // Lấy tất cả các ngày có suất chiếu (unique, không lặp)
+      // ✅ Lấy tất cả ngày có suất chiếu (unique)
       const dates = new Set();
       cinemas.forEach((cinema) => {
         cinema.rooms.forEach((room) => {
@@ -24,9 +24,9 @@ function ShowtimeSection({ onShowtimeSelect, selectedShowtime, cinemas }) {
           });
         });
       });
-      // Chuyển đổi thành mảng và sắp xếp
+
+      // ✅ Chuyển thành mảng và sort
       const sortedDates = Array.from(dates).sort();
-      // Format dates cho component
       const formattedDates = sortedDates.map((date) => {
         const d = new Date(date);
         return {
@@ -39,10 +39,12 @@ function ShowtimeSection({ onShowtimeSelect, selectedShowtime, cinemas }) {
         };
       });
       setAvailableDates(formattedDates);
+
       if (formattedDates.length > 0 && selectedDate === null) {
         setSelectedDate(formattedDates[0]);
       }
-      // Mặc định mở tất cả rạp khi render lần đầu
+
+      // ✅ Mặc định mở tất cả rạp khi render lần đầu
       const initialOpen = {};
       cinemas.forEach((_, idx) => {
         initialOpen[idx] = true;
@@ -87,57 +89,53 @@ function ShowtimeSection({ onShowtimeSelect, selectedShowtime, cinemas }) {
             className="font-bold mb-4 text-center text-xl sm:text-2xl"
             style={{ color: "var(--color-text-showtime)" }}
           >
-            DANH SÁCH PHÒNG CHIẾU
+            DANH SÁCH RẠP
           </h2>
+
           {cinemas &&
-            cinemas.map((cinema, cinemaIdx) =>
-              cinema.rooms.map((room, roomIdx) => {
-                // Lọc suất chiếu của phòng theo ngày
-                const showtimes = room.showtimes_for_this_movie
-                  .filter((showtime) => {
-                    let showtimeDate = showtime.start_time.includes("T")
-                      ? showtime.start_time.split("T")[0]
-                      : showtime.start_time.split(" ")[0];
-                    return showtimeDate === selectedDate.fullDate;
-                  })
-                  .map((showtime) => {
-                    const d = new Date(showtime.start_time);
-                    let timeString = d.toLocaleTimeString("vi-VN", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false,
+            cinemas.map((cinema, cinemaIdx) => {
+              // ✅ Lọc phòng nào có suất chiếu trong ngày được chọn
+              const roomsWithShowtimes = cinema.rooms
+                .map((room) => {
+                  const showtimes = room.showtimes_for_this_movie
+                    .filter((showtime) => {
+                      let showtimeDate = showtime.start_time.includes("T")
+                        ? showtime.start_time.split("T")[0]
+                        : showtime.start_time.split(" ")[0];
+                      return showtimeDate === selectedDate.fullDate;
+                    })
+                    .map((showtime) => {
+                      const d = new Date(showtime.start_time);
+                      return {
+                        ...showtime,
+                        time: d.toLocaleTimeString("vi-VN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: false,
+                        }),
+                      };
                     });
-                    return {
-                      ...showtime,
-                      time: timeString,
-                      room_name: room.room_name,
-                      room_type: room.room_type,
-                      room_id: room.room_id,
-                      theater: cinema,
-                    };
-                  });
+                  return { ...room, showtimes };
+                })
+                .filter((room) => room.showtimes.length > 0);
 
-                if (showtimes.length === 0) return null;
+              if (roomsWithShowtimes.length === 0) return null;
 
-                return (
-                  <TheaterShowtimeCard
-                    key={`${cinema.cinema_id}-${room.room_id}`}
-                    theater={{
-                      name: cinema.cinema_name,
-                      address: cinema.address,
-                      room_name: room.room_name,
-                      room_type: room.room_type,
-                      showtimes: showtimes,
-                    }}
-                    onSelectShowtime={onShowtimeSelect}
-                    selectedShowtime={selectedShowtime}
-                    selectedDate={selectedDate}
-                    isOpen={openCinemas[`${cinemaIdx}-${roomIdx}`]}
-                    onToggle={() => toggleCinema(`${cinemaIdx}-${roomIdx}`)}
-                  />
-                );
-              })
-            )}
+              return (
+                <TheaterShowtimeCard
+                  key={cinema.cinema_id}
+                  theater={{
+                    name: cinema.cinema_name,
+                    address: cinema.address,
+                    rooms: roomsWithShowtimes,
+                  }}
+                  onSelectShowtime={onShowtimeSelect}
+                  selectedShowtime={selectedShowtime}
+                  isOpen={openCinemas[cinemaIdx]}
+                  onToggle={() => toggleCinema(cinemaIdx)}
+                />
+              );
+            })}
         </div>
       )}
     </section>

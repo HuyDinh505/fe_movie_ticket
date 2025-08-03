@@ -8,7 +8,7 @@ import {
   useRestoreCinemaUS,
 } from "../../../api/homePage/queries";
 import Modal from "../../../components/ui/Modal";
-
+import { useAuth } from "../../../contexts/AuthContext.jsx";
 const ITEMS_PER_PAGE = 10;
 
 const DeletedTheater = () => {
@@ -22,7 +22,9 @@ const DeletedTheater = () => {
   const queryClient = useQueryClient();
   const { data: deletedCinemasData, isLoading } = useGetDeletedCinemasUS();
   const restoreCinema = useRestoreCinemaUS();
-
+  const { userData } = useAuth();
+  const currenRole =
+    userData?.role || (Array.isArray(userData?.roles) ? userData.roles[0] : "");
   const handleAskRestore = (cinemaId) => {
     setConfirmRestore({ open: true, cinemaId });
   };

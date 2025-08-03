@@ -142,6 +142,7 @@ function App() {
             />
             <Route path="schedule" element={<ScheduleManagement />} />
             <Route path="schedule/deleted" element={<ScheduleManagement />} />
+            <Route path="promotion" element={<PromotionManagement />} />
             {/* Add more admin routes here as needed */}
           </Route>
 
@@ -226,6 +227,8 @@ function App() {
             <Route path="ticket_order" element={<TicketOrder />} />
             <Route path="schedule" element={<ScheduleManagement />} />
             <Route path="schedule/deleted" element={<ScheduleManagement />} />
+            <Route path="promotion" element={<PromotionManagement />} />
+            <Route path="delete_cinema" element={<DeletedTheater />} />
           </Route>
 
           {/* Finance Manager Routes - Future expansion */}

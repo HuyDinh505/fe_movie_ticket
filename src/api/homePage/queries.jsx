@@ -851,8 +851,7 @@ export const useCreateBookingUS = (option) => {
 
 export const useUpdateBookingUS = (option) => {
   return useMutation({
-    mutationFn: ({ bookingId, bookingData }) =>
-      updateBookingAPI(bookingId, bookingData),
+    mutationFn: (bookingId) => updateBookingAPI(bookingId),
     ...option,
   });
 };

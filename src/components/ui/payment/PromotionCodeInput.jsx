@@ -200,7 +200,7 @@ function PromotionCodeInput({
         <button
           onClick={handleApply}
           disabled={isLoading}
-          className="font-bold py-3 px-8 rounded transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="text-xs sm:text-sm md:text-base font-bold py-2 px-4 md:px-8 rounded transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           style={{
             backgroundColor: "var(--color-primary)",
             color: "black",

@@ -3,6 +3,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
+import { imagePhim } from "../../Utilities/common";
 
 import PromotionCard from "../../components/ui/PromotionCard";
 import km from "../../assets/new/km.jpg";
@@ -64,7 +65,9 @@ function PromotionSection() {
               <PromotionCard
                 id={promo.promotion_id}
                 title={promo.name}
-                image={promo.image || km} // Nếu có trường ảnh thì thay promo.image
+                image={
+                  promo.image_url ? `${imagePhim}${promo.image_url}` : imagePhim
+                } // Nếu có trường ảnh thì thay promo.image
                 description={promo.description}
                 discount={
                   promo.type === "PERCENT_DISCOUNT"

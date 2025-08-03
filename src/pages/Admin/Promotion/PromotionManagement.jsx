@@ -12,6 +12,15 @@ import {
 
 const ITEMS_PER_PAGE = 10;
 
+// Hàm tiện ích để định dạng lại ngày tháng từ API sang yyyy-MM-dd
+const formatDateForInput = (dateString) => {
+  if (!dateString) return "";
+  const [datePart] = dateString.split(" ");
+  if (!datePart) return "";
+  const [day, month, year] = datePart.split("-");
+  return `${year}-${month}-${day}`;
+};
+
 const PromotionManagement = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -80,10 +89,12 @@ const PromotionManagement = () => {
 
   // Sửa
   const handleEditPromotion = (promotion) => {
-    // Map lại status về giá trị gốc trước khi truyền vào form
     setEditPromotion({
       ...promotion,
       status: promotion.status === "Kích hoạt" ? "active" : "inactive",
+      // Đảm bảo định dạng ngày tháng đúng trước khi truyền vào form
+      start_date: formatDateForInput(promotion.start_date),
+      end_date: formatDateForInput(promotion.end_date),
     });
     setIsFormVisible(true);
   };
@@ -104,7 +115,7 @@ const PromotionManagement = () => {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="ml-2 pace-y-6 sm:space-y-2">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center sm:p-6 bg-white rounded-xl shadow-lg sticky top-0 z-30">
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight mb-4 sm:mb-0">
           Quản lý Khuyến mãi
@@ -154,11 +165,13 @@ const PromotionManagement = () => {
               Lỗi khi tải dữ liệu khuyến mãi!
             </div>
           ) : (
-            <PromotionTable
-              promotions={paginatedPromotions}
-              onEdit={handleEditPromotion}
-              onDelete={handleDeletePromotion}
-            />
+            <div className="max-w-[1255px]">
+              <PromotionTable
+                promotions={paginatedPromotions}
+                onEdit={handleEditPromotion}
+                onDelete={handleDeletePromotion}
+              />
+            </div>
           )}
           {totalPages > 1 && (
             <div className="flex justify-center items-center space-x-2 py-4 border-t">
@@ -198,17 +211,14 @@ const PromotionManagement = () => {
             setIsFormVisible(false);
             setEditPromotion(null);
           }}
+          widthClass="min-w-[800px]"
         >
-          <div className="max-w-md mx-auto">
+          <div className="mx-auto">
             <PromotionFrom
               initialData={editPromotion}
               onSubmit={
                 editPromotion ? handleUpdatePromotion : handleAddPromotion
               }
-              // onCancel={() => {
-              //   setIsFormVisible(false);
-              //   setEditPromotion(null);
-              // }}
               isEdit={!!editPromotion}
               loading={createPromotion.isLoading || updatePromotion.isLoading}
             />

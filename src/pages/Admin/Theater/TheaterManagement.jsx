@@ -20,6 +20,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import Modal from "../../../components/ui/Modal"; // Đảm bảo import Modal
 import { getApiMessage, handleApiError } from "../../../Utilities/apiMessage";
 import Swal from "sweetalert2";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -32,11 +33,13 @@ const TheaterManagement = () => {
     useState(null);
   const [isRoomFormVisible, setIsRoomFormVisible] = useState(false); // State để điều khiển Modal cho RoomForm
   const [editingRoom, setEditingRoom] = useState(null);
-
+  const { userData } = useAuth();
+  const currenRole =
+    userData?.role || (Array.isArray(userData?.roles) ? userData.roles[0] : "");
   // React Query hooks
   const { data: cinemasData, isLoading: loadingCinemas } = useGetAllCinemasUS(); // Đổi tên isLoading để rõ ràng hơn
   const { data: districtsData, isLoading: loadingDistricts } =
-    useGetAllDistrictsUS();
+    useGetAllDistrictsUS({ enabled: userData?.role.includes("admin") });
   const { mutate: createCinema, isPending: isCreatingCinema } =
     useCreateCinemaUS();
   const { mutate: updateCinema, isPending: isUpdatingCinema } =

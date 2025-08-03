@@ -9,11 +9,14 @@ const statusColor = (status) => {
     status === "cancelled_by_room"
   )
     return "bg-red-50 text-red-600 border border-red-200";
-  if (status === "Chờ thanh toán" || status === "pending")
+  if (
+    status === "Chờ thanh toán" ||
+    status === "pending" ||
+    status === "Thanh toán tại quầy"
+  )
     return "bg-yellow-50 text-yellow-600 border border-yellow-200";
   return "bg-gray-100 text-gray-600";
 };
-
 // Component chỉ nhận dữ liệu đã được phân trang từ component cha
 const TicketTable = ({ orders, onRowClick, onEditClick, onApproveClick }) => {
   console.log("hhhhh:", orders);
@@ -97,20 +100,22 @@ const TicketTable = ({ orders, onRowClick, onEditClick, onApproveClick }) => {
               <td className="px-4 py-3">{order.orderDate}</td>
               <td className="px-4 py-3 text-center space-x-2">
                 <button
-                  onClick={(e) => handleApproveClick(e, order)}
-                  disabled={order.status !== "Chờ thanh toán"}
+                  onClick={(e) => handleApproveClick(e, order)} // Cập nhật điều kiện disabled để nút duyệt hiện lên cho cả 2 trạng thái
+                  disabled={order.status !== "Thanh toán tại quầy"}
                   className={`px-3 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
-                    order.status === "Chờ thanh toán"
+                    // Cập nhật điều kiện màu sắc cho nút duyệt
+
+                    order.status === "Thanh toán tại quầy"
                       ? "bg-green-500 text-white hover:bg-green-600"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
                   title={
-                    order.status === "Chờ thanh toán"
+                    order.status === "Thanh toán tại quầy"
                       ? "Duyệt đơn hàng"
                       : "Không thể duyệt"
                   }
                 >
-                  Duyệt
+                  Duyệt{" "}
                 </button>
               </td>
             </tr>
