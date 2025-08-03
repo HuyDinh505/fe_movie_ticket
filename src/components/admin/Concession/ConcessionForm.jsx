@@ -85,7 +85,24 @@ const ConcessionForm = ({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit(formData);
+      const formDataToSend = new FormData();
+
+      formDataToSend.append("concession_name", formData.concession_name);
+      formDataToSend.append("unit_price", formData.unit_price);
+      formDataToSend.append("category", formData.category);
+      formDataToSend.append("description", formData.description);
+
+      if (formData.image instanceof File) {
+        formDataToSend.append("image", formData.image);
+      }
+
+      // Chỉ thêm _method: "PUT" khi cập nhật
+      if (initialData) {
+        formDataToSend.append("_method", "PUT");
+      }
+
+      // Thay đổi ở đây: Gửi cả ID và FormData
+      onSubmit(initialData?.concession_id, formDataToSend);
     }
   };
 

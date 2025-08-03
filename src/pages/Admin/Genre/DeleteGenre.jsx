@@ -43,13 +43,13 @@ const DeleteGenre = () => {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="ml-2 space-y-6 sm:space-y-2">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center sm:p-6 bg-white rounded-xl shadow-lg sticky top-0 z-30">
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-600 tracking-tight mb-4 sm:mb-0">
           Danh sách Thể loại đã xóa
         </h1>
       </div>
-      <div className="w-full pt-6">
+      <div className="w-full">
         <GenreTable
           genres={deletedGenres}
           onDelete={handleAskRestore}

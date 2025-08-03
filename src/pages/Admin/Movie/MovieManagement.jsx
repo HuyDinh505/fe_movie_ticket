@@ -216,7 +216,7 @@ const MovieManagement = () => {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-6">
+    <div className="ml-2 space-y-6 sm:space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center sm:p-6 bg-white rounded-xl shadow-lg sticky top-0 z-30">
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight mb-4 sm:mb-0">
           Quản lý Phim
@@ -281,7 +281,7 @@ const MovieManagement = () => {
             />
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-lg max-h-[80vh] max-w-[1240px] mx-auto overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-lg max-h-[80vh] max-w-[1255px] mx-auto overflow-y-auto">
             <MovieTable
               movies={paginatedMovies}
               onEdit={handleEditMovie}

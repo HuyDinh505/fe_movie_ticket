@@ -93,7 +93,7 @@ const DeletedMovies = () => {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="ml-2 space-y-6 sm:space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center sm:p-6 bg-white rounded-xl shadow-lg sticky top-0 z-30">
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight mb-4 sm:mb-0">
           Danh sách phim đã xóa
@@ -127,7 +127,7 @@ const DeletedMovies = () => {
         </div>
       </div>
 
-      <div className="w-full">
+      <div className="w-full max-w-[1255px]">
         <div className="bg-white rounded-xl shadow-lg overflow-auto">
           {isLoading ? (
             <p className="p-4 text-center text-gray-500">
@@ -138,7 +138,7 @@ const DeletedMovies = () => {
               Có lỗi xảy ra khi tải phim: {error.message}
             </p>
           ) : paginatedMovies.length === 0 ? (
-            <p className="p-4 text-center text-gray-500">
+            <p className="p-4 text-center text-gray-500 ">
               Không có phim nào đã xóa mềm hoặc không khớp với tiêu chí tìm
               kiếm/lọc.
             </p>

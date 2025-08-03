@@ -110,19 +110,22 @@ const ConcessionManagement = () => {
     setIsFormVisible(true);
   };
 
-  const handleSaveConcession = async (concessionData) => {
+  // Trước đây: async (concessionData) => { ... }
+  const handleSaveConcession = async (concessionId, concessionData) => {
     try {
-      if (concessionData.concession_id) {
+      if (concessionId) {
+        // Logic cập nhật
         updateConcession({
-          concessionId: concessionData.concession_id,
-          concessionData,
+          concessionId, // Dùng concessionId nhận được
+          concessionData, // Dùng concessionData nhận được (là FormData)
         });
       } else {
+        // Logic thêm mới
         createConcession(concessionData);
       }
     } catch (error) {
       console.error("Error saving concession:", error);
-      toast.error(getApiMessage(error, "Có lỗi xảy ra khi lưu dịch vụ!")); //
+      toast.error(getApiMessage(error, "Có lỗi xảy ra khi lưu dịch vụ!"));
     }
   };
 
@@ -198,7 +201,7 @@ const ConcessionManagement = () => {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="ml-2 space-y-6 sm:space-y-2">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center sm:p-6 bg-white rounded-xl shadow-lg sticky top-0 z-30">
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight mb-4 sm:mb-0">
           Quản lý Dịch vụ ăn uống

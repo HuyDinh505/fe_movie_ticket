@@ -203,57 +203,62 @@ const SeatSelector = forwardRef(
           {/* Ghế */}
           <div className="overflow-x-auto pb-4 custom-scrollbar">
             <div className="flex flex-col items-center space-y-2">
-              {seat_map.map((row, rowIdx) => (
-                <div key={rowIdx} className="flex items-center gap-2">
-                  <span className="w-8 font-bold text-gray-600 select-none text-sm sm:text-base flex-shrink-0 text-center">
-                    {String.fromCharCode(65 + rowIdx)}
-                  </span>
-                  <div
-                    className="grid gap-x-2 gap-y-1"
-                    style={{
-                      gridTemplateColumns: `repeat(${row.length}, minmax(0, 1fr))`,
-                    }}
-                  >
-                    {row.map((seat, colIdx) => {
-                      if (!seat)
+              {seat_map.map((row, rowIdx) => {
+                if (!row || row.every((seat) => !seat)) {
+                  return null;
+                }
+                return (
+                  <div key={rowIdx} className="flex items-center gap-2">
+                    <span className="w-2 md:w-8 font-bold text-gray-600 select-none text-sm sm:text-base flex-shrink-0 text-center">
+                      {String.fromCharCode(65 + rowIdx)}
+                    </span>
+                    <div
+                      className="grid gap-x-2 gap-y-1"
+                      style={{
+                        gridTemplateColumns: `repeat(${row.length}, minmax(0, 1fr))`,
+                      }}
+                    >
+                      {row.map((seat, colIdx) => {
+                        if (!seat)
+                          return (
+                            <div
+                              key={`empty-${rowIdx}-${colIdx}`}
+                              className="w-10"
+                            />
+                          );
+
+                        const isSelected = selectedSeats.includes(seat.seat_id);
+                        const isBooked = seat.status === "booked";
+
+                        let style =
+                          "w-8 h-6 md:w-10 md:h-8 rounded border text-xs font-bold flex items-center justify-center select-none transition-colors duration-150 flex-shrink-0 ";
+
+                        if (isBooked) {
+                          style +=
+                            "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed";
+                        } else if (isSelected) {
+                          style +=
+                            "bg-[var(--color-showtime-bg)] text-white border-[var(--color-showtime-bg)]";
+                        } else {
+                          style +=
+                            "bg-white text-black border-[var(--color-showtime-bg)] hover:bg-[#e0e7ff] cursor-pointer";
+                        }
+
                         return (
-                          <div
-                            key={`empty-${rowIdx}-${colIdx}`}
-                            className="w-10"
-                          />
+                          <button
+                            key={seat.seat_id}
+                            disabled={isBooked}
+                            onClick={() => handleSeatClick(seat)}
+                            className={style}
+                          >
+                            {seat.seat_display_name}
+                          </button>
                         );
-
-                      const isSelected = selectedSeats.includes(seat.seat_id);
-                      const isBooked = seat.status === "booked";
-
-                      let style =
-                        "w-10 h-8 rounded border text-xs font-bold flex items-center justify-center select-none transition-colors duration-150 flex-shrink-0 ";
-
-                      if (isBooked) {
-                        style +=
-                          "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed";
-                      } else if (isSelected) {
-                        style +=
-                          "bg-[var(--color-showtime-bg)] text-white border-[var(--color-showtime-bg)]";
-                      } else {
-                        style +=
-                          "bg-white text-black border-[var(--color-showtime-bg)] hover:bg-[#e0e7ff] cursor-pointer";
-                      }
-
-                      return (
-                        <button
-                          key={seat.seat_id}
-                          disabled={isBooked}
-                          onClick={() => handleSeatClick(seat)}
-                          className={style}
-                        >
-                          {seat.seat_display_name}
-                        </button>
-                      );
-                    })}
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

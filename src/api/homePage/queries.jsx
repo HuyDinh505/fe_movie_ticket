@@ -7,6 +7,7 @@ import {
   // getLoaiVeAPI,
   getPhimAPI,
   searchMoviesAPI,
+  searchMoviesPublicAPI,
   getPhimTheoRapAPI,
   getPhongAPI,
   getRapAPI,
@@ -65,6 +66,7 @@ import {
   getDeletedConcessionAPI,
   getMovieWithShowtimesAPI,
   getSeatMapAPI,
+  getSeatMapCheckAPI,
   initiatePaymentAPI,
   checkPaymentStatusAPI,
   // testAPI,
@@ -123,6 +125,17 @@ export const useSearchMoviesUS = (searchParams, option) => {
   return useQuery({
     queryKey: ["SearchMoviesAPI", searchParams],
     queryFn: () => searchMoviesAPI(searchParams),
+    enabled:
+      !!searchParams &&
+      Object.keys(searchParams).some((key) => searchParams[key]),
+    ...optionsUseQuery,
+    ...option,
+  });
+};
+export const useSearchMoviesPublicUS = (searchParams, option) => {
+  return useQuery({
+    queryKey: ["SearchMoviesPublicAPI", searchParams],
+    queryFn: () => searchMoviesPublicAPI(searchParams),
     enabled:
       !!searchParams &&
       Object.keys(searchParams).some((key) => searchParams[key]),
@@ -491,6 +504,13 @@ export const useGetSeatMapUS = (showtimeId, option) => {
     queryFn: () => getSeatMapAPI(showtimeId),
     enabled: !!showtimeId,
     optionsUseQuery,
+    ...option,
+  });
+};
+export const useGetSeatMapCheckUS = (option) => {
+  return useMutation({
+    mutationFn: ({ showtime_id, seat_ids }) =>
+      getSeatMapCheckAPI({ showtimeId: showtime_id, seatIds: seat_ids }),
     ...option,
   });
 };
@@ -905,7 +925,7 @@ export const useGetUserPromotionsUS = (option) => {
       // Trả về trực tiếp mảng promotion từ response.data
       return response.data;
     },
-    optionsUseQuery,
+    ...optionsUseQuery,
     ...option,
   });
 };

@@ -26,7 +26,7 @@ function Header() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [activeMobileDropdown, setActiveMobileDropdown] = useState(null);
   const [showSearchModal, setShowSearchModal] = useState(false);
-
+  console.log("tttt: ", userData);
   const handleLogout = () => {
     logout();
     toast.success("Đăng xuất thành công!", {

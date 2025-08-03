@@ -21,7 +21,14 @@ export const AuthProvider = ({ children }) => {
   //   ", isLoggedIn=",
   //   isLoggedIn
   // );
+  const updateUserData = (newUserData) => {
+    const existingUser = JSON.parse(localStorage.getItem("user")) || {};
+    const finalUserData = { ...userData, ...newUserData };
+    setUserData(finalUserData);
 
+    const updatedUserData = { ...existingUser, ...newUserData };
+    localStorage.setItem("user", JSON.stringify(updatedUserData));
+  };
   useEffect(() => {
     // console.log("AuthContext (useEffect): Running checkLoginStatus...");
     checkLoginStatus();
@@ -108,7 +115,11 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", userInfo.token);
     }
     localStorage.setItem("user", JSON.stringify(userInfo));
-
+    setUserData({
+      ...userInfo,
+      role: userRole,
+      name: userInfo.full_name || "User",
+    });
     const updatedUserData = {
       name: userInfo.full_name || "User",
       stars: 0,
@@ -166,6 +177,7 @@ export const AuthProvider = ({ children }) => {
         checkLoginStatus,
         isAdmin,
         isLoading,
+        updateUserData,
       }}
     >
       {children}

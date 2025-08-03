@@ -210,15 +210,15 @@ const Dashboard = () => {
 
   // Console logs để kiểm tra giá trị và trạng thái
   useEffect(() => {
-    console.log("Current period:", period);
-    console.log("Current startDate:", startDate);
-    console.log("Current endDate:", endDate);
-    console.log("requestParams for fetch:", requestParams);
-    console.log("isLoadingTimeSeries:", isLoadingTimeSeries);
-    console.log("timeSeriesData:", timeSeriesData);
-    console.log("Calculated totalRevenue:", totalRevenue);
-    console.log("Calculated bookingsCount:", bookingsCount);
-    console.log("displayPeriod:", displayPeriod);
+    // console.log("Current period:", period);
+    // console.log("Current startDate:", startDate);
+    // console.log("Current endDate:", endDate);
+    // console.log("requestParams for fetch:", requestParams);
+    // console.log("isLoadingTimeSeries:", isLoadingTimeSeries);
+    // console.log("timeSeriesData:", timeSeriesData);
+    // console.log("Calculated totalRevenue:", totalRevenue);
+    // console.log("Calculated bookingsCount:", bookingsCount);
+    // console.log("displayPeriod:", displayPeriod);
   }, [
     period,
     startDate,

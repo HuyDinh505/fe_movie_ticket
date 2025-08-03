@@ -37,7 +37,7 @@ const Sidebar_district_manager = () => {
   // };
 
   return (
-    <div className="w-64 bg-[#112D4E] text-white h-screen flex flex-col shadow-lg fixed left-0 top-0 p-0 m-0">
+    <div className="w-64 bg-[#112D4E] text-white h-screen flex flex-col shadow-lg fixed left-0 top-0 p-0 m-0 z-[10000]">
       <div
         className="text-3xl font-bold text-[#DBE2EF] mb-8 cursor-pointer p-4"
         onClick={() => navigate("/district_manager/dashboard")}

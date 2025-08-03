@@ -3,12 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { FaTimes, FaSearch, FaFilter } from "react-icons/fa";
 import {
   useSearchMoviesUS,
+  useSearchMoviesPublicUS,
   useGetAllGenresUS,
 } from "../../api/homePage/queries";
 import { imagePhim } from "../../Utilities/common";
+import { useAuth } from "../../contexts/AuthContext"; // Import useAuth để lấy trạng thái đăng nhập
 
 const SearchModal = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth(); // Lấy trạng thái đăng nhập
   const [searchQuery, setSearchQuery] = useState("");
   const [ageFilter, setAgeFilter] = useState("");
   const [genreFilter, setGenreFilter] = useState("");
@@ -26,21 +29,17 @@ const SearchModal = ({ isOpen, onClose }) => {
   if (genreFilter) searchParams.genre_id = genreFilter;
   if (statusFilter) searchParams.status = statusFilter;
 
-  // Tìm kiếm phim - luôn chạy khi modal mở
+  // Gọi hàm tìm kiếm phù hợp với trạng thái đăng nhập
   const {
     data: searchResults,
     isLoading,
     error,
-  } = useSearchMoviesUS(searchParams, {
-    enabled: isOpen, // Luôn chạy khi modal mở
-  });
-  const movies = searchResults?.data?.movies?.movies || [];
+  } = isLoggedIn
+    ? useSearchMoviesUS(searchParams, { enabled: isOpen })
+    : useSearchMoviesPublicUS(searchParams, { enabled: isOpen });
 
-  // Debug
-  // console.log("SearchModal - searchParams:", searchParams);
-  // console.log("SearchModal - searchResults:", searchResults);
-  // console.log("SearchModal - movies:", movies);
-  // console.log("SearchModal - error:", error);
+  const movies =
+    searchResults?.data?.movies?.movies || searchResults?.data?.movies || [];
 
   const handleMovieClick = (movieId) => {
     navigate(`/movie/${movieId}`);
@@ -90,7 +89,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                 className="w-full text-black pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
-            <button
+            {/* <button
               onClick={() => setShowFilters(!showFilters)}
               className={`px-4 py-2 rounded-lg flex items-center space-x-2 cursor-pointer ${
                 showFilters
@@ -100,7 +99,7 @@ const SearchModal = ({ isOpen, onClose }) => {
             >
               <FaFilter />
               <span>Bộ lọc</span>
-            </button>
+            </button> */}
           </div>
 
           {/* Filters */}
@@ -124,14 +123,15 @@ const SearchModal = ({ isOpen, onClose }) => {
               </div>
 
               {/* Thể loại */}
-              {/* <div>
+              {/* Vẫn giữ nguyên logic bạn đã viết cho phần này */}
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Thể loại
                 </label>
                 <select
                   value={genreFilter}
                   onChange={(e) => setGenreFilter(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full p-2 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 >
                   <option value="">Tất cả thể loại</option>
                   {genres.map((genre) => (
@@ -140,7 +140,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                     </option>
                   ))}
                 </select>
-              </div> */}
+              </div>
 
               {/* Trạng thái */}
               <div>

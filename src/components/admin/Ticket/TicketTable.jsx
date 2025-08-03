@@ -1,6 +1,4 @@
-import React, { useState } from "react";
-
-const ITEMS_PER_PAGE = 10;
+import React from "react";
 
 const statusColor = (status) => {
   if (status === "Đã thanh toán" || status === "paid" || status === "active")
@@ -16,19 +14,17 @@ const statusColor = (status) => {
   return "bg-gray-100 text-gray-600";
 };
 
-const TicketTable = ({ orders, onRowClick, onEditClick }) => {
-  const [currentPage, setCurrentPage] = useState(1);
-
-  // Tính toán phân trang
-  const totalPages = Math.ceil(orders.length / ITEMS_PER_PAGE);
-  const paginatedOrders = orders.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
-
+// Component chỉ nhận dữ liệu đã được phân trang từ component cha
+const TicketTable = ({ orders, onRowClick, onEditClick, onApproveClick }) => {
+  console.log("hhhhh:", orders);
   const handleEditClick = (e, order) => {
     e.stopPropagation(); // Ngăn không cho trigger onRowClick
     onEditClick(order);
+  };
+
+  const handleApproveClick = (e, order) => {
+    e.stopPropagation(); // Ngăn không cho trigger onRowClick
+    onApproveClick(order);
   };
 
   return (
@@ -63,7 +59,7 @@ const TicketTable = ({ orders, onRowClick, onEditClick }) => {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {paginatedOrders.map((order) => (
+          {orders.map((order) => (
             <tr
               key={order.id}
               className="hover:bg-blue-50 transition-colors duration-150 cursor-pointer"
@@ -99,18 +95,22 @@ const TicketTable = ({ orders, onRowClick, onEditClick }) => {
                 {order.total}
               </td>
               <td className="px-4 py-3">{order.orderDate}</td>
-              <td className="px-4 py-3 text-center">
+              <td className="px-4 py-3 text-center space-x-2">
                 <button
-                  onClick={(e) => handleEditClick(e, order)}
-                  disabled={!order.canEdit}
+                  onClick={(e) => handleApproveClick(e, order)}
+                  disabled={order.status !== "Chờ thanh toán"}
                   className={`px-3 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
-                    order.canEdit
-                      ? "bg-blue-500 text-white hover:bg-blue-600"
+                    order.status === "Chờ thanh toán"
+                      ? "bg-green-500 text-white hover:bg-green-600"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
-                  title={order.canEdit ? "Sửa đơn hàng" : "Không thể sửa"}
+                  title={
+                    order.status === "Chờ thanh toán"
+                      ? "Duyệt đơn hàng"
+                      : "Không thể duyệt"
+                  }
                 >
-                  Sửa
+                  Duyệt
                 </button>
               </td>
             </tr>

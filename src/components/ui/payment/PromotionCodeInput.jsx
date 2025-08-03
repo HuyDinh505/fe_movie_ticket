@@ -45,22 +45,22 @@ function PromotionCodeInput({
   const isPromotionExpired = (promotion) => {
     const now = new Date();
     const endDate = new Date(promotion.end_date);
-    console.log(`Checking if promotion ${promotion.name} is expired:`, {
-      now: now.toISOString(),
-      endDate: endDate.toISOString(),
-      isExpired: now > endDate,
-    });
+    // console.log(`Checking if promotion ${promotion.name} is expired:`, {
+    //   now: now.toISOString(),
+    //   endDate: endDate.toISOString(),
+    //   isExpired: now > endDate,
+    // });
     return now > endDate;
   };
 
   const isPromotionNotStarted = (promotion) => {
     const now = new Date();
     const startDate = new Date(promotion.start_date);
-    console.log(`Checking if promotion ${promotion.name} is not started:`, {
-      now: now.toISOString(),
-      startDate: startDate.toISOString(),
-      isNotStarted: now < startDate,
-    });
+    // console.log(`Checking if promotion ${promotion.name} is not started:`, {
+    //   now: now.toISOString(),
+    //   startDate: startDate.toISOString(),
+    //   isNotStarted: now < startDate,
+    // });
     return now < startDate;
   };
 
@@ -75,22 +75,22 @@ function PromotionCodeInput({
   };
 
   // Debug promotions
-  console.log("PromotionCodeInput - allPromotions:", allPromotions);
-  console.log(
-    "PromotionCodeInput - allPromotions length:",
-    allPromotions.length
-  );
+  //console.log("PromotionCodeInput - allPromotions:", allPromotions);
+  //console.log(
+  //  "PromotionCodeInput - allPromotions length:",
+  //  allPromotions.length
+  //);
 
   const availablePromotions = allPromotions.filter(
     (promotion) =>
       !isPromotionExpired(promotion) && !isPromotionNotStarted(promotion)
   );
 
-  console.log("PromotionCodeInput - availablePromotions:", availablePromotions);
-  console.log(
-    "PromotionCodeInput - availablePromotions length:",
-    availablePromotions.length
-  );
+  //console.log("PromotionCodeInput - availablePromotions:", availablePromotions);
+  //console.log(
+  //  "PromotionCodeInput - availablePromotions length:",
+  //  availablePromotions.length
+  // );
 
   return (
     <div className="flex flex-col gap-2 w-full">

@@ -9,7 +9,7 @@ const PaymentActionButtons = ({ onBack, onPay, isLoading = false }) => {
         className="font-bold py-3 px-8 rounded transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         style={{
           backgroundColor: "var(--color-primary)",
-          color: "black",
+          color: "white",
         }}
         onMouseEnter={(e) => {
           if (!isLoading) {
@@ -32,7 +32,7 @@ const PaymentActionButtons = ({ onBack, onPay, isLoading = false }) => {
         className="font-bold py-3 px-8 rounded transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         style={{
           backgroundColor: "var(--color-primary)",
-          color: "black",
+          color: "white",
         }}
         onMouseEnter={(e) => {
           if (!isLoading) {

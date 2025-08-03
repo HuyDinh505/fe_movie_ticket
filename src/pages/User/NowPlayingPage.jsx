@@ -1,6 +1,6 @@
 import React from "react";
-import { useGetPhimUS } from "../api/homePage/queries";
-import MovieList from "../layouts/Home/MovieList";
+import { useGetPhimUS } from "../../api/homePage/queries";
+import MovieList from "../../layouts/Home/MovieList";
 
 function NowPlayingPage() {
   const { data: moviesData, isLoading, error } = useGetPhimUS();

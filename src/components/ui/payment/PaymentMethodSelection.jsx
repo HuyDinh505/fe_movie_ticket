@@ -29,11 +29,11 @@ const PaymentMethodSelection = ({ selectedMethod, onMethodSelect }) => {
 
       <div
         className={`border p-4 rounded-lg flex items-center space-x-4 cursor-pointer hover:bg-gray-50 hover:text-black transition-colors ${
-          selectedMethod === "cod"
+          selectedMethod === "counter_payment"
             ? "border-[var(--color-showtime-bg)] bg-[var(--color-showtime-bg)] text-[var(--color-text-white)]"
             : ""
         }`}
-        onClick={() => onMethodSelect("cod")}
+        onClick={() => onMethodSelect("counter_payment")}
       >
         <div className="w-10 h-10 bg-gray-300 rounded-lg flex items-center justify-center">
           <span className="text-gray-600 font-bold">$</span>
@@ -42,7 +42,7 @@ const PaymentMethodSelection = ({ selectedMethod, onMethodSelect }) => {
           <p className="font-semibold">Thanh toán tại rạp</p>
           <p className="text-sm">Thanh toán khi đến rạp</p>
         </div>
-        {selectedMethod === "cod" && (
+        {selectedMethod === "counter_payment" && (
           <div
             className="w-5 h-5 rounded-full flex items-center justify-center"
             style={{ backgroundColor: "var(--color-button)" }}

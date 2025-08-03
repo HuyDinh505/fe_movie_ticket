@@ -1,5 +1,6 @@
 import axios from "../axios";
-const NGROK_URL = import.meta.env.VITE_NGROK_URL || window.location.origin; // Đặt biến này trong .env của frontend
+export const NGROK_URL =
+  import.meta.env.VITE_NGROK_URL || window.location.origin; // Đặt biến này trong .env của frontend
 const END_POINT = {
   PHIM: "movie",
   CHITIETPHIM: "suatchieu/phim",
@@ -187,6 +188,19 @@ export const searchMoviesAPI = async (params = {}) => {
     throw error;
   }
 };
+export const searchMoviesPublicAPI = async (params = {}) => {
+  try {
+    const response = await axios({
+      url: `${END_POINT.PHIM}/list/filter-public`,
+      method: "GET",
+      params,
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi tìm kiếm phim:", error);
+    throw error;
+  }
+};
 
 export const getPhimTheoRapAPI = async (cinemaId) => {
   try {
@@ -229,12 +243,6 @@ export const getMovieWithShowtimesAPI = async (movieId) => {
 
 export const createPhimAPI = async (formData) => {
   try {
-    // Log toàn bộ FormData trước khi gửi
-    // console.log("Final FormData contents:");
-    // for (let [key, value] of formData.entries()) {
-    //   console.log(`${key}: ${value instanceof File ? value.name : value}`);
-    // }
-
     const response = await axios({
       method: "POST",
       url: END_POINT.PHIM,
@@ -250,22 +258,13 @@ export const createPhimAPI = async (formData) => {
     return response.data;
   } catch (error) {
     console.error("Error in createPhimAPI:", error);
-    // if (error.response) {
-    //   if (error.response.data.errors) {
-    //     Object.entries(error.response.data.errors).forEach(
-    //       ([field, messages]) => {
-    //         console.error(`Field ${field}:`, messages);
-    //       }
-    //     );
-    //   }
-    // }
     throw error;
   }
 };
 
 export const updatePhimAPI = async (ma_phim, formData) => {
   try {
-    formData.append("_method", "PATCH"); // hoặc PATCH nếu backend yêu cầu
+    formData.append("_method", "PATCH");
     const response = await axios({
       url: `${END_POINT.PHIM}/${ma_phim}`,
       method: "POST",
@@ -645,6 +644,7 @@ export const updateDistrictAPI = async (districtId, districtData) => {
     throw error;
   }
 };
+
 export const deleteDistrictAPI = async (districtId) => {
   try {
     const response = await axios({
@@ -894,12 +894,24 @@ export const getFilteredShowtimesAPI = async (filterData) => {
     throw error;
   }
 };
-
 export const getSeatMapAPI = async (showtimeId) => {
   try {
     const response = await axios({
       url: `room/${showtimeId}/seatmap`,
       method: "GET",
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi lấy sơ đồ ghế:", error);
+    throw error;
+  }
+};
+export const getSeatMapCheckAPI = async ({ showtimeId, seatIds }) => {
+  try {
+    const response = await axios({
+      url: `room/${showtimeId}/check-seat`,
+      method: "POST",
+      data: { seat_ids: seatIds },
     });
     return response;
   } catch (error) {
@@ -969,14 +981,33 @@ export const createConcessionAPI = async (concessionData) => {
   }
 };
 
+// export const updateConcessionAPI = async (concessionId, concessionData) => {
+//   try {
+//     const formData = createFormData(concessionData);
+//     formData.append("_method", "PUT");
+//     const response = await axios({
+//       url: `${END_POINT.CONCESSION}/${concessionId}`,
+//       method: "POST",
+//       data: formData,
+//       headers: {
+//         "Content-Type": "multipart/form-data",
+//       },
+//       transformRequest: [(data) => data],
+//     });
+//     return response;
+//   } catch (error) {
+//     console.error("Lỗi khi cập nhật dịch vụ ăn uống:", error);
+//     throw error;
+//   }
+// };
 export const updateConcessionAPI = async (concessionId, concessionData) => {
   try {
-    const formData = createFormData(concessionData);
-    formData.append("_method", "PUT");
+    // Không cần tạo FormData nữa, vì nó đã được tạo ở frontend
+    // const formData = createFormData(concessionData); // Bỏ dòng này đi
     const response = await axios({
       url: `${END_POINT.CONCESSION}/${concessionId}`,
-      method: "POST",
-      data: formData,
+      method: "POST", // Vẫn là POST vì dùng _method: "PUT"
+      data: concessionData, // Dùng thẳng concessionData (là FormData)
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -1182,13 +1213,14 @@ export const createUserAPI = async (userData) => {
   }
 };
 
-export const updateUserAPI = async (userId, formDataFromUserForm) => {
+export const updateUserAPI = async (userId, UserData) => {
   try {
-    formDataFromUserForm.append("_method", "PATCH");
+    // formDataFromUserForm.append("_method", "PATCH");
+    // UserData.append("_method", "PATCH");
     const response = await axios({
       url: `${END_POINT.USERS}/${userId}`,
       method: "POST",
-      data: formDataFromUserForm,
+      data: UserData,
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -1238,17 +1270,11 @@ export const getCurrentUserAPI = async () => {
 // =====================
 export const initiatePaymentAPI = async (bookingData) => {
   try {
-    // Thêm callback URL cho MoMo/Onepay
-    const payload = {
-      ...bookingData,
-      returnUrl: `${NGROK_URL}/api/payment/momo/return`,
-      notifyUrl: `${NGROK_URL}/api/payment/momo/ipn`,
-      // Nếu dùng Onepay hoặc các cổng khác, backend sẽ tự nhận biết qua method
-    };
+    // Payload sẽ được truyền vào từ component, không tự động thêm URL nữa
     const response = await axios({
       url: END_POINT.PAYMENT_INITIATE,
       method: "POST",
-      data: payload,
+      data: bookingData, // SỬ DỤNG bookingData TRỰC TIẾP
     });
     return response;
   } catch (error) {
@@ -1401,7 +1427,7 @@ export const updateBookingAPI = async (bookingId, bookingData) => {
   try {
     const response = await axios({
       url: `${END_POINT.BOOKING}/${bookingId}`,
-      method: "PUT",
+      method: "POST",
       data: bookingData,
     });
     return response;

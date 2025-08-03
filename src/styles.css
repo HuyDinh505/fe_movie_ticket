@@ -81,3 +81,8 @@
     font-size: 12px;
   }
 }
+
+.fixed-height-panel {
+  height: 350px; /* Hoặc một giá trị phù hợp */
+  overflow-y: auto; /* Thêm thanh cuộn khi nội dung vượt quá chiều cao */
+}

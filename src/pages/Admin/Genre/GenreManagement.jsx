@@ -213,7 +213,7 @@ const GenreManagement = () => {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="ml-2 space-y-6 sm:space-y-2">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center sm:p-6 bg-white rounded-xl shadow-lg sticky top-0 z-30">
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight mb-4 sm:mb-0">
           Quản lý Thể loại
@@ -251,7 +251,7 @@ const GenreManagement = () => {
         </div>
       )}
 
-      <div className="w-full pt-6">
+      <div className="w-full">
         {isFormVisible ? (
           <div className="bg-white rounded-xl shadow-lg max-w-md mx-auto">
             {" "}

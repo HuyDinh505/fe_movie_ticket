@@ -75,11 +75,6 @@ const DetailMoviePage = () => {
   const handleShowtimeSelect = useCallback(
     (showtime) => {
       // Kiểm tra đăng nhập trước
-      if (!isLoggedIn) {
-        toast.info("Vui lòng đăng nhập để đặt vé!");
-        navigate("/login", { state: { from: location.pathname } });
-        return;
-      }
 
       // Kiểm tra độ tuổi trước khi cho phép chọn suất chiếu
       if (movie && movie.age_rating && currentUser && userAge !== null) {
@@ -92,7 +87,7 @@ const DetailMoviePage = () => {
       setSelectedShowtime(showtime);
       setCurrentStep(2);
     },
-    [isLoggedIn, movie, currentUser, userAge, navigate, location.pathname]
+    [movie, currentUser, userAge, navigate, location.pathname]
   );
 
   const handleTicketSelect = useCallback((tickets) => {
@@ -148,6 +143,57 @@ const DetailMoviePage = () => {
     }, 5000);
     return () => clearInterval(interval);
   }, [currentStep, selectedShowtime]);
+  const handleBookTicket = useCallback(() => {
+    // Kiểm tra đăng nhập
+    if (!isLoggedIn) {
+      toast.info("Vui lòng đăng nhập để đặt vé!");
+      navigate("/login", { state: { from: location.pathname } });
+      return;
+    }
+
+    // Kiểm tra và điều hướng đến trang thanh toán
+    const totalTicketsCount = selectedTickets
+      ? selectedTickets.reduce((sum, ticket) => sum + ticket.count, 0)
+      : 0;
+    const canBook =
+      selectedShowtime &&
+      selectedTickets &&
+      selectedTickets.some((t) => t.count > 0) &&
+      selectedSeats &&
+      selectedSeats.length === totalTicketsCount;
+
+    if (!canBook) {
+      toast.error(
+        "Vui lòng chọn suất chiếu, loại vé, số lượng vé và đủ ghế trước khi đặt vé!"
+      );
+      return;
+    }
+
+    const bookingData = {
+      movieTitle: movie?.movie_name,
+      cinema: selectedShowtime?.theater?.cinema_name,
+      showtime: selectedShowtime,
+      seats: selectedSeats,
+      seatsName: selectedSeatsName,
+      tickets: selectedTickets,
+      combos: selectedCombos,
+      allCombos: allCombos,
+      totalPrice: 0, // Cần tính lại totalPrice ở đây nếu cần
+      movie,
+    };
+    navigate("/payment", { state: bookingData });
+  }, [
+    isLoggedIn,
+    selectedShowtime,
+    selectedTickets,
+    selectedSeats,
+    selectedSeatsName,
+    selectedCombos,
+    allCombos,
+    movie,
+    navigate,
+    location.pathname,
+  ]);
 
   if (isLoading) return <div>Đang tải chi tiết phim...</div>;
   if (error) return <div>Lỗi: {error.message}</div>;
@@ -176,6 +222,7 @@ const DetailMoviePage = () => {
             movie={movie}
             cinema={selectedShowtime.theater?.cinema_name}
             theaterAddress={selectedShowtime.theater?.address}
+            onBookTicket={handleBookTicket}
           />
         )}
         {currentStep >= 2 && (

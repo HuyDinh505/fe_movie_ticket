@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useOutletContext } from "react-router-dom";
 import TicketSummary from "../../components/ui/TicketSummary";
-
-const TICKET_SUMMARY_HEIGHT = 122; // px, chỉnh đúng chiều cao thực tế
 
 const TicketSummaryPage = ({
   showtime,
@@ -15,11 +13,13 @@ const TicketSummaryPage = ({
   movie,
   cinema,
   theaterAddress,
+  onBookTicket,
 }) => {
   const { footerRef } = useOutletContext();
+  const containerRef = useRef(null); // Tạo ref để tham chiếu đến div cha
   const [isAboveFooter, setIsAboveFooter] = useState(false);
+  const [containerHeight, setContainerHeight] = useState(0);
 
-  // Tính tổng giá
   const calculateTotalPrice = () => {
     let total = 0;
     if (tickets) {
@@ -43,35 +43,52 @@ const TicketSummaryPage = ({
   };
 
   useEffect(() => {
+    // Lấy chiều cao thực tế của component
+    const updateContainerHeight = () => {
+      if (containerRef.current) {
+        setContainerHeight(containerRef.current.offsetHeight);
+      }
+    };
+    updateContainerHeight();
+
     const handleScroll = () => {
-      if (!footerRef?.current) return;
+      if (!footerRef?.current || !containerRef.current) return;
+
       const footerRect = footerRef.current.getBoundingClientRect();
       const windowHeight = window.innerHeight;
-      if (footerRect.top < windowHeight + TICKET_SUMMARY_HEIGHT) {
+
+      // So sánh vị trí của component với footer
+      // Thêm một padding nhỏ (ví dụ 10px) để có khoảng cách
+      const bottomOfContainer = windowHeight - containerHeight;
+      if (bottomOfContainer > footerRect.top - 10) {
         setIsAboveFooter(true);
       } else {
         setIsAboveFooter(false);
       }
     };
+
     window.addEventListener("scroll", handleScroll);
     window.addEventListener("resize", handleScroll);
+    window.addEventListener("resize", updateContainerHeight);
     handleScroll();
     return () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
+      window.removeEventListener("resize", updateContainerHeight);
     };
-  }, [footerRef]);
+  }, [footerRef, containerHeight]);
 
   const totalPrice = calculateTotalPrice();
 
   return (
     <div
-      className={`left-0 right-0 bg-[#006666] shadow-lg z-50 transition-transform duration-300 ease-in-out
+      ref={containerRef} // Gán ref vào div cha
+      className={`left-0 right-0 bg-[#006666] shadow-lg z-50 transition-all duration-300 ease-in-out
         ${isAboveFooter ? "absolute" : "fixed"} bottom-0`}
       style={
         isAboveFooter && footerRef?.current
           ? {
-              top: footerRef.current.offsetTop - TICKET_SUMMARY_HEIGHT,
+              top: footerRef.current.offsetTop - containerHeight,
               bottom: "auto",
             }
           : { bottom: 0 }
@@ -89,6 +106,7 @@ const TicketSummaryPage = ({
           combos={combos}
           allCombos={allCombos}
           movie={movie}
+          onBookTicket={onBookTicket}
         />
       </div>
     </div>

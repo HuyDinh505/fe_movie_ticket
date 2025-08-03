@@ -321,56 +321,56 @@ const Sidebar = () => {
       ],
     },
     // Thêm các role mới ở đây
-    finance_manager: {
-      title: "FINANCE MANAGER",
-      menus: [
-        {
-          name: "finance",
-          label: "Quản lý tài chính",
-          icon: FaMoneyBillWave,
-          items: [
-            {
-              label: "Báo cáo doanh thu",
-              path: "/admin/finance/revenue",
-              icon: VscGraph,
-            },
-            {
-              label: "Quản lý thanh toán",
-              path: "/admin/finance/payment",
-              icon: FaMoneyBillWave,
-            },
-            {
-              label: "Báo cáo chi phí",
-              path: "/admin/finance/expenses",
-              icon: VscGraph,
-            },
-          ],
-        },
-      ],
-    },
-    content_manager: {
-      title: "CONTENT MANAGER",
-      menus: [
-        {
-          name: "content",
-          label: "Quản lý nội dung",
-          icon: FaNewspaper,
-          items: [
-            {
-              label: "Quản lý bài viết",
-              path: "/admin/articles",
-              icon: FaNewspaper,
-            },
-            { label: "Quản lý banner", path: "/admin/banner", icon: FaFilm },
-            {
-              label: "Quản lý tin tức",
-              path: "/admin/news",
-              icon: FaNewspaper,
-            },
-          ],
-        },
-      ],
-    },
+    // finance_manager: {
+    //   title: "FINANCE MANAGER",
+    //   menus: [
+    //     {
+    //       name: "finance",
+    //       label: "Quản lý tài chính",
+    //       icon: FaMoneyBillWave,
+    //       items: [
+    //         {
+    //           label: "Báo cáo doanh thu",
+    //           path: "/admin/finance/revenue",
+    //           icon: VscGraph,
+    //         },
+    //         {
+    //           label: "Quản lý thanh toán",
+    //           path: "/admin/finance/payment",
+    //           icon: FaMoneyBillWave,
+    //         },
+    //         {
+    //           label: "Báo cáo chi phí",
+    //           path: "/admin/finance/expenses",
+    //           icon: VscGraph,
+    //         },
+    //       ],
+    //     },
+    //   ],
+    // },
+    // content_manager: {
+    //   title: "CONTENT MANAGER",
+    //   menus: [
+    //     {
+    //       name: "content",
+    //       label: "Quản lý nội dung",
+    //       icon: FaNewspaper,
+    //       items: [
+    //         {
+    //           label: "Quản lý bài viết",
+    //           path: "/admin/articles",
+    //           icon: FaNewspaper,
+    //         },
+    //         { label: "Quản lý banner", path: "/admin/banner", icon: FaFilm },
+    //         {
+    //           label: "Quản lý tin tức",
+    //           path: "/admin/news",
+    //           icon: FaNewspaper,
+    //         },
+    //       ],
+    //     },
+    //   ],
+    // },
   };
 
   // Lấy cấu hình cho role hiện tại
@@ -415,7 +415,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="w-64 bg-[#112D4E] text-white h-screen flex flex-col shadow-lg fixed left-0 top-0 p-0 m-0">
+    <div className="w-64 bg-[#112D4E] text-white h-screen flex flex-col shadow-lg fixed left-0 top-0 p-0 m-0 z-[10000]">
       <div
         className="text-3xl font-bold text-[#DBE2EF] mb-8 cursor-pointer p-4"
         onClick={() => navigate("/admin/dashboard")}

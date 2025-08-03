@@ -14,7 +14,10 @@ const ITEMS_PER_PAGE = 10;
 const DeletedTheater = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [confirmRestore, setConfirmRestore] = useState({ open: false, cinemaId: null });
+  const [confirmRestore, setConfirmRestore] = useState({
+    open: false,
+    cinemaId: null,
+  });
 
   const queryClient = useQueryClient();
   const { data: deletedCinemasData, isLoading } = useGetDeletedCinemasUS();
@@ -58,7 +61,7 @@ const DeletedTheater = () => {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="ml-2 space-y-6 sm:space-y-2">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center sm:p-6 bg-white rounded-xl shadow-lg sticky top-0 z-30">
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight mb-4 sm:mb-0">
           Rạp chiếu đã xóa mềm
@@ -78,7 +81,7 @@ const DeletedTheater = () => {
           </div>
         </div>
       </div>
-      <div className="w-full pt-6">
+      <div className="w-full">
         <div className="bg-white rounded-xl shadow-lg overflow-auto">
           <TheaterTable
             theaters={paginatedCinemas}
@@ -125,7 +128,9 @@ const DeletedTheater = () => {
         onClose={() => setConfirmRestore({ open: false, cinemaId: null })}
       >
         <div className="p-4">
-          <h2 className="text-lg font-semibold mb-4">Xác nhận khôi phục rạp chiếu</h2>
+          <h2 className="text-lg font-semibold mb-4">
+            Xác nhận khôi phục rạp chiếu
+          </h2>
           <p>Bạn có chắc chắn muốn khôi phục rạp chiếu này không?</p>
           <div className="flex justify-end gap-2 mt-6">
             <button

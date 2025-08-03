@@ -1,6 +1,4 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 
 const TicketSummary = ({
   movieTitle,
@@ -13,8 +11,9 @@ const TicketSummary = ({
   combos,
   allCombos,
   movie,
+  onBookTicket,
 }) => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const totalTicketsCount = tickets?.reduce((sum, t) => sum + t.count, 0) || 0;
   const canBook =
@@ -23,28 +22,6 @@ const TicketSummary = ({
     tickets.some((t) => t.count > 0) &&
     seats &&
     seats.length === totalTicketsCount;
-
-  const handleBookTicket = () => {
-    if (!canBook) {
-      toast.error(
-        "Vui lòng chọn suất chiếu, loại vé, số lượng vé và đủ ghế trước khi đặt vé!"
-      );
-      return;
-    }
-    const bookingData = {
-      movieTitle,
-      cinema,
-      showtime,
-      seats,
-      seatsName,
-      tickets,
-      combos,
-      allCombos,
-      totalPrice,
-      movie,
-    };
-    navigate("/payment", { state: bookingData });
-  };
 
   const formatTickets = () => {
     if (!tickets) return "";
@@ -71,7 +48,7 @@ const TicketSummary = ({
 
   return (
     <div className="flex flex-col sm:flex-row justify-between items-center py-4 border-t border-gray-200">
-      <div className="flex-1 text-center sm:text-left mb-4 sm:mb-0 px-4 text-white">
+      <div className="flex-1 text-left sm:text-left mb-4 sm:mb-0 px-4 text-white">
         <h3 className="text-lg sm:text-xl font-bold text-white">
           {movieTitle}
         </h3>
@@ -85,11 +62,11 @@ const TicketSummary = ({
         )}
       </div>
       <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 px-4 w-full sm:w-auto">
-        <div className="text-right w-full sm:w-auto text-white">
-          <p className="text-sm">Tạm tính:</p>
-          <p className="text-lg sm:text-xl font-bold text-white">
+        <div className="text-left sm:text-right w-full sm:w-auto text-white sm:grid sm:grid-cols-1 grid grid-cols-2">
+          <div className="text-sm">Tạm tính:</div>
+          <div className="text-lg sm:text-xl font-bold text-white text-right">
             {totalPrice.toLocaleString()} VND
-          </p>
+          </div>
         </div>
         <div className="flex flex-col gap-2 w-full sm:w-auto">
           {/* Dòng này đã được thay đổi */}
@@ -100,7 +77,7 @@ const TicketSummary = ({
             {showtime.time}
           </button>
           <button
-            onClick={handleBookTicket}
+            onClick={onBookTicket}
             className="px-6 py-2 rounded-lg transition-colors w-full font-semibold cursor-pointer"
             style={{
               backgroundColor: canBook ? "var(--color-primary)" : "#eee",

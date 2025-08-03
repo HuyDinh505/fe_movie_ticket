@@ -380,7 +380,7 @@ const ScheduleManagement = () => {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="ml-2 space-y-6 sm:space-y-2">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center sm:p-6 bg-white rounded-xl shadow-lg sticky top-0 z-30">
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight mb-4 sm:mb-0">
           Quản lý Lịch chiếu
@@ -450,7 +450,7 @@ const ScheduleManagement = () => {
         </button>
       </div>
 
-      <div className="w-full bg-white max-h-[100vh]">
+      <div className="w-full max-h-[100vh]">
         <div className=" rounded-xl shadow-lg overflow-auto ">
           <ScheduleTable
             schedules={paginatedSchedules}
@@ -463,7 +463,7 @@ const ScheduleManagement = () => {
           />
         </div>
         {/* Pagination */}
-        <div className="flex justify-center items-center gap-2 mt-4">
+        <div className="bg-white h-14 flex justify-center items-center gap-2 mt-1">
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}

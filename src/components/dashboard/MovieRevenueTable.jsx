@@ -2,15 +2,14 @@ import React from "react";
 
 const MovieRevenueTable = ({ data }) => {
   return (
-    <div className="overflow-x-auto border rounded-lg">
-      {" "}
-      {/* Đã chỉnh sửa */}
-      <table className="min-w-full text-sm text-left">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="px-4 py-2 font-semibold">Tên phim</th>
-            <th className="px-4 py-2 font-semibold">Tổng vé bán ra</th>
-            <th className="px-4 py-2 font-semibold">Tổng doanh thu</th>
+    <div className="bg-white p-4 rounded shadow">
+      <h3 className="text-lg font-semibold mb-4">Doanh thu theo phim</h3>
+      <table className="w-full text-left border-collapse">
+        <thead>
+          <tr className="border-b">
+            <th className="py-4 ">Tên phim</th>
+            <th className="py-4">Tổng vé bán ra</th>
+            <th className="py-4">Tổng doanh thu</th>
           </tr>
         </thead>
         <tbody>

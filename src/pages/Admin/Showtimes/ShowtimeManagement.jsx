@@ -19,7 +19,7 @@ import {
   useUpdateShowtimeUS,
   useReactivateShowtimeUS,
   useDeleteShowtimeUS,
-  useGetCinemaByIdUS, // Đảm bảo đã import
+  useGetCinemaByIdUS,
 } from "../../../api/homePage";
 import { toast } from "react-toastify";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -524,7 +524,7 @@ const ShowtimeManagement = () => {
   });
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="ml-2 space-y-6 sm:space-y-2">
       <form
         className="flex flex-col md:flex-row gap-4 items-end bg-white rounded-xl shadow-md p-4 sm:p-6"
         onSubmit={handleSearch}
@@ -624,7 +624,7 @@ const ShowtimeManagement = () => {
               {selectedDate &&
                 new Date(selectedDate).toLocaleDateString("vi-VN")}
             </div>
-            <div className="bg-blue-500 text-white text-center rounded py-2 my-2 font-semibold">
+            <div className="bg-blue-500 text-white text-center py-2 my-2 font-semibold">
               Rạp:{" "}
               {(() => {
                 const cinema = cinemas.find(
@@ -699,18 +699,25 @@ const ShowtimeManagement = () => {
                       let seatRows = seatMapData.data?.seat_map || [];
                       return seatRows.map((row, rowIdx) => (
                         <div key={rowIdx} className="flex items-center">
-                          {row.map((seat) => (
-                            <Seat
-                              key={seat.seat_id}
-                              label={seat.seat_display_name}
-                              type={
-                                seat.status === "unavailable"
-                                  ? "unavailable"
-                                  : seat.status === "booked"
-                                  ? "vip"
-                                  : "normal"
-                              }
-                            />
+                          {row.map((seat, seatIdx) => (
+                            // Thêm điều kiện kiểm tra
+                            <React.Fragment key={seatIdx}>
+                              {seat ? (
+                                <Seat
+                                  key={seat.seat_id}
+                                  label={seat.seat_display_name}
+                                  type={
+                                    seat.status === "unavailable"
+                                      ? "unavailable"
+                                      : seat.status === "booked"
+                                      ? "booked"
+                                      : "normal"
+                                  }
+                                />
+                              ) : (
+                                <div className="w-8 h-8 m-1" />
+                              )}
+                            </React.Fragment>
                           ))}
                         </div>
                       ));

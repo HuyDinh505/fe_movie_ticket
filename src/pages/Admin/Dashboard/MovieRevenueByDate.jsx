@@ -198,13 +198,13 @@ const MovieRevenueByDate = () => {
     }
 
     return (
-      <nav className="flex justify-center mt-4">
+      <nav className="flex justify-center mt-0.5 mb-6 bg-white h-12">
         <ul className="inline-flex items-center -space-x-px">
           <li>
             <button
               onClick={() => paginate(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Trước
             </button>
@@ -213,7 +213,7 @@ const MovieRevenueByDate = () => {
             <li key={number}>
               <button
                 onClick={() => paginate(number)}
-                className={`px-3 py-2 leading-tight border border-gray-300 hover:bg-gray-100 hover:text-gray-700 ${
+                className={`cursor-pointer px-3 py-2 leading-tight border border-gray-300 hover:bg-gray-100 hover:text-gray-700 ${
                   currentPage === number
                     ? "text-blue-600 bg-blue-50"
                     : "text-gray-500 bg-white"
@@ -227,7 +227,7 @@ const MovieRevenueByDate = () => {
             <button
               onClick={() => paginate(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Sau
             </button>
@@ -240,7 +240,7 @@ const MovieRevenueByDate = () => {
   return (
     <div className="">
       <div
-        className="w-full mx-auto bg-white rounded-xl shadow-md p-4 flex flex-col
+        className="ml-2 w-full mx-auto bg-white rounded-xl shadow-md p-4 flex flex-col
         sm:flex-row sm:items-end gap-4 mb-2 mt-2"
       >
         <div className="flex-1">
@@ -426,7 +426,7 @@ const MovieRevenueByDate = () => {
             </div>
           )}
 
-          <div className="mt-6">
+          <div className="mt-6 ml-2">
             <MovieRevenueTable data={currentItemsForTable} />
             {!selectedMovieId &&
               displayMovies.length > itemsPerPage &&

@@ -9,29 +9,22 @@ import {
   FaTags,
 } from "react-icons/fa";
 import { VscGraph } from "react-icons/vsc";
-// import { useAuth } from "../../contexts/AuthContext"; // Không cần thiết nếu userData và logout đã được chuyển sang HeaderAdmin
-// import { imagePhim } from "../../Utilities/common"; // Không cần thiết nếu avatar đã được chuyển sang HeaderAdmin
 
 const SidebarAdmin = () => {
   const navigate = useNavigate();
-  // const { userData, logout } = useAuth(); // Loại bỏ hoặc giữ lại nếu bạn cần userData ở nơi khác trong sidebar
   const location = useLocation();
   const currentPath = location.pathname;
 
-  // Khởi tạo các trạng thái đóng/mở dropdown. Bạn có thể đặt dashboard mở mặc định.
-  const [isDashboardDropdownOpen, setIsDashboardDropdownOpen] = useState(true);
-  const [isPhimDropdownOpen, setIsPhimDropdownOpen] = useState(false);
-  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
-  const [isTheaterDropdownOpen, setIsTheaterDropdownOpen] = useState(false);
-  const [isDistrictDropdownOpen, setIsDistrictDropdownOpen] = useState(false);
-  const [isShowtimeDropdownOpen, setIsShowtimeDropdownOpen] = useState(false);
-  const [isGenreDropdownOpen, setIsGenreDropdownOpen] = useState(false);
-  const [isConcessionOpen, setIsConcessionDropdownOpen] = useState(false);
-  const [isTicketTypeOpen, setIsTicketTypeDropdownOpen] = useState(false);
-  const [isPromotionOpen, setIsPromotionDropdownOpen] = useState(false);
-  const [isArticlesOpen, setIsArticlesDropdownOpen] = useState(false);
-  const [isTicketOpen, setIsTicketDropdownOpen] = useState(false);
-  const [ScheduleDropdown, setScheduleDropdown] = useState(false);
+  // Sử dụng một state duy nhất để lưu tên dropdown đang mở.
+  // Khởi tạo mặc định là 'dashboard' để mục này luôn mở khi load trang.
+  const [openDropdown, setOpenDropdown] = useState("dashboard");
+
+  // Hàm xử lý việc mở/đóng dropdown
+  const handleToggleDropdown = (dropdownName) => {
+    // Nếu dropdown được click đã mở, đóng nó lại (set state thành null).
+    // Nếu chưa mở, mở nó ra (set state thành tên dropdown đó).
+    setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
+  };
 
   // Định nghĩa nhóm đường dẫn để xác định active của mục cha
   const pathGroups = {
@@ -59,21 +52,15 @@ const SidebarAdmin = () => {
     pathGroups[group].some((path) => currentPath.startsWith(path));
 
   // Hàm kiểm tra active cho từng mục con
-  const isActiveItem = (path) => currentPath.startsWith(path);
+  const isActiveItem = (path) => currentPath === path;
 
   // Hàm kiểm tra active cho mục cha: chỉ in đậm khi đúng path cha, không phải path con
   const isActiveParent = (parentPath, exceptPaths = []) =>
     currentPath === parentPath &&
     !exceptPaths.some((path) => currentPath.startsWith(path));
 
-  // handleLogout đã được chuyển sang HeaderAdmin
-  // const handleLogout = () => {
-  //   logout();
-  //   navigate("/login");
-  // };
-
   return (
-    <div className="w-64 bg-[#112D4E] text-white h-screen flex flex-col shadow-lg fixed left-0 top-0 p-0 m-0">
+    <div className="w-64 bg-[#112D4E] text-white h-screen flex flex-col shadow-lg fixed left-0 top-0 p-0 m-0 z-[10000]">
       <div
         className="text-3xl font-bold text-[#DBE2EF] mb-8 cursor-pointer p-4"
         onClick={() => navigate("/admin/dashboard")}
@@ -91,14 +78,14 @@ const SidebarAdmin = () => {
                   className={`flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF] ${
                     isActiveGroup("dashboard") ? "bg-[#3F72AF]" : ""
                   }`}
-                  onClick={() =>
-                    setIsDashboardDropdownOpen(!isDashboardDropdownOpen)
-                  }
+                  // Thay đổi onClick để gọi hàm xử lý chung
+                  onClick={() => handleToggleDropdown("dashboard")}
                 >
                   <span>Dashboard</span>
-                  <span>{isDashboardDropdownOpen ? "▲" : "▼"}</span>
+                  <span>{openDropdown === "dashboard" ? "▲" : "▼"}</span>
                 </div>
-                {isDashboardDropdownOpen && (
+                {/* Thay đổi điều kiện render bằng state mới */}
+                {openDropdown === "dashboard" && (
                   <ul className="ml-4 mt-2 space-y-2">
                     <li
                       className={`p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2 ${
@@ -138,23 +125,18 @@ const SidebarAdmin = () => {
               <li>
                 <div
                   className={`flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF] ${
-                    isActiveParent("/admin/movies", ["/admin/movies/deleted"])
-                      ? " bg-[#3F72AF]"
-                      : ""
+                    isActiveGroup("phim") ? " bg-[#3F72AF]" : ""
                   }`}
-                  onClick={() => setIsPhimDropdownOpen(!isPhimDropdownOpen)}
+                  onClick={() => handleToggleDropdown("phim")}
                 >
                   <span>Quản lý Phim</span>
-                  <span>{isPhimDropdownOpen ? "▲" : "▼"}</span>
+                  <span>{openDropdown === "phim" ? "▲" : "▼"}</span>
                 </div>
-                {isPhimDropdownOpen && (
+                {openDropdown === "phim" && (
                   <ul className="ml-4 mt-2 space-y-2">
                     <li
                       className={`p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2 ${
-                        isActiveItem("/admin/movies") &&
-                        currentPath === "/admin/movies"
-                          ? "bg-[#3F72AF] "
-                          : ""
+                        isActiveItem("/admin/movies") ? "bg-[#3F72AF] " : ""
                       }`}
                       onClick={() => navigate("/admin/movies")}
                     >
@@ -179,14 +161,14 @@ const SidebarAdmin = () => {
               <li>
                 <div
                   className={`flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF] ${
-                    isActiveParent("/admin/user") ? " bg-[#3F72AF]" : ""
+                    isActiveGroup("user") ? "bg-[#3F72AF]" : ""
                   }`}
-                  onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+                  onClick={() => handleToggleDropdown("user")}
                 >
                   <span>Quản lý người dùng</span>
-                  <span>{isUserDropdownOpen ? "▲" : "▼"}</span>
+                  <span>{openDropdown === "user" ? "▲" : "▼"}</span>
                 </div>
-                {isUserDropdownOpen && (
+                {openDropdown === "user" && (
                   <ul className="ml-4 mt-2 space-y-2">
                     <li
                       className={`p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2 ${
@@ -204,18 +186,14 @@ const SidebarAdmin = () => {
               <li>
                 <div
                   className={`flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF] ${
-                    isActiveParent("/admin/theater", ["/admin/delete_cinema"])
-                      ? " bg-[#3F72AF]"
-                      : ""
+                    isActiveGroup("theater") ? "bg-[#3F72AF]" : ""
                   }`}
-                  onClick={() =>
-                    setIsTheaterDropdownOpen(!isTheaterDropdownOpen)
-                  }
+                  onClick={() => handleToggleDropdown("theater")}
                 >
                   <span>Quản lý rạp phim</span>
-                  <span>{isTheaterDropdownOpen ? "▲" : "▼"}</span>
+                  <span>{openDropdown === "theater" ? "▲" : "▼"}</span>
                 </div>
-                {isTheaterDropdownOpen && (
+                {openDropdown === "theater" && (
                   <ul className="ml-4 mt-2 space-y-2">
                     <li
                       className={`p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2 ${
@@ -244,23 +222,18 @@ const SidebarAdmin = () => {
               <li>
                 <div
                   className={`flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF] ${
-                    isActiveParent("/admin/district", ["/admin/delete_district"])
-                      ? "bg-[#3F72AF]"
-                      : ""
+                    isActiveGroup("district") ? "bg-[#3F72AF]" : ""
                   }`}
-                  onClick={() => setIsDistrictDropdownOpen(!isDistrictDropdownOpen)}
+                  onClick={() => handleToggleDropdown("district")}
                 >
                   <span>Quản lý quận huyện</span>
-                  <span>{isDistrictDropdownOpen ? "▲" : "▼"}</span>
+                  <span>{openDropdown === "district" ? "▲" : "▼"}</span>
                 </div>
-                {isDistrictDropdownOpen && (
+                {openDropdown === "district" && (
                   <ul className="ml-4 mt-2 space-y-2">
                     <li
                       className={`p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2 ${
-                        isActiveItem("/admin/district") &&
-                        currentPath === "/admin/district"
-                          ? "bg-[#3F72AF]"
-                          : ""
+                        isActiveItem("/admin/district") ? "bg-[#3F72AF]" : ""
                       }`}
                       onClick={() => navigate("/admin/district")}
                     >
@@ -285,14 +258,14 @@ const SidebarAdmin = () => {
               <li>
                 <div
                   className={`flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF] ${
-                    isActiveParent("/admin/schedule") ? "bg-[#3F72AF]" : ""
+                    isActiveGroup("schedule") ? "bg-[#3F72AF]" : ""
                   }`}
-                  onClick={() => setScheduleDropdown(!ScheduleDropdown)}
+                  onClick={() => handleToggleDropdown("schedule")}
                 >
                   <span>Quản lý lịch chiếu</span>
-                  <span>{ScheduleDropdown ? "▲" : "▼"}</span>
+                  <span>{openDropdown === "schedule" ? "▲" : "▼"}</span>
                 </div>
-                {ScheduleDropdown && (
+                {openDropdown === "schedule" && (
                   <ul className="ml-4 mt-2 space-y-2">
                     <li
                       className={`p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2 ${
@@ -303,13 +276,6 @@ const SidebarAdmin = () => {
                       <FaUsers className="text-sm" />
                       <span>Danh sách lịch chiếu</span>
                     </li>
-                    {/* <li
-                      className="p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2"
-                      onClick={() => navigate("/admin/schedule/deleted")}
-                    >
-                      <FaTrash className="text-sm" />
-                      <span>Lịch chiếu đã xóa</span>
-                    </li> */}
                   </ul>
                 )}
               </li>
@@ -319,14 +285,12 @@ const SidebarAdmin = () => {
                   className={`flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF] ${
                     isActiveGroup("showtime") ? "bg-[#3F72AF]" : ""
                   }`}
-                  onClick={() =>
-                    setIsShowtimeDropdownOpen(!isShowtimeDropdownOpen)
-                  }
+                  onClick={() => handleToggleDropdown("showtime")}
                 >
                   <span>Quản lý suất chiếu</span>
-                  <span>{isShowtimeDropdownOpen ? "▲" : "▼"}</span>
+                  <span>{openDropdown === "showtime" ? "▲" : "▼"}</span>
                 </div>
-                {isShowtimeDropdownOpen && (
+                {openDropdown === "showtime" && (
                   <ul className="ml-4 mt-2 space-y-2">
                     <li
                       className={`p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2 ${
@@ -344,23 +308,18 @@ const SidebarAdmin = () => {
               <li>
                 <div
                   className={`flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF] ${
-                    isActiveParent("/admin/genre", ["/admin/genre_delete"])
-                      ? "bg-[#3F72AF]"
-                      : ""
+                    isActiveGroup("genre") ? "bg-[#3F72AF]" : ""
                   }`}
-                  onClick={() => setIsGenreDropdownOpen(!isGenreDropdownOpen)}
+                  onClick={() => handleToggleDropdown("genre")}
                 >
                   <span>Quản lý Thể loại</span>
-                  <span>{isGenreDropdownOpen ? "▲" : "▼"}</span>
+                  <span>{openDropdown === "genre" ? "▲" : "▼"}</span>
                 </div>
-                {isGenreDropdownOpen && (
+                {openDropdown === "genre" && (
                   <ul className="ml-4 mt-2 space-y-2">
                     <li
                       className={`p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2 ${
-                        isActiveItem("/admin/genre") &&
-                        currentPath === "/admin/genre"
-                          ? "bg-[#3F72AF]"
-                          : ""
+                        isActiveItem("/admin/genre") ? "bg-[#3F72AF]" : ""
                       }`}
                       onClick={() => navigate("/admin/genre")}
                     >
@@ -387,12 +346,12 @@ const SidebarAdmin = () => {
                   className={`flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF] ${
                     isActiveGroup("concession") ? "bg-[#3F72AF]" : ""
                   }`}
-                  onClick={() => setIsConcessionDropdownOpen(!isConcessionOpen)}
+                  onClick={() => handleToggleDropdown("concession")}
                 >
                   <span>Quản lý thức ăn</span>
-                  <span>{isConcessionOpen ? "▲" : "▼"}</span>
+                  <span>{openDropdown === "concession" ? "▲" : "▼"}</span>
                 </div>
-                {isConcessionOpen && (
+                {openDropdown === "concession" && (
                   <ul className="ml-4 mt-2 space-y-2">
                     <li
                       className={`p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2 ${
@@ -423,12 +382,12 @@ const SidebarAdmin = () => {
                   className={`flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF] ${
                     isActiveGroup("ticketType") ? "bg-[#3F72AF]" : ""
                   }`}
-                  onClick={() => setIsTicketTypeDropdownOpen(!isTicketTypeOpen)}
+                  onClick={() => handleToggleDropdown("ticketType")}
                 >
                   <span>Quản lý loại vé</span>
-                  <span>{isTicketTypeOpen ? "▲" : "▼"}</span>
+                  <span>{openDropdown === "ticketType" ? "▲" : "▼"}</span>
                 </div>
-                {isTicketTypeOpen && (
+                {openDropdown === "ticketType" && (
                   <ul className="ml-4 mt-2 space-y-2">
                     <li
                       className={`p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2 ${
@@ -459,12 +418,12 @@ const SidebarAdmin = () => {
                   className={`flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF] ${
                     isActiveGroup("ticket") ? "bg-[#3F72AF]" : ""
                   }`}
-                  onClick={() => setIsTicketDropdownOpen(!isTicketOpen)}
+                  onClick={() => handleToggleDropdown("ticket")}
                 >
                   <span>Quản lý đơn hàng</span>
-                  <span>{isTicketOpen ? "▲" : "▼"}</span>
+                  <span>{openDropdown === "ticket" ? "▲" : "▼"}</span>
                 </div>
-                {isTicketOpen && (
+                {openDropdown === "ticket" && (
                   <ul className="ml-4 mt-2 space-y-2">
                     <li
                       className={`p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2 ${
@@ -480,63 +439,10 @@ const SidebarAdmin = () => {
                   </ul>
                 )}
               </li>
-              {/* Quản lý khuyến mãi */}
-              {/* <li>
-                <div
-                  className={`flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF] ${
-                    isActiveGroup("promotion") ? "bg-[#3F72AF] " : ""
-                  }`}
-                  onClick={() => setIsPromotionDropdownOpen(!isPromotionOpen)}
-                >
-                  <span>Quản lý khuyến mãi</span>
-                  <span>{isPromotionOpen ? "▲" : "▼"}</span>
-                </div>
-                {isPromotionOpen && (
-                  <ul className="ml-4 mt-2 space-y-2">
-                    <li
-                      className={`p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2 ${
-                        isActiveItem("/admin/promotion") ? "bg-[#3F72AF]" : ""
-                      }`}
-                      onClick={() => navigate("/admin/promotion")}
-                    >
-                      <FaTags className="text-sm" />
-                      <span>Danh sách khuyến mãi</span>
-                    </li>
-                  </ul>
-                )}
-              </li> */}
-              {/* Quản lý bài viết */}
-              {/* <li>
-                <div
-                  className={`flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF] ${
-                    isActiveGroup("articles") ? "bg-[#3F72AF]" : ""
-                  }`}
-                  onClick={() => setIsArticlesDropdownOpen(!isArticlesOpen)}
-                >
-                  <span>Quản lý bài viết</span>
-                  <span>{isArticlesOpen ? "▲" : "▼"}</span>
-                </div>
-                {isArticlesOpen && (
-                  <ul className="ml-4 mt-2 space-y-2">
-                    <li
-                      className={`p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2 ${
-                        isActiveItem("/admin/articles") ? "bg-[#3F72AF]" : ""
-                      }`}
-                      onClick={() => navigate("/admin/articles")}
-                    >
-                      <FaTags className="text-sm" />
-                      <span>Danh sách bài viết</span>
-                    </li>
-                  </ul>
-                )}
-              </li> */}
             </ul>{" "}
-            {/* End of the promoted ul */}
           </ul>
         </nav>
       </div>
-
-      {/* Phần Admin User Section đã được di chuyển sang HeaderAdmin */}
     </div>
   );
 };
