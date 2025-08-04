@@ -49,7 +49,6 @@ const SidebarDistrictManager = () => {
 
   // Định nghĩa nhóm đường dẫn để xác định active của mục cha
   const pathGroups = {
-    dashboard: ["/district_manager/dashboard"],
     user: ["/district_manager/user"],
     phim: ["/district_manager/movies"],
     theater: ["/district_manager/theater", "/district_manager/delete_cinema"],
@@ -87,7 +86,7 @@ const SidebarDistrictManager = () => {
             <ul className="space-y-2">
               {" "}
               {/* Dashboard Dropdown */}
-              <li>
+              {/*<li>
                 <div
                   className={`flex items-center justify-between cursor-pointer p-2 rounded hover:bg-[#3F72AF] ${
                     isActiveGroup("dashboard") ? "bg-[#3F72AF]" : ""
@@ -112,7 +111,7 @@ const SidebarDistrictManager = () => {
                     </li>
                   </ul>
                 )}
-              </li>
+              </li>*/}
               {/* Quản lý nhân viên */}
               <li>
                 <div

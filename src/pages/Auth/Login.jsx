@@ -127,7 +127,7 @@ function LoginPage() {
       case "content_manager":
         return "/content/articles";
       case "district_manager":
-        return "/district_manager/dashboard";
+        return "/district_manager/user";
       default:
         return "/"; // User thường
     }

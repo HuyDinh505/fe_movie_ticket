@@ -106,7 +106,7 @@ const Sidebar = () => {
               icon: FaCalendarAlt,
             },
             {
-              label: "Lịch chiếu phim",
+              label: "Lịch chiếu phim đã xóa",
               path: "/manage/schedule_delete",
               icon: FaCalendarAlt,
             },
