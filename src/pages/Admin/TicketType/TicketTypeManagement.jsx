@@ -8,10 +8,10 @@ import {
   useDeleteTicketTypeUS,
 } from "../../../api/homePage/queries";
 import { toast } from "react-toastify";
-import Modal from "../../../components/ui/Modal"; // Vẫn dùng cho form thêm/sửa
+import Modal from "../../../components/ui/Modal";
 import { useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
-import { getApiMessage, handleApiError } from "../../../Utilities/apiMessage"; // Đảm bảo import
+import { getApiMessage, handleApiError } from "../../../Utilities/apiMessage";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -20,13 +20,11 @@ const TicketTypeManagement = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  // const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null }); // KHÔNG CẦN NỮA
   const queryClient = useQueryClient();
 
   // Query hooks
-  const { data, isLoading: loadingTicketTypes } = useGetAllTicketTypesUS(); // Đổi tên isLoading để rõ ràng hơn
+  const { data, isLoading: loadingTicketTypes } = useGetAllTicketTypesUS();
 
-  // Mutation hooks - Đồng bộ cách khai báo
   const { mutate: createTicketType, isPending: isCreatingTicketType } =
     useCreateTicketTypeUS({
       onSuccess: (response) => {
@@ -46,7 +44,6 @@ const TicketTypeManagement = () => {
   const { mutate: updateTicketType, isPending: isUpdatingTicketType } =
     useUpdateTicketTypeUS({
       onSuccess: (response) => {
-        // Kiểm tra lỗi nghiệp vụ từ phản hồi API
         if (response?.data?.status === false) {
           handleApiError(response.data, "Cập nhật loại vé thất bại");
           return;
@@ -64,15 +61,12 @@ const TicketTypeManagement = () => {
   const { mutate: deleteTicketTypeMutation, isPending: isDeletingTicketType } =
     useDeleteTicketTypeUS({
       onSuccess: (response) => {
-        // Kiểm tra lỗi nghiệp vụ từ phản hồi API
         if (response?.data?.status === false) {
           Swal.fire(
             "Thất bại!",
             response?.data?.message || "Xóa loại vé thất bại",
             "error"
           );
-          // Có thể loại bỏ handleApiError ở đây nếu Swal là thông báo chính
-          // handleApiError(response.data, "Xóa loại vé thất bại");
           return;
         }
         Swal.fire(
@@ -113,7 +107,6 @@ const TicketTypeManagement = () => {
     setIsFormVisible(true);
   };
 
-  // --- HÀM XÓA ĐÃ SỬA ĐỔI ĐỂ DÙNG SWAL CHO XÁC NHẬN ---
   const handleDelete = (id) => {
     Swal.fire({
       title: "Bạn có chắc chắn muốn xóa loại vé này không?",
@@ -122,13 +115,13 @@ const TicketTypeManagement = () => {
       showCancelButton: true,
       confirmButtonText: "Xóa",
       cancelButtonText: "Hủy",
-      confirmButtonColor: "#d33", // Màu đỏ cho nút xóa
+      confirmButtonColor: "#d33",
       allowOutsideClick: false,
       allowEscapeKey: false,
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        deleteTicketTypeMutation(id); // Gọi mutation xóa loại vé
+        deleteTicketTypeMutation(id);
       }
     });
   };
@@ -148,8 +141,6 @@ const TicketTypeManagement = () => {
     setIsFormVisible(false);
     setEditingTicketType(null);
   };
-
-  // handleConfirmDelete không còn cần thiết và đã được loại bỏ
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -191,9 +182,9 @@ const TicketTypeManagement = () => {
           <TicketTypeTable
             ticketTypes={paginatedTicketTypes}
             onEdit={handleEdit}
-            onDelete={handleDelete} // Gọi hàm handleDelete đã sửa đổi
+            onDelete={handleDelete}
             loading={loadingTicketTypes}
-            isDeleting={isDeletingTicketType} // Truyền trạng thái đang xóa
+            isDeleting={isDeletingTicketType}
             isDeletedView={false}
           />
           {totalPages > 1 && (

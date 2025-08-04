@@ -10,8 +10,6 @@ import {
   useRestoreGenreUS,
 } from "../../../api/homePage/queries";
 import { toast } from "react-toastify";
-// import { useQueryClient } from "@tanstack/react-query"; // Không cần dùng trực tiếp nếu dùng refetch
-// import Modal from "../../../components/ui/Modal"; // Không cần dùng cho xác nhận xóa nữa
 import { handleApiError, getApiMessage } from "../../../Utilities/apiMessage";
 import Swal from "sweetalert2";
 
@@ -22,17 +20,15 @@ const GenreManagement = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  // State confirmDelete không còn cần thiết vì Swal sẽ xử lý xác nhận trực tiếp
 
-  // React Query hooks
+
   const {
     data: genresData,
-    isLoading: loading, // Đổi tên isLoading thành loading để đồng nhất
+    isLoading: loading,
     error,
-    refetch: fetchGenres, // Sử dụng refetch thay vì invalidateQueries
+    refetch: fetchGenres, 
   } = useGetAllGenresUS();
 
-  // Tạo, Cập nhật, Xóa, Khôi phục - Đồng bộ cách khai báo và xử lý
   const { mutate: createGenre, isLoading: isCreating } = useCreateGenreUS({
     onSuccess: (response) => {
       if (response?.data?.status === false) {
@@ -41,7 +37,7 @@ const GenreManagement = () => {
       }
       toast.success("Thêm thể loại thành công!");
       setIsFormVisible(false);
-      fetchGenres(); // Gọi lại dữ liệu sau khi thêm
+      fetchGenres();
     },
     onError: (error) => {
       toast.error(getApiMessage(error, "Không thể thêm thể loại mới"));
@@ -56,8 +52,8 @@ const GenreManagement = () => {
       }
       toast.success("Cập nhật thể loại thành công!");
       setIsFormVisible(false);
-      setEditingGenre(null); // Reset editingGenre sau khi cập nhật
-      fetchGenres(); // Gọi lại dữ liệu sau khi cập nhật
+      setEditingGenre(null);
+      fetchGenres();
     },
     onError: (error) => {
       toast.error(getApiMessage(error, "Không thể cập nhật thể loại"));
@@ -66,27 +62,22 @@ const GenreManagement = () => {
 
   const { mutate: deleteGenre, isLoading: isDeleting } = useDeleteGenreUS({
     onSuccess: (response) => {
-      // Kiểm tra lỗi nghiệp vụ từ phản hồi API
       if (response?.data?.status === false) {
         Swal.fire(
           "Thất bại!",
           response?.data?.message || "Xóa thể loại thất bại",
           "error"
         );
-        // Có thể loại bỏ handleApiError ở đây nếu Swal là thông báo chính
-        // handleApiError(response.data, "Xóa thể loại thất bại");
         return;
       }
-      // Nếu thành công hoàn toàn
       Swal.fire(
         "Thành công!",
         response?.data?.message || "Xóa thể loại thành công!",
         "success"
       );
-      fetchGenres(); // Gọi lại dữ liệu sau khi xóa
+      fetchGenres();
     },
     onError: (error) => {
-      // Lỗi HTTP hoặc mạng
       Swal.fire(
         "Thất bại!",
         getApiMessage(error, "Có lỗi xảy ra khi xóa thể loại!"),
@@ -98,7 +89,7 @@ const GenreManagement = () => {
   const { mutate: restoreGenre, isLoading: isRestoring } = useRestoreGenreUS({
     onSuccess: () => {
       toast.success("Khôi phục thể loại thành công!");
-      fetchGenres(); // Gọi lại dữ liệu sau khi khôi phục
+      fetchGenres();
     },
     onError: (error) => {
       toast.error("Khôi phục thể loại thất bại: " + error.message);

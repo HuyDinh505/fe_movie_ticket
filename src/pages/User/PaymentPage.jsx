@@ -193,10 +193,8 @@ function PaymentPage() {
     }
   }, [isPaymentSuccess, paymentResponse, hasRedirected, selectedPaymentMethod]);
 
-  // Hợp nhất logic xử lý lỗi vào một useEffect duy nhất và thêm ref
   useEffect(() => {
     if (isPaymentError && paymentError) {
-      // Chỉ hiển thị toast nếu chưa có thông báo nào được hiển thị gần đây
       if (errorToastShownRef.current) {
         return;
       }
@@ -243,7 +241,6 @@ function PaymentPage() {
         });
       }
 
-      // Đặt lại cờ sau một khoảng thời gian (ví dụ: 100ms) để cho phép thông báo mới
       setTimeout(() => {
         errorToastShownRef.current = false;
       }, 100);

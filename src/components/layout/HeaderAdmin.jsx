@@ -23,16 +23,13 @@ const HeaderAdmin = () => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const userDropdownRef = useRef(null);
 
-  // Khởi tạo mutation để cập nhật người dùng
   const updateUserMutation = useUpdateUserUS({
     onSuccess: (data) => {
       const message = getApiMessage(data, "Cập nhật thông tin thành công!");
       toast.success(message);
-      // Sau khi cập nhật thành công, invalidate cache để dữ liệu tự động refetch
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
       const updatedUser = data.data;
       if (updatedUser) {
-        // Cập nhật lại AuthContext nếu cần
         updateUserData(updatedUser);
       }
     },
@@ -46,7 +43,6 @@ const HeaderAdmin = () => {
     logout();
   };
 
-  // Bổ sung logic gọi mutation để cập nhật thông tin
   const handleUpdateProfile = async (formData) => {
     try {
       await updateUserMutation.mutateAsync({
@@ -55,7 +51,6 @@ const HeaderAdmin = () => {
       });
       setShowProfileModal(false);
     } catch (err) {
-      // Lỗi được xử lý bởi onError trong mutation hook
       console.error("Error updating profile:", err);
     }
   };

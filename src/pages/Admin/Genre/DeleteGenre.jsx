@@ -35,7 +35,6 @@ const DeleteGenre = () => {
               handleApiError(response.data, "Khôi phục thể loại thất bại");
               return;
             }
-            // Sử dụng getApiMessage để lấy thông điệp từ API hoặc thông điệp mặc định
             toast.success(
               getApiMessage(response, "Khôi phục thể loại thành công")
             );

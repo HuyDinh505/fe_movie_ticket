@@ -1,18 +1,16 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { toast } from "react-toastify";
 import { imagePhim } from "../../../Utilities/common";
-// Giả định component cha sẽ truyền prop này
-// import { useGetAllCinemasUS } from "../../../api/homePage/queries";
+
 
 const UserForm = ({
   onSubmit,
-  initialData, // Dữ liệu người dùng hiện có khi chỉnh sửa
+  initialData,
   onCancel,
   districts = [],
   cinemas = [],
   loadingDistricts,
   loadingCinemas,
-  // Thêm các props mới để xử lý phân quyền
   currentUserRole,
   currentUserId,
   managedCinemas = [],
@@ -32,10 +30,6 @@ const UserForm = ({
     district_ids: [],
     cinema_id: "",
   });
-  console.log("currentUserRole:", currentUserRole);
-  console.log("managedCinemas:", managedCinemas);
-  console.log("cinemas:", cinemas);
-  // console.log("filteredCinemas:", filteredCinemas);
   const [errors, setErrors] = useState({});
   const [avatarPreview, setAvatarPreview] = useState("");
 

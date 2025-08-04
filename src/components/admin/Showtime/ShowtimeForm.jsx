@@ -23,11 +23,11 @@ const ShowtimeForm = ({
 }) => {
   const [formData, setFormData] = useState({
     movieId: "",
-    date: defaultDate || "", // Ngày bắt đầu
-    startTime: "", // Giờ bắt đầu
-    endTime: "", // Giờ kết thúc (cần được tính toán cả ngày nếu qua đêm)
-    screenType: "2D", // Đã bỏ comment để sử dụng lại
-    translationType: "Phụ đề", // Đã bỏ comment để sử dụng lại
+    date: defaultDate || "", 
+    startTime: "", 
+    endTime: "", 
+    screenType: "2D",
+    translationType: "Phụ đề", 
   });
 
   useEffect(() => {

@@ -59,10 +59,6 @@ import DeleteSchedule from "./pages/Admin/Schedule/DeleteSchedule";
 function App() {
   const location = useLocation();
 
-  // Debug logs để kiểm tra routing
-  // console.log("App.jsx - Current location:", location.pathname);
-  // console.log("App.jsx - Current search:", location.search);
-
   // Reset toast khi chuyển trang
   React.useEffect(() => {
     console.log("App.jsx - Route changed to:", location.pathname);
@@ -74,7 +70,7 @@ function App() {
       <div className="min-h-screen bg-stone-100">
         <ScrollToTop />
         <Routes>
-          {/* Route for MainLayout (includes Header and Footer) */}
+          {/* Route for MainLayout */}
           <Route path="/" element={<MainLayout />}>
             {/* Index route for the home page */}
             <Route index element={<HomePage />} />
@@ -105,7 +101,7 @@ function App() {
             <Route path="/promotion/:id" element={<PromotionDetail />} />
           </Route>
 
-          {/* Admin Routes - Protected by admin role */}
+          {/* Admin Routes */}
           <Route
             path="/admin"
             element={
@@ -147,7 +143,7 @@ function App() {
             {/* Add more admin routes here as needed */}
           </Route>
 
-          {/* Manage Routes - Protected by booking_manager and showtime_manager roles */}
+          {/* Manage Routes */}
           <Route
             path="/manage"
             element={

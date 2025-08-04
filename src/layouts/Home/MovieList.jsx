@@ -39,7 +39,6 @@ function MovieList({ movies = [], showSeeMore = false, onSeeMore }) {
         )}
       </div>
 
-      {/* You can add pagination or a "Load More" button here if needed */}
       {showSeeMore && (
         <div className="flex justify-center mt-6">
           <button

@@ -33,7 +33,6 @@ function ComboSelector({ onComboSelect }) {
   }, [quantities, onComboSelect]);
 
   console.log("ComboSelector - fetchedCombos before map:", fetchedCombos);
-  // Group combos by category
   const groups = Array.from(new Set(fetchedCombos.map((c) => c.category)));
 
   if (isLoading) return <div>Đang tải danh sách bắp nước...</div>;

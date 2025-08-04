@@ -27,17 +27,15 @@ const DeleteTicketType = () => {
       cancelButtonText: "Hủy bỏ",
       reverseButtons: true,
     }).then((result) => {
-      // Nếu người dùng xác nhận
       if (result.isConfirmed) {
         restoreTicketType.mutate(id, {
           onSuccess: async () => {
             toast.success("Khôi phục loại vé thành công!");
-            // Invalidate (vô hiệu hóa) các queries liên quan để React Query fetch lại dữ liệu
             await queryClient.invalidateQueries({
               queryKey: ["GetDeletedTicketTypesAPI"],
             });
             await queryClient.invalidateQueries({
-              queryKey: ["GetDeletedTicketTypesAPI"], // Giả định có một query hook để lấy tất cả loại vé
+              queryKey: ["GetDeletedTicketTypesAPI"],
             });
           },
           onError: (error) => {

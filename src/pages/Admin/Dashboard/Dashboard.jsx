@@ -14,23 +14,20 @@ import {
 } from "../../../api/homePage/queries";
 
 const Dashboard = () => {
-  // State cho period, startDate và endDate từ bộ lọc chính
   const [period, setPeriod] = useState("day");
   const [startDate, setStartDate] = useState(() => {
     const today = new Date();
     const thirtyDaysAgo = new Date(today);
     thirtyDaysAgo.setDate(today.getDate() - 30);
-    return thirtyDaysAgo.toISOString().slice(0, 10); // Định dạng YYYY-MM-DD
+    return thirtyDaysAgo.toISOString().slice(0, 10);
   });
   const [endDate, setEndDate] = useState(() => {
     const today = new Date();
-    return today.toISOString().slice(0, 10); // Mặc định là ngày hiện tại
+    return today.toISOString().slice(0, 10);
   });
 
-  // State để lưu params thực sự dùng để fetch dữ liệu
-  // Khởi tạo ngay lập tức với giá trị mặc định để các hook có thể fetch ngay
   const [requestParams, setRequestParams] = useState({
-    period: "day", // Hoặc giá trị mặc định ban đầu của `period`
+    period: "day",
     startDate: (() => {
       const today = new Date();
       const thirtyDaysAgo = new Date(today);
@@ -40,25 +37,21 @@ const Dashboard = () => {
     endDate: new Date().toISOString().slice(0, 10),
   });
 
-  // --- HOOKS LẤY DỮ LIỆU ---
-
-  // 1. Lấy dữ liệu chuỗi thời gian (sẽ dùng cho cả StatCard và RevenueLineChart)
   const {
     data: timeSeriesData,
     isLoading: isLoadingTimeSeries,
     isError: isErrorTimeSeries,
   } = useGetTimeSeriesRevenueUS(
     {
-      group_by: requestParams.period, // Dùng requestParams
-      start_date: requestParams.startDate, // Dùng requestParams
-      end_date: requestParams.endDate, // Dùng requestParams
+      group_by: requestParams.period,
+      start_date: requestParams.startDate,
+      end_date: requestParams.endDate,
     },
     {
-      enabled: !!requestParams.startDate && !!requestParams.endDate, // Chỉ fetch khi có cả 2 ngày
+      enabled: !!requestParams.startDate && !!requestParams.endDate,
     }
   );
 
-  // Tính toán tổng doanh thu từ dữ liệu chuỗi thời gian
   const totalRevenue = useMemo(() => {
     return (timeSeriesData?.data?.data || []).reduce(
       (sum, item) => sum + Number(item.total_revenue || 0),
@@ -66,7 +59,6 @@ const Dashboard = () => {
     );
   }, [timeSeriesData]);
 
-  // Tính toán tổng số vé bán ra từ dữ liệu chuỗi thời gian
   const bookingsCount = useMemo(() => {
     return (timeSeriesData?.data?.data || []).reduce(
       (sum, item) => sum + Number(item.booking_count || 0),
@@ -100,14 +92,13 @@ const Dashboard = () => {
   }, [timeSeriesData]);
 
   const revenueByMonth = useMemo(() => {
-    // Dữ liệu cho RevenueLineChart trực tiếp từ timeSeriesData
     return (timeSeriesData?.data?.data || []).map((item) => ({
-      month: item.period_key, // period_key có thể là "YYYY-MM", "YYYY-WXX", "YYYY-MM-DD"
+      month: item.period_key,
       revenue: Number(item.total_revenue || 0),
     }));
   }, [timeSeriesData]);
 
-  // 2. Lấy doanh thu theo phim (cho RevenueByMovieTable và TopViewsBarChart)
+  // Lấy doanh thu theo phim (cho RevenueByMovieTable và TopViewsBarChart)
   const {
     data: allMoviesRevenueData,
     isLoading: isLoadingAllMoviesRevenue,
@@ -145,13 +136,12 @@ const Dashboard = () => {
       .map((item) => ({ name: item.name, views: item.tickets }));
   }, [movieRevenue]);
 
-  // 3. Lấy doanh thu theo rạp (cho RevenueByCinemaTable)
+  // Lấy doanh thu theo rạp (cho RevenueByCinemaTable)
   const {
     data: allRapsRevenueData,
     isLoading: isLoadingAllRapsRevenue,
     isError: isErrorAllRapsRevenue,
   } = useGetAllRapRevenueUS(
-    // Sử dụng requestParams để đồng bộ với nút Tìm kiếm
     {
       group_by: requestParams.period,
       start_date: requestParams.startDate,
@@ -178,14 +168,14 @@ const Dashboard = () => {
   const stats = [
     {
       title: `Doanh thu (${displayPeriod})`,
-      value: isLoadingTimeSeries // Sử dụng isLoadingTimeSeries cho loading state
+      value: isLoadingTimeSeries
         ? "..."
         : totalRevenue.toLocaleString("vi-VN") + " " + currency,
       color: "blue",
     },
     {
       title: "Tổng vé bán ra",
-      value: isLoadingTimeSeries ? "..." : bookingsCount, // Sử dụng isLoadingTimeSeries cho loading state
+      value: isLoadingTimeSeries ? "..." : bookingsCount,
       color: "orange",
     },
   ];
@@ -209,17 +199,7 @@ const Dashboard = () => {
   }, [location.state]);
 
   // Console logs để kiểm tra giá trị và trạng thái
-  useEffect(() => {
-    // console.log("Current period:", period);
-    // console.log("Current startDate:", startDate);
-    // console.log("Current endDate:", endDate);
-    // console.log("requestParams for fetch:", requestParams);
-    // console.log("isLoadingTimeSeries:", isLoadingTimeSeries);
-    // console.log("timeSeriesData:", timeSeriesData);
-    // console.log("Calculated totalRevenue:", totalRevenue);
-    // console.log("Calculated bookingsCount:", bookingsCount);
-    // console.log("displayPeriod:", displayPeriod);
-  }, [
+  useEffect(() => {}, [
     period,
     startDate,
     endDate,
@@ -233,20 +213,7 @@ const Dashboard = () => {
 
   return (
     <div className="pl-2">
-      {/* ToastContainer đã bị comment trong code của bạn, tôi giữ nguyên */}
-      {/* <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      /> */}
-
+      
       {/* Bộ lọc doanh thu */}
       <div
         className="w-full mx-auto bg-white rounded-xl shadow-md p-4 flex flex-col
@@ -310,33 +277,6 @@ const Dashboard = () => {
       </div>
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-        {/* Biểu đồ Top Views/Tickets (Doanh thu theo phim) */}
-        {/* {isLoadingAllMoviesRevenue ? (
-          <div className="text-center py-4">Đang tải dữ liệu phim...</div>
-        ) : isErrorAllMoviesRevenue ? (
-          <div className="text-center py-4 text-red-500">
-            Lỗi khi tải dữ liệu phim!
-          </div>
-        ) : (
-          <div style={{ overflowX: "auto" }}>
-            <div
-              style={{
-                minWidth: `${Math.max(topViewsData.length * 150, 600)}px`,
-                height: "300px",
-              }}
-            >
-              <TopViewsBarChart
-                data={topViewsData}
-                title="Top phim bán chạy nhất"
-                dataKey="views"
-                xAxisDataKey="name"
-                color="#3b82f6"
-                xAxisTick={{ fontSize: 12, angle: -30, textAnchor: "end" }}
-                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
-              />
-            </div>
-          </div>
-        )} */}
 
         {/* Biểu đồ Doanh thu theo thời gian */}
         {isLoadingTimeSeries ? (

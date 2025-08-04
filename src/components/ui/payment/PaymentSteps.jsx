@@ -3,7 +3,6 @@ import React from "react";
 const PaymentSteps = ({ currentStep }) => {
   return (
     <div className="mb-8">
-      {/* Numbers and Text */}
       <div className="grid grid-cols-3 lg:grid-cols-6 text-center font-bold mb-2">
         <div
           style={{

@@ -21,7 +21,7 @@ const statusColor = (status) => {
   }
 };
 
-// Hàm ánh xạ trạng thái sang tên hiển thị tiếng Việt
+
 const getStatusDisplayName = (status) => {
   switch (status) {
     case "pending":
@@ -31,13 +31,13 @@ const getStatusDisplayName = (status) => {
     case "cancelled":
       return "Đã hủy";
     case "active":
-      return "Đang hoạt động"; // Đơn hàng đang diễn ra (suất chiếu đã bắt đầu)
+      return "Đang hoạt động";
     case "finished":
-      return "Hoàn thành"; // Đơn hàng đã hoàn thành (suất chiếu đã kết thúc)
+      return "Hoàn thành";
     case "failed":
       return "Thanh toán thất bại";
     case "refunded":
-      return "Đã hoàn tiền"; // Đơn hàng đã được thanh toán, nhưng sau đó được hoàn tiền
+      return "Đã hoàn tiền";
     case "pending_counter_payment":
       return "Thanh toán tại quầy";
     default:

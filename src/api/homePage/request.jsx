@@ -30,9 +30,9 @@ const END_POINT = {
   REPORT: "report",
 };
 
-// =====================
+
 // Helper/Utility
-// =====================
+
 // Hàm helper để tạo FormData
 const createFormData = (data) => {
   const formData = new FormData();
@@ -159,9 +159,9 @@ const createFormData = (data) => {
   return formData;
 };
 
-// =====================
+
 // Movie APIs (Phim)
-// =====================
+
 export const getPhimAPI = async () => {
   try {
     const response = await axios({
@@ -326,9 +326,9 @@ export const restoreMovieAPI = async (movieId) => {
   }
 };
 
-// =====================
+
 // Ticket Type APIs (Loại vé)
-// =====================
+
 export const getAllTicketTypesAPI = async () => {
   try {
     const response = await axios({
@@ -420,9 +420,9 @@ export const restoreTicketTypeAPI = async (id) => {
   }
 };
 
-// =====================
+
 // Seat APIs (Ghế)
-// =====================
+
 export const getDSGHEAPI = async (ma_phong) => {
   try {
     const response = await axios({
@@ -449,9 +449,9 @@ export const getTrangThaiGheAPI = async (ma_suat_chieu) => {
   }
 };
 
-// =====================
+
 // Cinema APIs (Rạp)
-// =====================
+
 export const getAllCinemasAPI = async () => {
   try {
     const response = await axios({
@@ -592,9 +592,9 @@ export const getRapSCAPI = async (ma_phim) => {
     throw error;
   }
 };
-// =====================
+
 // District (Quận)
-// =====================
+
 export const getAllDistrictsAPI = async () => {
   try {
     const response = await axios({
@@ -684,9 +684,9 @@ export const restoreDistrictAPI = async (districtId) => {
     throw error;
   }
 };
-// =====================
+
 // Theater Room APIs (Phòng chiếu)
-// =====================
+
 export const getAllTheaterRoomsAPI = async () => {
   try {
     const response = await axios({
@@ -819,9 +819,9 @@ export const getTheaterRoomsListByCinemaAPI = async (cinemaId) => {
     throw error;
   }
 };
-// =====================
+
 // Showtime APIs (Suất chiếu)
-// =====================
+
 export const getAllShowtimesAPI = async () => {
   try {
     const response = await axios({
@@ -947,9 +947,9 @@ export const getSeatMapCheckAPI = async ({ showtimeId, seatIds }) => {
   }
 };
 
-// =====================
+
 // Concession APIs (Dịch vụ ăn uống)
-// =====================
+
 export const getAllConcessionsAPI = async () => {
   try {
     const response = await axios({
@@ -1085,9 +1085,9 @@ export const restoreConcessionAPI = async (concessionId) => {
   }
 };
 
-// =====================
+
 // Genre APIs (Thể loại)
-// =====================
+
 export const getAllGenreAPI = async () => {
   try {
     const response = await axios({
@@ -1192,9 +1192,9 @@ export const getDeletedGenresAPI = async () => {
   }
 };
 
-// =====================
+
 // User APIs (Người dùng)
-// =====================
+
 export const getAllUsersAPI = async () => {
   try {
     const response = await axios({
@@ -1292,9 +1292,9 @@ export const getCurrentUserAPI = async () => {
   }
 };
 
-// =====================
+
 // Payment APIs (New)
-// =====================
+
 export const initiatePaymentAPI = async (bookingData) => {
   try {
     // Payload sẽ được truyền vào từ component, không tự động thêm URL nữa
@@ -1324,9 +1324,9 @@ export const checkPaymentStatusAPI = async (params = {}) => {
   }
 };
 
-// =====================
+
 // Movie Schedule APIs (Lịch chiếu)
-// =====================
+
 export const getAllMovieSchedulesAPI = async () => {
   try {
     const response = await axios({
@@ -1417,9 +1417,9 @@ export const getDeleteAllMovieSchedulesAPI = async () => {
     throw error;
   }
 };
-// =====================
+
 // Booking APIs (Đặt vé)
-// =====================
+
 export const postBooKingAPI = async (bookingData) => {
   try {
     const response = await axios({
@@ -1513,9 +1513,9 @@ export const getManagedMoviesAPI = async () => {
   }
 };
 
-// =====================
+
 // Promotion APIs (Khuyến mãi)
-// =====================
+
 export const getAllPromotionsAPI = async () => {
   try {
     const response = await axios({
@@ -1650,9 +1650,9 @@ export const getScreenTypeAPI = async () => {
   }
 };
 
-// =====================
+
 // Revenue Report APIs (Doanh thu)
-// =====================
+
 export const getTotalRevenueAPI = async (params = {}) => {
   try {
     const response = await axios({

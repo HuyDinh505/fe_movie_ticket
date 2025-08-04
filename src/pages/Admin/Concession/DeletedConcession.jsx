@@ -7,7 +7,7 @@ import {
 import { toast } from "react-toastify";
 import ConcessionTable from "../../../components/admin/Concession/ConcessionTable";
 import { getApiMessage, handleApiError } from "../../../Utilities/apiMessage";
-import Swal from "sweetalert2"; // Import SweetAlert2
+import Swal from "sweetalert2"; 
 import { useQueryClient } from "@tanstack/react-query";
 
 const ITEMS_PER_PAGE = 10;
@@ -49,7 +49,7 @@ const DeletedConcession = () => {
     setCurrentPage(page);
   };
 
-  // Hàm xử lý việc khôi phục concession, sử dụng SweetAlert2 để xác nhận
+  // Hàm xử lý việc khôi phục concession
   const handleAskRestore = (concessionId, concessionName) => {
     Swal.fire({
       title: "Bạn có chắc chắn không?",
@@ -62,13 +62,9 @@ const DeletedConcession = () => {
       cancelButtonText: "Hủy bỏ",
       reverseButtons: true,
     }).then((result) => {
-      // Nếu người dùng xác nhận
       if (result.isConfirmed) {
-        // Gọi mutation để khôi phục concession với concessionId tương ứng
         restoreConcession(concessionId, {
-          // Xử lý khi API call thành công
           onSuccess: async (response) => {
-            // Sử dụng async ở đây
             console.log("Restore API call successful. Response:", response);
             if (response?.data?.status === false) {
               handleApiError(response.data, "Khôi phục đồ ăn/uống thất bại");
@@ -77,18 +73,14 @@ const DeletedConcession = () => {
             toast.success(
               getApiMessage(response, "Khôi phục đồ ăn/uống thành công")
             );
-            // Sử dụng await để đảm bảo dữ liệu được refetch trước khi cập nhật state
-            console.log("Invalidating queries to trigger refetch...");
             await queryClient.invalidateQueries({
               queryKey: ["getDeletedConcessionAPI"],
             });
             await queryClient.invalidateQueries({
               queryKey: ["getDeletedConcessionAPI"],
             });
-            // Chuyển về trang đầu tiên sau khi khôi phục thành công
             setCurrentPage(1);
           },
-          // Xử lý khi API call thất bại
           onError: (error) => {
             console.error("Restore API call failed. Error:", error);
             toast.error(getApiMessage(error, "Không thể khôi phục đồ ăn/uống"));

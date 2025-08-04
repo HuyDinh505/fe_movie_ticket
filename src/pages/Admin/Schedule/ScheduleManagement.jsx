@@ -41,9 +41,7 @@ const ScheduleManagement = () => {
   const role =
     userData.role || (Array.isArray(userData?.roles) ? userData.roles[0] : "");
 
-  // === FETCHING DATA DỰA TRÊN ROLE ===
-
-  // 1. Lấy danh sách lịch chiếu
+  // Lấy danh sách lịch chiếu
   const {
     data: SchedulesData,
     isLoading: loadingSchedules,
@@ -51,11 +49,11 @@ const ScheduleManagement = () => {
   } = useGetAllMovieSchedulesUS();
   const schedules = SchedulesData?.data || [];
 
-  // 2. Lấy danh sách phim theo role
+  // Lấy danh sách phim theo role
   const {
     data: phimTheoRapData,
     isLoading: loadingPhimTheoRap,
-    error: phimTheoRapError, // Thêm biến error
+    error: phimTheoRapError,
   } = useGetPhimTheoRapUS(userData?.cinema_id, {
     enabled:
       !!userData?.cinema_id &&
@@ -67,7 +65,7 @@ const ScheduleManagement = () => {
   const {
     data: allMoviesData,
     isLoading: loadingAllMovies,
-    error: allMoviesError, // Thêm biến error
+    error: allMoviesError, 
   } = useGetPhimUS({
     enabled:
       !userData?.cinema_id ||
@@ -79,7 +77,7 @@ const ScheduleManagement = () => {
   const {
     data: managedMoviesData,
     isLoading: loadingManagedMovies,
-    error: managedMoviesError, // Thêm biến error
+    error: managedMoviesError,
   } = useGetManagedMoviesUS({
     enabled: role === "manager_district",
   });
@@ -109,11 +107,11 @@ const ScheduleManagement = () => {
     role,
   ]);
 
-  // 3. Lấy danh sách rạp chiếu theo role
+  // Lấy danh sách rạp chiếu theo role
   const {
     data: allCinemasData,
     isLoading: loadingAllCinemas,
-    error: allCinemasError, // Thêm biến error
+    error: allCinemasError,
   } = useGetAllCinemasUS({
     enabled:
       role === "admin" ||
@@ -125,7 +123,7 @@ const ScheduleManagement = () => {
   const {
     data: userCinemaData,
     isLoading: loadingUserCinema,
-    error: userCinemaError, // Thêm biến error
+    error: userCinemaError,
   } = useGetCinemaByIdUS(userData?.cinema_id, {
     enabled:
       !!userData?.cinema_id &&
@@ -163,12 +161,11 @@ const ScheduleManagement = () => {
       !filterCinema &&
       role === "admin"
     ) {
-      // Chỉ tự động chọn rạp đầu tiên cho admin nếu chưa có rạp nào được chọn
       setFilterCinema(finalCinemaList[0].cinema_id);
     }
   }, [allCinemasData, userCinemaData, userData.cinema_id, role, filterCinema]);
 
-  // Mutation Hooks
+
   const { mutate: createSchedule, isPending: isCreatingSchedule } =
     useCreateMovieScheduleUS({
       onSuccess: (response) => {

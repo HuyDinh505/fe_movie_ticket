@@ -9,18 +9,13 @@ export const AuthProvider = ({ children }) => {
   const [userData, setUserData] = useState({
     name: "",
     stars: 0,
-    role: "user", // default role
-    user_id: null, // Add user_id to initial state
-    avatar_url: "", // Add avatar_url to initial state
-    cinema_id: null, // Add cinema_id for showtime_manager
+    role: "user",
+    user_id: null,
+    avatar_url: "", 
+    cinema_id: null, 
   });
-  const [isLoading, setIsLoading] = useState(true); // Add isLoading state
-  // console.log(
-  //   "AuthContext (initial render): isLoading=",
-  //   isLoading,
-  //   ", isLoggedIn=",
-  //   isLoggedIn
-  // );
+  const [isLoading, setIsLoading] = useState(true);
+  
   const updateUserData = (newUserData) => {
     const existingUser = JSON.parse(localStorage.getItem("user")) || {};
     const finalUserData = { ...userData, ...newUserData };
@@ -30,7 +25,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("user", JSON.stringify(updatedUserData));
   };
   useEffect(() => {
-    // console.log("AuthContext (useEffect): Running checkLoginStatus...");
+ 
     checkLoginStatus();
   }, []);
 
@@ -38,8 +33,6 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem("token");
     const userInfo = localStorage.getItem("user");
 
-    // console.log("Checking login status - Token:", token);
-    // console.log("Checking login status - User info:", userInfo);
 
     if (token && userInfo) {
       setIsLoggedIn(true);
@@ -59,16 +52,16 @@ export const AuthProvider = ({ children }) => {
           name: user.full_name || "User",
           stars: 0,
           role: userRole,
-          user_id: user.user_id, // Store user_id from parsed user info
-          avatar_url: user.avatar_url || "", // Store avatar_url from parsed user info
-          cinema_id: user.cinema_id || null, // Store cinema_id for showtime_manager
+          user_id: user.user_id, 
+          avatar_url: user.avatar_url || "",
+          cinema_id: user.cinema_id || null,
         };
         setUserData(updatedUserData);
       } catch (error) {
         console.error("Error parsing user info:", error);
         logout();
       } finally {
-        setIsLoading(false); // Set isLoading to false after check
+        setIsLoading(false);
         console.log(
           "AuthContext (checkLoginStatus): Completed, isLoading=",
           isLoading,
@@ -86,7 +79,7 @@ export const AuthProvider = ({ children }) => {
         avatar_url: "",
       });
       console.log("No user logged in, default role: user");
-      setIsLoading(false); // Set isLoading to false
+      setIsLoading(false);
       console.log(
         "AuthContext (checkLoginStatus): Completed (no token/user), isLoading=",
         isLoading,
@@ -124,9 +117,9 @@ export const AuthProvider = ({ children }) => {
       name: userInfo.full_name || "User",
       stars: 0,
       role: userRole,
-      user_id: userInfo.user_id, // Store user_id from login info
-      avatar_url: userInfo.avatar_url || "", // Store avatar_url from login info
-      cinema_id: userInfo.cinema_id || null, // Store cinema_id for showtime_manager
+      user_id: userInfo.user_id,
+      avatar_url: userInfo.avatar_url || "",
+      cinema_id: userInfo.cinema_id || null, 
     };
     setUserData(updatedUserData);
 
@@ -157,13 +150,6 @@ export const AuthProvider = ({ children }) => {
 
   const isAdmin = () => {
     const adminStatus = userData.role === "admin";
-    // console.log(
-    //   "Checking admin status:",
-    //   adminStatus,
-    //   "Current role:",
-    //   userData.role
-    // );
-    // console.log("Current full userData state:", userData);
     return adminStatus;
   };
 

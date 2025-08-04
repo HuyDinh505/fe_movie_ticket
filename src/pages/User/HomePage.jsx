@@ -18,7 +18,6 @@ function HomePage() {
   const location = useLocation();
   const [showSearchModal, setShowSearchModal] = useState(false);
 
-  //hiển thị 8 hoặc 9 phim
   const isLargeScreen = useMediaQuery({ minWidth: 1024 });
   const isMediumScreen = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
   const isSmallScreen = useMediaQuery({ minWidth: 640, maxWidth: 767 });
@@ -58,10 +57,6 @@ function HomePage() {
     // return <div>Lỗi: {error.message}</div>;
   }
 
-  // Kiểm tra cấu trúc dữ liệu trả về
-  // console.log("Movies data:", moviesData);
-
-  // Lấy danh sách phim từ response
   const movies = moviesData?.data?.movies || [];
   const handleSeeMore = () => {
     navigate("/phim-dang-chieu");
@@ -69,18 +64,6 @@ function HomePage() {
 
   return (
     <>
-      {/* <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      /> */}
       <div className="w-full bg-[#f5f5f5] min-h-screen mt-12">
         <Banner />
         <div className="max-w-screen-xl mx-auto px-2 sm:px-4 lg:px-8">

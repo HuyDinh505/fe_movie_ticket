@@ -91,10 +91,6 @@ const ShowtimeManagement = () => {
       if (userCinemaData?.data && userData.cinema_id) {
         finalCinemasList = [userCinemaData.data]; // Đảm bảo là một mảng
         defaultSelectedCinemaId = userData.cinema_id;
-        // console.log(
-        // 	"ShowtimeManagement - Manager: Fetched user's cinema:",
-        // 	finalCinemasList
-        // );
       } else if (isLoadingUserCinema) {
         // console.log("ShowtimeManagement - Manager: Loading user's cinema...");
       } else if (userData.cinema_id && !userCinemaData?.data) {
@@ -125,7 +121,6 @@ const ShowtimeManagement = () => {
         console.warn(
           "ShowtimeManagement - Admin: No cinemas data available from useGetAllCinemasUS."
         );
-        // toast.error("Không thể tải danh sách rạp. Vui lòng kiểm tra quyền.");
       }
     }
 
@@ -137,10 +132,6 @@ const ShowtimeManagement = () => {
       defaultSelectedCinemaId
     ) {
       setSelectedCinema(defaultSelectedCinemaId);
-      // console.log(
-      // 	"ShowtimeManagement - Auto-selected cinema:",
-      // 	defaultSelectedCinemaId
-      // );
     }
   }, [
     allCinemasData,
@@ -184,7 +175,6 @@ const ShowtimeManagement = () => {
     if (selectedCinema && selectedRoom && selectedDate) {
       handleSearch();
     }
-    // eslint-disable-next-line
   }, [selectedCinema, selectedRoom, selectedDate]);
 
   // Hàm xác định trạng thái động dựa vào thời gian
@@ -198,7 +188,6 @@ const ShowtimeManagement = () => {
     return "N/A";
   };
 
-  // Xử lý tìm kiếm suất chiếu
   const handleSearch = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     setLoading(true);
@@ -209,9 +198,8 @@ const ShowtimeManagement = () => {
         date: selectedDate,
       };
       const res = await filteredShowtimesMutation.mutateAsync(filter);
-      // console.log("Raw API response:", res.data); // Debug log
       let mappedShowtimes = (res.data || []).map((item) => {
-        console.log("Mapping item:", item); // Debug log
+        console.log("Mapping item:", item);
         // Định dạng ngày (vd: "30/07/2025")
         const startDateTime = new Date(item.start_time);
         const endDateTime = new Date(item.end_time);

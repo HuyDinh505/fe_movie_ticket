@@ -49,7 +49,6 @@ const DeleteDistrict = () => {
               queryKey: ["useGetAllDistrictsUS"],
             });
           },
-          // Xử lý khi API call thất bại
           onError: (error) => {
             toast.error(getApiMessage(error, "Không thể khôi phục quận"));
           },

@@ -7,7 +7,7 @@ import { FaRedo, FaBuilding } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRestoreTheaterRoomUS } from "../../../api/homePage/queries";
-import Swal from "sweetalert2"; // Import SweetAlert2
+import Swal from "sweetalert2";
 
 const DeleteRoom = () => {
   const [selectedCinemaId, setSelectedCinemaId] = useState(null);
@@ -22,24 +22,21 @@ const DeleteRoom = () => {
     error,
   } = useGetTheaterRoomsByCinemaUS(selectedCinemaId);
 
-  // Updated function to handle restore confirmation using SweetAlert
   const handleRestoreRoom = (roomId) => {
     Swal.fire({
       title: "Xác nhận khôi phục phòng chiếu",
       text: "Bạn có chắc chắn muốn khôi phục phòng chiếu này không?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#22C55E", // Tailwind green-500
-      cancelButtonColor: "#6B7280", // Tailwind gray-500
+      confirmButtonColor: "#22C55E",
+      cancelButtonColor: "#6B7280",
       confirmButtonText: "Khôi phục",
       cancelButtonText: "Hủy",
     }).then((result) => {
-      // If the user clicks the "Restore" button
       if (result.isConfirmed) {
         restoreRoom.mutate(roomId, {
           onSuccess: () => {
             toast.success("Khôi phục phòng chiếu thành công!");
-            // Invalidate queries to refetch the data and update the UI
             queryClient.invalidateQueries({
               queryKey: ["GetTheaterRoomsByCinemaAPI", selectedCinemaId],
             });

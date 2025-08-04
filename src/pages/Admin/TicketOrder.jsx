@@ -38,7 +38,6 @@ const TicketOrder = () => {
       showTime: booking.showtime_start_end,
       showDate: booking.showtime_date || booking.booking_date,
       room: booking.room_name || "Phòng chiếu",
-      // KHÔNG chuyển đổi trạng thái ở đây, để component TicketTable xử lý
       status: booking.status,
       total: booking.total_price?.toLocaleString() || "0",
       orderDate: booking.booking_date,
@@ -53,7 +52,7 @@ const TicketOrder = () => {
       originalData: booking,
     };
     return transformedData;
-  }; // Lọc đơn hàng theo tìm kiếm và trạng thái
+  };
 
   useEffect(() => {
     if (!bookingsData?.data) return;
@@ -73,7 +72,6 @@ const TicketOrder = () => {
       );
     }
 
-    // Cập nhật logic lọc để sử dụng trạng thái tiếng Anh
     if (statusFilter !== "Tất cả") {
       filtered = filtered.filter((order) => {
         if (statusFilter === "Chờ thanh toán") {
@@ -98,7 +96,7 @@ const TicketOrder = () => {
   const paginatedOrders = filteredOrders.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
-  ); // const handleAddOrder = () => { // setShowForm(true); // setEditingOrder(null); // setIsEditMode(false); // };
+  ); 
 
   const handleEditOrder = (order) => {
     if (!order.canEdit) {

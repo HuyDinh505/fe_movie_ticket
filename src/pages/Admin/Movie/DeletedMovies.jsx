@@ -34,7 +34,6 @@ const DeletedMovies = () => {
     },
   });
 
-  // Restore movie mutation using the new authenticated hook
   const { mutate: restoreMovieMutation, isLoading: isRestoring } =
     useRestoreMovieUS({
       onSuccess: (response) => {

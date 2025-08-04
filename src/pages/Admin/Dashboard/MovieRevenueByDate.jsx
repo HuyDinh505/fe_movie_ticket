@@ -78,7 +78,7 @@ const MovieRevenueByDate = () => {
   }, [allMoviesRevenueData]);
 
   // Xử lý dữ liệu doanh thu của một phim cụ thể để hiển thị
-  // Cần tính tổng từ singleMoviePeriods
+  // tính tổng từ singleMoviePeriods
   const singleMovie = useMemo(() => {
     if (!singleMovieRevenueData?.data) {
       return [];

@@ -69,7 +69,6 @@ const TicketSummary = ({
           </div>
         </div>
         <div className="flex flex-col gap-2 w-full sm:w-auto">
-          {/* Dòng này đã được thay đổi */}
           <button
             className="text-black bg-white px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-200 transition-colors w-full"
             // style={{ backgroundColor: "var(--color-)" }}

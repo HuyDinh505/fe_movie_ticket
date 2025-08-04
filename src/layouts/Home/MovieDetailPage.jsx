@@ -32,7 +32,7 @@ function MovieDetailPage({ movie }) {
         </div>
       </div>
 
-      {/* Movie Info and Description Container */}
+
       <div className="mt-28 md:mt-32 space-y-0 px-1 sm:px-0 ">
         {/* Thông tin phim */}
         <div className="-mt-20 md:pt-0 md:ml-[240px]">

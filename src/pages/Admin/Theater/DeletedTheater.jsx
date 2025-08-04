@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { FaSearch } from "react-icons/fa";
-import Swal from "sweetalert2"; // Import SweetAlert2
+import Swal from "sweetalert2";
 import TheaterTable from "../../../components/admin/Theater/TheaterTable";
 import {
   useGetDeletedCinemasUS,
@@ -23,25 +23,22 @@ const DeletedTheater = () => {
   const currenRole =
     userData?.role || (Array.isArray(userData?.roles) ? userData.roles[0] : "");
 
-  // Function to handle the restore confirmation using SweetAlert
   const handleAskRestore = (cinemaId) => {
     Swal.fire({
       title: "Xác nhận khôi phục rạp chiếu",
       text: "Bạn có chắc chắn muốn khôi phục rạp chiếu này không?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#22C55E", // Tailwind green-500
-      cancelButtonColor: "#6B7280", // Tailwind gray-500
+      confirmButtonColor: "#22C55E",
+      cancelButtonColor: "#6B7280",
       confirmButtonText: "Khôi phục",
       cancelButtonText: "Hủy",
       reverseButtons: true,
     }).then((result) => {
-      // If the user clicks the "Restore" button
       if (result.isConfirmed) {
         restoreCinema.mutate(cinemaId, {
           onSuccess: () => {
             toast.success("Khôi phục rạp chiếu thành công!");
-            // Invalidate queries to refetch the data and update the UI
             queryClient.invalidateQueries({
               queryKey: ["getDeletedCinemasAPI"],
             });
@@ -57,7 +54,6 @@ const DeletedTheater = () => {
     });
   };
 
-  // Filter cinemas based on the search term
   const filteredCinemas = Array.isArray(deletedCinemasData?.data)
     ? deletedCinemasData.data.filter((cinema) => {
         const matchSearch = cinema.cinema_name

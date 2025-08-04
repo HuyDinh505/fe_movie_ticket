@@ -60,11 +60,10 @@ const TheaterManagement = () => {
     setEditingTheater(theater);
     setIsFormVisible(true);
     setSelectedCinemaIdForRooms(theater.cinema_id);
-    setIsRoomFormVisible(false); // Đảm bảo đóng RoomForm Modal khi mở TheaterForm
+    setIsRoomFormVisible(false);
     setEditingRoom(null);
   };
 
-  // --- HÀM XÓA RẠP ĐÃ SỬA ĐỔI ĐỂ DÙNG SWAL CHO XÁC NHẬN ---
   const handleDelete = (theaterId) => {
     Swal.fire({
       title: "Bạn có chắc chắn muốn xóa rạp chiếu này không?",
@@ -73,7 +72,7 @@ const TheaterManagement = () => {
       showCancelButton: true,
       confirmButtonText: "Xóa",
       cancelButtonText: "Hủy",
-      confirmButtonColor: "#d33", // Màu đỏ cho nút xóa
+      confirmButtonColor: "#d33",
       allowOutsideClick: false,
       allowEscapeKey: false,
       reverseButtons: true,
@@ -199,7 +198,7 @@ const TheaterManagement = () => {
             }
             toast.success(
               response.message || "Cập nhật phòng chiếu thành công!"
-            ); // Sửa lỗi response.message
+            );
             setIsRoomFormVisible(false);
             setEditingRoom(null);
             queryClient.invalidateQueries({

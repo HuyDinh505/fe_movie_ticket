@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from "react";
 import RoomTable from "../../../components/admin/Room/RoomTable";
 import RoomForm from "../../../components/admin/Room/RoomForm";
-import Modal from "../../../components/ui/Modal"; // Đảm bảo bạn có component Modal này
+import Modal from "../../../components/ui/Modal";
 import { FaPlus } from "react-icons/fa";
 import { toast } from "react-toastify";
-import Swal from "sweetalert2"; // Để dùng SweetAlert2
+import Swal from "sweetalert2";
 import { AuthContext } from "../../../contexts/AuthContext";
 import {
   useGetAllCinemasUS,
@@ -13,7 +13,7 @@ import {
   useUpdateTheaterRoomUS,
   useDeleteTheaterRoomUS,
   useRestoreTheaterRoomUS,
-} from "../../../api/homePage/queries"; // Đảm bảo đường dẫn đúng
+} from "../../../api/homePage/queries";
 import { useQueryClient } from "@tanstack/react-query";
 import { handleApiError, getApiMessage } from "../../../Utilities/apiMessage";
 
@@ -28,14 +28,12 @@ const TheaterRoomsManagement = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
 
-  // === FETCHING CINEMA DATA BASED ON ROLE ===
-  // Lấy tất cả rạp cho Admin
+
   const { data: allCinemasData, isLoading: loadingAllCinemas } =
     useGetAllCinemasUS({
-      enabled: role === "admin", // Chỉ fetch nếu là admin
+      enabled: role === "admin",
     });
 
-  // Lấy rạp cụ thể cho Cinema/Showtime/District Manager
   const { data: userCinemaData, isLoading: loadingUserCinema } =
     useGetCinemaByIdUS(userData?.cinema_id, {
       enabled:
@@ -45,7 +43,6 @@ const TheaterRoomsManagement = () => {
           role === "manager_district"),
     });
 
-  // === EFFECT TO MANAGE CINEMA LIST AND SELECTED CINEMA ===
   useEffect(() => {
     let finalCinemasList = [];
     let defaultSelectedCinemaId = "";
@@ -55,9 +52,9 @@ const TheaterRoomsManagement = () => {
       role === "showtime_manager" ||
       role === "manager_district"
     ) {
-      // For managers: Only fetch their specific cinema
+
       if (userCinemaData?.data) {
-        finalCinemasList = [userCinemaData.data]; // Ensure it's an array
+        finalCinemasList = [userCinemaData.data];
         defaultSelectedCinemaId = userData.cinema_id;
         console.log(
           "TheaterRoomsManagement - Manager: Fetched user's cinema:",
@@ -77,11 +74,10 @@ const TheaterRoomsManagement = () => {
         );
       }
     } else if (role === "admin") {
-      // For admin: Fetch all cinemas
       if (allCinemasData?.data) {
         finalCinemasList = allCinemasData.data;
         if (finalCinemasList.length > 0) {
-          defaultSelectedCinemaId = finalCinemasList[0].cinema_id; // Select the first cinema by default
+          defaultSelectedCinemaId = finalCinemasList[0].cinema_id;
         }
         console.log(
           "TheaterRoomsManagement - Admin: Fetched all cinemas:",
@@ -93,7 +89,6 @@ const TheaterRoomsManagement = () => {
     }
     setCinemas(finalCinemasList);
 
-    // Auto-select cinema if not already selected and a default is available
     if (
       finalCinemasList.length > 0 &&
       !selectedCinema &&
@@ -115,15 +110,13 @@ const TheaterRoomsManagement = () => {
     loadingUserCinema,
   ]);
 
-  // === MUTATIONS FOR ROOM OPERATIONS ===
   const createRoom = useCreateTheaterRoomUS();
   const updateRoom = useUpdateTheaterRoomUS();
   const deleteRoom = useDeleteTheaterRoomUS();
   const restoreRoom = useRestoreTheaterRoomUS();
 
-  // === HANDLERS FOR ROOM OPERATIONS ===
   const handleAddRoom = () => {
-    setEditingRoom(null); // Clear any previous editing data
+    setEditingRoom(null);
     setIsFormVisible(true);
   };
 
@@ -138,15 +131,13 @@ const TheaterRoomsManagement = () => {
   };
 
   const handleAddOrUpdateRoom = async (formData) => {
-    // Add cinema_id to the form data before sending to API
     const payload = {
       ...formData,
-      cinema_id: parseInt(selectedCinema), // Ensure cinema_id is included and parsed as int
+      cinema_id: parseInt(selectedCinema),
     };
 
     try {
       if (editingRoom) {
-        // Update existing room
         const res = await updateRoom.mutateAsync({
           roomId: editingRoom.room_id,
           roomData: payload,
@@ -167,7 +158,6 @@ const TheaterRoomsManagement = () => {
       }
       setIsFormVisible(false);
       setEditingRoom(null);
-      // Invalidate queries to refetch updated room list for the current cinema
       queryClient.invalidateQueries([
         "GetTheaterRoomsByCinemaAPI",
         selectedCinema,

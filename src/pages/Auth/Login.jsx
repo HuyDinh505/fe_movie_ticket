@@ -60,18 +60,15 @@ function LoginPage() {
     setLoading(true);
     try {
       const response = await authAPI.login(email, password);
-      // console.log("Login API response full:", response);
-      // Kiểm tra token trong response
+
       const token = response.data?.access_token;
       const refreshToken = response.data?.refresh_token;
-      // console.log("Extracted token:", token);
       if (token) {
-        // Lưu token và refresh token vào localStorage
         localStorage.setItem("token", token);
         if (refreshToken) {
           localStorage.setItem("refreshToken", refreshToken);
         }
-        // Lưu thông tin user nếu cần
+        // Lưu thông tin user
         if (response.data?.user) {
           // Xử lý role từ mảng roles
           const userData = response.data.user;

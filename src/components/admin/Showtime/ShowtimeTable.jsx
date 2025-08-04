@@ -11,7 +11,7 @@ const ShowtimeTable = ({
 }) => {
   const getStatusBadgeClass = (status) => {
     switch (status) {
-      case "showing":
+      case "now showing":
         return "bg-green-100 text-green-600";
       case "upcoming":
         return "bg-blue-100 text-blue-600";
@@ -29,7 +29,7 @@ const ShowtimeTable = ({
   };
   const getStatusDisplayName = (status) => {
     switch (status) {
-      case "showing":
+      case "now showing":
         return "Đang chiếu";
       case "upcoming":
         return "Sắp chiếu";

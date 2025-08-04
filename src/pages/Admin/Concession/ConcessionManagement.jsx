@@ -110,17 +110,15 @@ const ConcessionManagement = () => {
     setIsFormVisible(true);
   };
 
-  // Trước đây: async (concessionData) => { ... }
+  
   const handleSaveConcession = async (concessionId, concessionData) => {
     try {
       if (concessionId) {
-        // Logic cập nhật
         updateConcession({
-          concessionId, // Dùng concessionId nhận được
-          concessionData, // Dùng concessionData nhận được (là FormData)
+          concessionId,
+          concessionData,
         });
       } else {
-        // Logic thêm mới
         createConcession(concessionData);
       }
     } catch (error) {

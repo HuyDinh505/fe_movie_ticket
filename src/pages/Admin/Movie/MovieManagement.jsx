@@ -25,10 +25,7 @@ const MovieManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  // const [confirmModal, setConfirmModal] = useState({
-  //   open: false,
-  //   id: null,
-  // });
+
   const [detailModal, setDetailModal] = useState({ open: false, movie: null });
   const [trailerModal, setTrailerModal] = useState({ open: false, url: null });
 
@@ -60,8 +57,6 @@ const MovieManagement = () => {
         name: s.screening_type_name,
       }))
     : [];
-  // console.log("Danh sách screen:", screenTypes);
-  // Chọn data phù hợp theo role
   const moviesData =
     role === "district_manager" ? managedMoviesData : allMoviesData;
   const loading = role === "district_manager" ? loadingManaged : loadingAll;
