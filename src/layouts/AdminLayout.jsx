@@ -5,13 +5,13 @@ import HeaderAdmin from "../components/layout/headerAdmin"; // Import HeaderAdmi
 
 const AdminLayout = () => {
   return (
-    <div className="flex min-h-screen bg-gradient-to-r from-slate-100">
+    <div className="flex min-h-screen">
       {/* Sidebar cố định */}
       <SidebarAdmin />
-      <div className="flex flex-col flex-1 ml-64">
+      <div className="flex flex-col flex-1 md:ml-64">
         {" "}
         <HeaderAdmin />
-        <main className="flex-1 overflow-auto mt-20">
+        <main className="flex-1 overflow-auto mt-20 w-full">
           {" "}
           <div className="container mx-auto">
             <Outlet />

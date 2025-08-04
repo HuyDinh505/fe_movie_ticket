@@ -41,9 +41,11 @@ import {
   deleteConcessionAPI,
   restoreConcessionAPI,
   getAllDistrictsAPI,
+  getDeleteAllDistrictsAPI,
   createDistrictAPI,
   updateDistrictAPI,
   deleteDistrictAPI,
+  restoreDistrictAPI,
   getTheaterRoomsByCinemaAPI,
   getAllTheaterRoomsAPI,
   getTheaterRoomByIdAPI,
@@ -69,13 +71,13 @@ import {
   getSeatMapCheckAPI,
   initiatePaymentAPI,
   checkPaymentStatusAPI,
-  // testAPI,
-  // testMomoAPI,
   getAllMovieSchedulesAPI,
   getMovieScheduleByIdAPI,
   createMovieScheduleAPI,
   updateMovieScheduleAPI,
   deleteMovieScheduleAPI,
+  getDeleteAllMovieSchedulesAPI,
+  restoreScheduleAPI,
   restoreGenreAPI,
   getDeletedGenresAPI,
   getAllTicketTypesAPI,
@@ -610,6 +612,14 @@ export const useGetAllDistrictsUS = (option) => {
     ...option,
   });
 };
+export const useGetDeleteAllDistrictsUS = (option) => {
+  return useQuery({
+    queryKey: ["getDeleteAllDistrictsAPI"],
+    queryFn: getDeleteAllDistrictsAPI,
+    ...optionsUseQuery,
+    ...option,
+  });
+};
 export const useCreateDistrictUS = (option) => {
   return useMutation({
     mutationFn: createDistrictAPI,
@@ -628,6 +638,14 @@ export const useDeleteDistrictUS = (option) => {
     mutationFn: deleteDistrictAPI,
     ...optionsUseQuery,
     ...option,
+  });
+};
+export const useRestoreDistrictUS = (districtId, options = {}) => {
+  return useQuery({
+    queryKey: ["restoreDistrictAPI", districtId],
+    queryFn: () => restoreDistrictAPI(districtId),
+    enabled: !!districtId, // Chỉ chạy query khi có districtId
+    ...options,
   });
 };
 // Genre hooks
@@ -773,7 +791,13 @@ export const useGetAllMovieSchedulesUS = (option) => {
     ...option,
   });
 };
-
+export const useGetDeleteAllMovieSchedulesUS = (option) => {
+  return useQuery({
+    queryKey: ["getDeleteAllMovieSchedulesAPI"],
+    queryFn: getDeleteAllMovieSchedulesAPI,
+    ...option,
+  });
+};
 export const useGetMovieScheduleByIdUS = (id, option) => {
   return useQuery({
     queryKey: ["GetMovieScheduleByIdAPI", id],
@@ -812,7 +836,12 @@ export const useGetDeletedGenresUS = (option) => {
     ...option,
   });
 };
-
+export const useRestoreScheduleUS = (option) => {
+  return useMutation({
+    mutationFn: restoreScheduleAPI,
+    ...option,
+  });
+};
 // =====================
 // Booking Hooks (Đặt vé)
 // =====================

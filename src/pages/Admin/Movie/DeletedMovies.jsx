@@ -10,6 +10,8 @@ import { FaSearch } from "react-icons/fa";
 import Modal from "../../../components/ui/Modal";
 import MovieDetailModalContent from "../../../components/ui/MovieDetailModalContent";
 import { getApiMessage, handleApiError } from "../../../Utilities/apiMessage";
+import Swal from "sweetalert2";
+
 const ITEMS_PER_PAGE = 10;
 
 const DeletedMovies = () => {
@@ -17,10 +19,8 @@ const DeletedMovies = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState("");
   const queryClient = useQueryClient();
-  const [confirmModal, setConfirmModal] = useState({ open: false, id: null });
   const [detailModal, setDetailModal] = useState({ open: false, movie: null });
 
-  // Fetch deleted movies using the new authenticated hook
   const {
     data: deletedMoviesResponse,
     isLoading,
@@ -38,35 +38,34 @@ const DeletedMovies = () => {
   const { mutate: restoreMovieMutation, isLoading: isRestoring } =
     useRestoreMovieUS({
       onSuccess: (response) => {
-        // Đổi tên 'data' thành 'response' cho rõ ràng
-        // Kiểm tra lỗi nghiệp vụ từ phản hồi của server (nếu API trả về HTTP 200 nhưng có lỗi)
-        // Dựa trên cách bạn xử lý ở ConcessionManagement.jsx, tôi giả định cấu trúc này
         if (response?.data?.status === false) {
-          // console.log("API Restore Response (Business Error):", response);
           handleApiError(response.data, "Khôi phục phim thất bại");
-          // Không reset state ngay lập tức nếu có lỗi nghiệp vụ để người dùng có thể thấy thông báo
-          // và quyết định hành động tiếp theo. Có thể reset sau 1 thời gian.
-          // setShowConfirmModal(false);
-          // setSelectedConcessionId(null);
-          // setSelectedConcessionName("");
           return;
         }
-        toast.success(response.message);
-        queryClient.invalidateQueries({ queryKey: ["GetDeletedMoviesAPI"] }); // Đảm bảo key đúng!
+        toast.success(getApiMessage(response, "Khôi phục phim thành công"));
+        queryClient.invalidateQueries({ queryKey: ["GetDeletedMoviesAPI"] });
       },
       onError: (error) => {
-        toast.error(getApiMessage(error, "Không thể khôi phục đồ ăn/uống"));
+        toast.error(getApiMessage(error, "Không thể khôi phục phim"));
       },
     });
-  const handleRestoreMovie = (id) => {
-    setConfirmModal({ open: true, id });
-  };
 
-  const handleConfirmRestore = () => {
-    if (confirmModal.id) {
-      restoreMovieMutation(confirmModal.id);
-    }
-    setConfirmModal({ open: false, id: null });
+  const handleRestoreMovie = (id) => {
+    Swal.fire({
+      title: "Bạn có chắc chắn không?",
+      text: "Bạn muốn khôi phục bộ phim này?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#22C55E",
+      cancelButtonColor: "#6B7280",
+      confirmButtonText: "Vâng, khôi phục nó!",
+      cancelButtonText: "Hủy bỏ",
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        restoreMovieMutation(id);
+      }
+    });
   };
 
   const movies = deletedMoviesResponse?.data?.movies || [];
@@ -127,7 +126,7 @@ const DeletedMovies = () => {
         </div>
       </div>
 
-      <div className="w-full max-w-[1255px]">
+      <div className="w-full">
         <div className="bg-white rounded-xl shadow-lg overflow-auto">
           {isLoading ? (
             <p className="p-4 text-center text-gray-500">
@@ -187,30 +186,7 @@ const DeletedMovies = () => {
             </div>
           )}
         </div>
-        <Modal
-          open={confirmModal.open}
-          onClose={() => setConfirmModal({ open: false, id: null })}
-        >
-          <div>
-            <h2 className="text-lg font-semibold mb-4">
-              Bạn có chắc chắn muốn khôi phục phim này không?
-            </h2>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={handleConfirmRestore}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-              >
-                Xác nhận
-              </button>
-              <button
-                onClick={() => setConfirmModal({ open: false, id: null })}
-                className="bg-gray-300 px-4 py-2 rounded"
-              >
-                Hủy
-              </button>
-            </div>
-          </div>
-        </Modal>
+
         <Modal
           open={detailModal.open}
           onClose={() => setDetailModal({ open: false, movie: null })}

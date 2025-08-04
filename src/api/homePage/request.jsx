@@ -607,6 +607,18 @@ export const getAllDistrictsAPI = async () => {
     throw error;
   }
 };
+export const getDeleteAllDistrictsAPI = async () => {
+  try {
+    const response = await axios({
+      url: `${END_POINT.DISTRICT}/list-restore`,
+      method: "GET",
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách quận:", error);
+    throw error;
+  }
+};
 export const createDistrictAPI = async (districtData) => {
   try {
     const formData = createFormData(districtData);
@@ -654,6 +666,21 @@ export const deleteDistrictAPI = async (districtId) => {
     return response;
   } catch (error) {
     console.error("Lỗi khi xóa quận:", error);
+    throw error;
+  }
+};
+export const restoreDistrictAPI = async (districtId) => {
+  try {
+    const response = await axios({
+      url: `${END_POINT.DISTRICT}/${districtId}/restore`, // Sử dụng URL từ ảnh
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+    return response.data; // Trả về data từ response
+  } catch (error) {
+    console.error("Lỗi khi khôi phục quận/huyện:", error);
     throw error;
   }
 };
@@ -1312,6 +1339,18 @@ export const getAllMovieSchedulesAPI = async () => {
     throw error;
   }
 };
+export const restoreScheduleAPI = async (scheduleId) => {
+  try {
+    const response = await axios({
+      url: `${END_POINT.SCHEDULE}/${scheduleId}/restore`,
+      method: "POST",
+    });
+    return response;
+  } catch (error) {
+    console.error(`Lỗi khi khôi phục phim ${scheduleId}:`, error);
+    throw error;
+  }
+};
 
 export const getMovieScheduleByIdAPI = async (id) => {
   try {
@@ -1366,7 +1405,18 @@ export const deleteMovieScheduleAPI = async (id) => {
     throw error;
   }
 };
-
+export const getDeleteAllMovieSchedulesAPI = async () => {
+  try {
+    const response = await axios({
+      url: `${END_POINT.SCHEDULE}/list-restore`,
+      method: "GET",
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách lịch chiếu đã xóa:", error);
+    throw error;
+  }
+};
 // =====================
 // Booking APIs (Đặt vé)
 // =====================

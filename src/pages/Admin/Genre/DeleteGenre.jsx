@@ -1,45 +1,55 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   useGetDeletedGenresUS,
   useRestoreGenreUS,
-} from "../../../api/homePage/queries";
+} from "../../../api/homePage";
 import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 import GenreTable from "../../../components/admin/Genre/GenreTable";
-import Modal from "../../../components/ui/Modal";
 import { getApiMessage, handleApiError } from "../../../Utilities/apiMessage";
+import Swal from "sweetalert2";
+
 const DeleteGenre = () => {
   const { data, isLoading } = useGetDeletedGenresUS({ staleTime: 0 });
   const restoreGenre = useRestoreGenreUS();
   const queryClient = useQueryClient();
 
-  const [confirmRestore, setConfirmRestore] = useState({
-    open: false,
-    genreId: null,
-  });
-
   const deletedGenres = Array.isArray(data?.data) ? data.data : [];
 
   const handleAskRestore = (genreId) => {
-    setConfirmRestore({ open: true, genreId });
-  };
-
-  const handleConfirmRestore = () => {
-    restoreGenre.mutate(confirmRestore.genreId, {
-      onSuccess: (response) => {
-        if (response?.data.data === false) {
-          handleApiError(response.data, "Khôi phục thể loại thất bại");
-          return;
-        }
-        handleApiError(response.data, "Khôi phục thể loại thành công");
-        queryClient.invalidateQueries({ queryKey: ["GetDeletedGenresAPI"] });
-        queryClient.invalidateQueries({ queryKey: ["GetAllGenresAPI"] });
-      },
-      onError: (error) => {
-        toast.error(getApiMessage(error, "Không thể khôi phục đồ ăn/uống"));
-      },
+    Swal.fire({
+      title: "Bạn có chắc chắn không?",
+      text: "Bạn muốn khôi phục thể loại này?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#22C55E",
+      cancelButtonColor: "#6B7280",
+      confirmButtonText: "Khôi phục!",
+      cancelButtonText: "Hủy bỏ",
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        restoreGenre.mutate(genreId, {
+          onSuccess: (response) => {
+            if (response?.data?.status === false) {
+              handleApiError(response.data, "Khôi phục thể loại thất bại");
+              return;
+            }
+            // Sử dụng getApiMessage để lấy thông điệp từ API hoặc thông điệp mặc định
+            toast.success(
+              getApiMessage(response, "Khôi phục thể loại thành công")
+            );
+            queryClient.invalidateQueries({
+              queryKey: ["GetDeletedGenresAPI"],
+            });
+            queryClient.invalidateQueries({ queryKey: ["GetAllGenresAPI"] });
+          },
+          onError: (error) => {
+            toast.error(getApiMessage(error, "Không thể khôi phục thể loại"));
+          },
+        });
+      }
     });
-    setConfirmRestore({ open: false, genreId: null });
   };
 
   return (
@@ -57,31 +67,6 @@ const DeleteGenre = () => {
           isDeletedView={true}
         />
       </div>
-      <Modal
-        open={confirmRestore.open}
-        onClose={() => setConfirmRestore({ open: false, genreId: null })}
-      >
-        <div className="p-4">
-          <h2 className="text-lg font-semibold mb-4">
-            Xác nhận khôi phục thể loại
-          </h2>
-          <p>Bạn có chắc chắn muốn khôi phục thể loại này không?</p>
-          <div className="flex justify-end gap-2 mt-6">
-            <button
-              onClick={() => setConfirmRestore({ open: false, genreId: null })}
-              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-            >
-              Hủy
-            </button>
-            <button
-              onClick={handleConfirmRestore}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-            >
-              Khôi phục
-            </button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 };

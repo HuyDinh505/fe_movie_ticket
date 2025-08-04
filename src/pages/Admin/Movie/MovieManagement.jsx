@@ -91,7 +91,7 @@ const MovieManagement = () => {
         handleApiError(response.data, "Cập nhật phim thất bại");
         return;
       }
-      handleApiError(response.data, "Cập nhật phim thành công");
+      toast.success(response.message || "Cập nhật phim thành công");
       setIsFormVisible(false);
       fetchMovies();
     },
@@ -281,7 +281,7 @@ const MovieManagement = () => {
             />
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-lg max-h-[80vh] max-w-[1255px] mx-auto overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-lg mx-auto overflow-y-auto">
             <MovieTable
               movies={paginatedMovies}
               onEdit={handleEditMovie}

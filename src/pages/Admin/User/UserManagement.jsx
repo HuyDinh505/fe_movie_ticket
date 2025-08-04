@@ -276,7 +276,7 @@ const UserManagement = () => {
         </div>
       )}
 
-      <div className="max-w-[1255px]">
+      <div className="">
         <div className="bg-white rounded-xl shadow-lg overflow-auto max-h-[70vh]">
           <UserTable
             users={paginatedUsers}

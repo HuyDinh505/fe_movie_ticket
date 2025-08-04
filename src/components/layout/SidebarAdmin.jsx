@@ -37,7 +37,7 @@ const SidebarAdmin = () => {
     user: ["/admin/user"],
     theater: ["/admin/theater", "/admin/delete_cinema"],
     district: ["/admin/district", "/admin/delete_district"],
-    schedule: ["/admin/schedule"],
+    schedule: ["/admin/schedule", "/admin/schedule_delete"],
     showtime: ["/admin/showtime"],
     genre: ["/admin/genre", "/admin/genre_delete"],
     concession: ["/admin/concession", "/admin/delete_concession"],
@@ -54,13 +54,8 @@ const SidebarAdmin = () => {
   // Hàm kiểm tra active cho từng mục con
   const isActiveItem = (path) => currentPath === path;
 
-  // Hàm kiểm tra active cho mục cha: chỉ in đậm khi đúng path cha, không phải path con
-  const isActiveParent = (parentPath, exceptPaths = []) =>
-    currentPath === parentPath &&
-    !exceptPaths.some((path) => currentPath.startsWith(path));
-
   return (
-    <div className="w-64 bg-[#112D4E] text-white h-screen flex flex-col shadow-lg fixed left-0 top-0 p-0 m-0 z-[10000]">
+    <div className="w-[17%] bg-[#112D4E] text-white h-screen flex flex-col shadow-lg fixed left-0 top-0 p-0 m-0 z-[10000]">
       <div
         className="text-3xl font-bold text-[#DBE2EF] mb-8 cursor-pointer p-4"
         onClick={() => navigate("/admin/dashboard")}
@@ -275,6 +270,17 @@ const SidebarAdmin = () => {
                     >
                       <FaUsers className="text-sm" />
                       <span>Danh sách lịch chiếu</span>
+                    </li>
+                    <li
+                      className={`p-2 rounded hover:bg-[#3F72AF] cursor-pointer flex items-center space-x-2 ${
+                        isActiveItem("/admin/schedule_delete")
+                          ? "bg-[#3F72AF]"
+                          : ""
+                      }`}
+                      onClick={() => navigate("/admin/schedule_delete")}
+                    >
+                      <FaUsers className="text-sm" />
+                      <span>Danh sách lịch chiếu đã xóa</span>
                     </li>
                   </ul>
                 )}

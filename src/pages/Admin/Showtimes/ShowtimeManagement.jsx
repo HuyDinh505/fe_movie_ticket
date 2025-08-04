@@ -92,17 +92,17 @@ const ShowtimeManagement = () => {
         finalCinemasList = [userCinemaData.data]; // Đảm bảo là một mảng
         defaultSelectedCinemaId = userData.cinema_id;
         // console.log(
-        //   "ShowtimeManagement - Manager: Fetched user's cinema:",
-        //   finalCinemasList
+        // 	"ShowtimeManagement - Manager: Fetched user's cinema:",
+        // 	finalCinemasList
         // );
       } else if (isLoadingUserCinema) {
         // console.log("ShowtimeManagement - Manager: Loading user's cinema...");
       } else if (userData.cinema_id && !userCinemaData?.data) {
         // Có cinema_id nhưng không fetch được data, có thể do lỗi API hoặc không tìm thấy
         // console.warn(
-        //   "ShowtimeManagement - Manager: Could not fetch cinema for ID:",
-        //   userData.cinema_id,
-        //   userCinemaData
+        // 	"ShowtimeManagement - Manager: Could not fetch cinema for ID:",
+        // 	userData.cinema_id,
+        // 	userCinemaData
         // );
         toast.error(
           "Không thể tải thông tin rạp của bạn. Vui lòng kiểm tra lại."
@@ -138,8 +138,8 @@ const ShowtimeManagement = () => {
     ) {
       setSelectedCinema(defaultSelectedCinemaId);
       // console.log(
-      //   "ShowtimeManagement - Auto-selected cinema:",
-      //   defaultSelectedCinemaId
+      // 	"ShowtimeManagement - Auto-selected cinema:",
+      // 	defaultSelectedCinemaId
       // );
     }
   }, [
@@ -305,7 +305,7 @@ const ShowtimeManagement = () => {
     setIsFormVisible(true);
   };
 
-  const handleReactivate = async (showtimeId) => {
+  const handleReactivateConfirm = async (showtimeId) => {
     try {
       const res = await reactivateShowtime.mutateAsync(showtimeId);
       if (res?.data?.status === false) {
@@ -319,6 +319,24 @@ const ShowtimeManagement = () => {
     } catch (err) {
       toast.error(getApiMessage(err, "Có lỗi khi kích hoạt lại suất chiếu!"));
     }
+  };
+
+  // Hàm mới để hiển thị Swal xác nhận khôi phục
+  const handleReactivateClick = (showtimeId) => {
+    Swal.fire({
+      title: "Bạn có chắc chắn muốn khôi phục?",
+      text: "Suất chiếu này sẽ được kích hoạt lại.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Khôi phục",
+      cancelButtonText: "Hủy",
+      reverseButtons: true,
+      confirmButtonColor: "#3085d6",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        handleReactivateConfirm(showtimeId);
+      }
+    });
   };
 
   const handleDeleteClick = (showtimeId) => {
@@ -409,17 +427,6 @@ const ShowtimeManagement = () => {
     // Nếu backend mong muốn múi giờ địa phương, bạn cần viết hàm format thủ công hơn.
     // Với Laravel (backend phổ biến), ISO string thường hoạt động tốt.
 
-    const start_time_iso = startDateTime
-      .toISOString()
-      .slice(0, 16)
-      .replace("T", " "); // "YYYY-MM-DD HH:MM"
-    const end_time_iso = calculatedEndDateTime
-      .toISOString()
-      .slice(0, 16)
-      .replace("T", " "); // "YYYY-MM-DD HH:MM"
-
-    // HOẶC, nếu bạn muốn đảm bảo định dạng giờ địa phương (như trong ảnh của bạn)
-    // và không muốn dùng toISOString() trực tiếp nếu có vấn đề về múi giờ với backend:
     const formatLocalToApi = (dateObj) => {
       const year = dateObj.getFullYear();
       const month = String(dateObj.getMonth() + 1).padStart(2, "0");
@@ -432,13 +439,8 @@ const ShowtimeManagement = () => {
     const payload = {
       movie_id: parseInt(formData.movieId),
       room_id: parseInt(selectedRoom), // Đảm bảo selectedRoom có giá trị
-      // start_time: start_time_iso, // Dùng ISO string đã định dạng
-      // end_time: end_time_iso,     // Dùng ISO string đã định dạng
-
-      // Hoặc dùng hàm formatLocalToApi nếu muốn giữ định dạng múi giờ địa phương chính xác
       start_time: formatLocalToApi(startDateTime),
       end_time: formatLocalToApi(calculatedEndDateTime),
-
       screen_type: formData.screenType,
       translation_type: formData.translationType,
     };
@@ -649,7 +651,7 @@ const ShowtimeManagement = () => {
             showtimes={showtimes}
             onEdit={handleEdit}
             onDelete={handleDeleteClick}
-            onReactivate={handleReactivate}
+            onReactivate={handleReactivateClick} // Cập nhật prop để sử dụng hàm mới
             loading={loading}
             handleViewSeats={handleViewSeats}
           />

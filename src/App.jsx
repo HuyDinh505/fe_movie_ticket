@@ -54,6 +54,7 @@ import DeleteTicketType from "./pages/Admin/TicketType/DeleteTicketType";
 import PromotionDetail from "./pages/Promotion";
 import React from "react";
 import TheaterRoomsManagement from "./pages/Admin/Room/TheaterRoomsManagement";
+import DeleteSchedule from "./pages/Admin/Schedule/DeleteSchedule";
 
 function App() {
   const location = useLocation();
@@ -141,7 +142,7 @@ function App() {
               element={<TheaterRevenueByDate />}
             />
             <Route path="schedule" element={<ScheduleManagement />} />
-            <Route path="schedule/deleted" element={<ScheduleManagement />} />
+            <Route path="schedule_delete" element={<DeleteSchedule />} />
             <Route path="promotion" element={<PromotionManagement />} />
             {/* Add more admin routes here as needed */}
           </Route>

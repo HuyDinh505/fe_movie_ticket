@@ -6,63 +6,27 @@ import {
 } from "../../../api/homePage";
 import { toast } from "react-toastify";
 import ConcessionTable from "../../../components/admin/Concession/ConcessionTable";
-import Modal from "../../../components/ui/Modal";
 import { getApiMessage, handleApiError } from "../../../Utilities/apiMessage";
+import Swal from "sweetalert2"; // Import SweetAlert2
+import { useQueryClient } from "@tanstack/react-query";
 
 const ITEMS_PER_PAGE = 10;
 
 const DeletedConcession = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [selectedConcessionId, setSelectedConcessionId] = useState(null);
-  const [selectedConcessionName, setSelectedConcessionName] = useState("");
+  const queryClient = useQueryClient();
 
   // Lấy danh sách concession đã xóa mềm
-  const {
-    data: deletedConcessionsData,
-    isLoading,
-    refetch: refetchDeletedConcessions,
-  } = useGetDeletedConcessionUS();
+  const { data: deletedConcessionsData, isLoading: isLoadingConcessions } =
+    useGetDeletedConcessionUS({ staleTime: 0 });
+
+  console.log("Current deleted concessions data:", deletedConcessionsData);
 
   // Hook để khôi phục concession
   const { mutate: restoreConcession, isLoading: isRestoring } =
-    useRestoreConcessionUS({
-      onSuccess: (response) => {
-        // Đổi tên 'data' thành 'response' cho rõ ràng
-        // Kiểm tra lỗi nghiệp vụ từ phản hồi của server (nếu API trả về HTTP 200 nhưng có lỗi)
-        // Dựa trên cách bạn xử lý ở ConcessionManagement.jsx, tôi giả định cấu trúc này
-        if (response?.data?.status === false) {
-          // console.log("API Restore Response (Business Error):", response);
-          handleApiError(response.data, "Khôi phục đồ ăn/uống thất bại");
-          // Không reset state ngay lập tức nếu có lỗi nghiệp vụ để người dùng có thể thấy thông báo
-          // và quyết định hành động tiếp theo. Có thể reset sau 1 thời gian.
-          // setShowConfirmModal(false);
-          // setSelectedConcessionId(null);
-          // setSelectedConcessionName("");
-          return;
-        }
+    useRestoreConcessionUS();
 
-        // Nếu thành công hoàn toàn
-        handleApiError(response.data, "Khôi phục thể loại thành công");
-        refetchDeletedConcessions();
-        setCurrentPage(1);
-        setShowConfirmModal(false); // Đóng modal và reset state khi thành công
-        setSelectedConcessionId(null);
-        setSelectedConcessionName("");
-      },
-      onError: (error) => {
-        // Xử lý lỗi HTTP (ví dụ: 4xx, 5xx) hoặc lỗi mạng
-        toast.error(getApiMessage(error, "Không thể khôi phục đồ ăn/uống"));
-        setShowConfirmModal(false); // Đóng modal và reset state khi có lỗi HTTP/mạng
-        setSelectedConcessionId(null);
-        setSelectedConcessionName("");
-      },
-    });
-  console.log(
-    "DeletedConcession - deletedConcessionsData:",
-    deletedConcessionsData
-  );
   // Lọc theo tên
   const filteredConcessions = Array.isArray(
     deletedConcessionsData?.data?.concessions
@@ -85,24 +49,53 @@ const DeletedConcession = () => {
     setCurrentPage(page);
   };
 
-  // Xử lý khôi phục concession
-  const handleRestore = (concessionId, concessionName) => {
-    setSelectedConcessionId(concessionId);
-    setSelectedConcessionName(concessionName);
-    setShowConfirmModal(true);
-  };
-
-  const handleConfirmRestore = () => {
-    restoreConcession(selectedConcessionId);
-    setShowConfirmModal(false);
-    setSelectedConcessionId(null);
-    setSelectedConcessionName("");
-  };
-
-  const handleCancelRestore = () => {
-    setShowConfirmModal(false);
-    setSelectedConcessionId(null);
-    setSelectedConcessionName("");
+  // Hàm xử lý việc khôi phục concession, sử dụng SweetAlert2 để xác nhận
+  const handleAskRestore = (concessionId, concessionName) => {
+    Swal.fire({
+      title: "Bạn có chắc chắn không?",
+      text: `Bạn muốn khôi phục đồ ăn/uống "${concessionName}"?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#22C55E",
+      cancelButtonColor: "#6B7280",
+      confirmButtonText: "Vâng, khôi phục nó!",
+      cancelButtonText: "Hủy bỏ",
+      reverseButtons: true,
+    }).then((result) => {
+      // Nếu người dùng xác nhận
+      if (result.isConfirmed) {
+        // Gọi mutation để khôi phục concession với concessionId tương ứng
+        restoreConcession(concessionId, {
+          // Xử lý khi API call thành công
+          onSuccess: async (response) => {
+            // Sử dụng async ở đây
+            console.log("Restore API call successful. Response:", response);
+            if (response?.data?.status === false) {
+              handleApiError(response.data, "Khôi phục đồ ăn/uống thất bại");
+              return;
+            }
+            toast.success(
+              getApiMessage(response, "Khôi phục đồ ăn/uống thành công")
+            );
+            // Sử dụng await để đảm bảo dữ liệu được refetch trước khi cập nhật state
+            console.log("Invalidating queries to trigger refetch...");
+            await queryClient.invalidateQueries({
+              queryKey: ["getDeletedConcessionAPI"],
+            });
+            await queryClient.invalidateQueries({
+              queryKey: ["getDeletedConcessionAPI"],
+            });
+            // Chuyển về trang đầu tiên sau khi khôi phục thành công
+            setCurrentPage(1);
+          },
+          // Xử lý khi API call thất bại
+          onError: (error) => {
+            console.error("Restore API call failed. Error:", error);
+            toast.error(getApiMessage(error, "Không thể khôi phục đồ ăn/uống"));
+          },
+        });
+      }
+    });
   };
 
   return (
@@ -132,10 +125,8 @@ const DeletedConcession = () => {
         <ConcessionTable
           concessions={paginatedConcessions}
           onEdit={() => {}} // Không cho phép edit trong view đã xóa
-          onDelete={(concessionId, concessionName) =>
-            handleRestore(concessionId, concessionName)
-          } // Truyền thêm tên
-          loading={isLoading}
+          onDelete={handleAskRestore} // Cập nhật để gọi hàm mới
+          loading={isLoadingConcessions}
           isDeletedView={true}
         />
 
@@ -171,35 +162,6 @@ const DeletedConcession = () => {
           </div>
         )}
       </div>
-      <Modal open={showConfirmModal} onClose={handleCancelRestore}>
-        <div className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Xác nhận khôi phục
-          </h3>
-          <p className="text-gray-600 mb-6">
-            Bạn có chắc chắn muốn khôi phục đồ ăn/uống{" "}
-            <span className="font-semibold text-blue-600">
-              "{selectedConcessionName}"
-            </span>{" "}
-            không?
-          </p>
-          <div className="flex justify-end space-x-3">
-            <button
-              onClick={handleCancelRestore}
-              className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              Hủy
-            </button>
-            <button
-              onClick={handleConfirmRestore}
-              disabled={isRestoring}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isRestoring ? "Đang khôi phục..." : "Khôi phục"}
-            </button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 };

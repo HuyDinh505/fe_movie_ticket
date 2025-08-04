@@ -2,22 +2,19 @@ import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { FaSearch } from "react-icons/fa";
+import Swal from "sweetalert2"; // Import SweetAlert2
 import TheaterTable from "../../../components/admin/Theater/TheaterTable";
 import {
   useGetDeletedCinemasUS,
   useRestoreCinemaUS,
 } from "../../../api/homePage/queries";
-import Modal from "../../../components/ui/Modal";
 import { useAuth } from "../../../contexts/AuthContext.jsx";
+
 const ITEMS_PER_PAGE = 10;
 
 const DeletedTheater = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [confirmRestore, setConfirmRestore] = useState({
-    open: false,
-    cinemaId: null,
-  });
 
   const queryClient = useQueryClient();
   const { data: deletedCinemasData, isLoading } = useGetDeletedCinemasUS();
@@ -25,24 +22,40 @@ const DeletedTheater = () => {
   const { userData } = useAuth();
   const currenRole =
     userData?.role || (Array.isArray(userData?.roles) ? userData.roles[0] : "");
+
+  // Function to handle the restore confirmation using SweetAlert
   const handleAskRestore = (cinemaId) => {
-    setConfirmRestore({ open: true, cinemaId });
-  };
-
-  const handleConfirmRestore = () => {
-    restoreCinema.mutate(confirmRestore.cinemaId, {
-      onSuccess: () => {
-        toast.success("Khôi phục rạp chiếu thành công!");
-        queryClient.invalidateQueries({ queryKey: ["GetDeletedCinemasAPI"] });
-        queryClient.invalidateQueries({ queryKey: ["GetAllCinemasAPI"] });
-      },
-      onError: (error) => {
-        toast.error("Khôi phục rạp chiếu thất bại: " + error.message);
-      },
+    Swal.fire({
+      title: "Xác nhận khôi phục rạp chiếu",
+      text: "Bạn có chắc chắn muốn khôi phục rạp chiếu này không?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#22C55E", // Tailwind green-500
+      cancelButtonColor: "#6B7280", // Tailwind gray-500
+      confirmButtonText: "Khôi phục",
+      cancelButtonText: "Hủy",
+      reverseButtons: true,
+    }).then((result) => {
+      // If the user clicks the "Restore" button
+      if (result.isConfirmed) {
+        restoreCinema.mutate(cinemaId, {
+          onSuccess: () => {
+            toast.success("Khôi phục rạp chiếu thành công!");
+            // Invalidate queries to refetch the data and update the UI
+            queryClient.invalidateQueries({
+              queryKey: ["GetDeletedCinemasAPI"],
+            });
+            queryClient.invalidateQueries({ queryKey: ["GetAllCinemasAPI"] });
+          },
+          onError: (error) => {
+            toast.error("Khôi phục rạp chiếu thất bại: " + error.message);
+          },
+        });
+      }
     });
-    setConfirmRestore({ open: false, cinemaId: null });
   };
 
+  // Filter cinemas based on the search term
   const filteredCinemas = Array.isArray(deletedCinemasData?.data)
     ? deletedCinemasData.data.filter((cinema) => {
         const matchSearch = cinema.cinema_name
@@ -88,7 +101,7 @@ const DeletedTheater = () => {
           <TheaterTable
             theaters={paginatedCinemas}
             onEdit={() => {}}
-            onDelete={handleAskRestore}
+            onDelete={handleAskRestore} // The onDelete handler now uses the SweetAlert function
             loading={isLoading}
             isDeletedView={true}
           />
@@ -125,31 +138,6 @@ const DeletedTheater = () => {
           )}
         </div>
       </div>
-      <Modal
-        open={confirmRestore.open}
-        onClose={() => setConfirmRestore({ open: false, cinemaId: null })}
-      >
-        <div className="p-4">
-          <h2 className="text-lg font-semibold mb-4">
-            Xác nhận khôi phục rạp chiếu
-          </h2>
-          <p>Bạn có chắc chắn muốn khôi phục rạp chiếu này không?</p>
-          <div className="flex justify-end gap-2 mt-6">
-            <button
-              onClick={() => setConfirmRestore({ open: false, cinemaId: null })}
-              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-            >
-              Hủy
-            </button>
-            <button
-              onClick={handleConfirmRestore}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-            >
-              Khôi phục
-            </button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 };

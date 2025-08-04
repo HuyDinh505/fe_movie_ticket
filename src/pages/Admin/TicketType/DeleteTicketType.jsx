@@ -5,36 +5,47 @@ import {
   useRestoreTicketTypeUS,
 } from "../../../api/homePage/queries";
 import { toast } from "react-toastify";
-import Modal from "../../../components/ui/Modal";
 import { useQueryClient } from "@tanstack/react-query";
+import Swal from "sweetalert2";
 
 const DeleteTicketType = () => {
-  const [confirmRestore, setConfirmRestore] = useState({
-    open: false,
-    id: null,
-  });
   const queryClient = useQueryClient();
-  const { data, isLoading } = useGetDeletedTicketTypesUS();
+  const { data, isLoading } = useGetDeletedTicketTypesUS({ staleTime: 0 });
   const restoreTicketType = useRestoreTicketTypeUS();
   const ticketTypes = data?.data || [];
 
-  const handleRestore = (id) => {
-    setConfirmRestore({ open: true, id });
-  };
-
-  const handleConfirmRestore = () => {
-    restoreTicketType.mutate(confirmRestore.id, {
-      onSuccess: () => {
-        toast.success("Khôi phục loại vé thành công!");
-        queryClient.invalidateQueries({
-          queryKey: ["GetDeletedTicketTypesAPI"],
+  // Hàm xử lý việc khôi phục loại vé, sử dụng SweetAlert2 để xác nhận
+  const handleAskRestore = (id) => {
+    Swal.fire({
+      title: "Bạn có chắc chắn không?",
+      text: "Bạn muốn khôi phục loại vé này?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#22C55E",
+      cancelButtonColor: "#6B7280",
+      confirmButtonText: "Vâng, khôi phục nó!",
+      cancelButtonText: "Hủy bỏ",
+      reverseButtons: true,
+    }).then((result) => {
+      // Nếu người dùng xác nhận
+      if (result.isConfirmed) {
+        restoreTicketType.mutate(id, {
+          onSuccess: async () => {
+            toast.success("Khôi phục loại vé thành công!");
+            // Invalidate (vô hiệu hóa) các queries liên quan để React Query fetch lại dữ liệu
+            await queryClient.invalidateQueries({
+              queryKey: ["GetDeletedTicketTypesAPI"],
+            });
+            await queryClient.invalidateQueries({
+              queryKey: ["GetDeletedTicketTypesAPI"], // Giả định có một query hook để lấy tất cả loại vé
+            });
+          },
+          onError: (error) => {
+            toast.error("Khôi phục loại vé thất bại: " + error.message);
+          },
         });
-      },
-      onError: (error) => {
-        toast.error("Khôi phục loại vé thất bại: " + error.message);
-      },
+      }
     });
-    setConfirmRestore({ open: false, id: null });
   };
 
   return (
@@ -49,37 +60,12 @@ const DeleteTicketType = () => {
           <TicketTypeTable
             ticketTypes={ticketTypes}
             onEdit={() => {}}
-            onDelete={handleRestore}
+            onDelete={handleAskRestore} // Cập nhật để gọi hàm mới
             loading={isLoading}
             isDeleting={restoreTicketType.isLoading}
             isDeletedView={true}
           />
         </div>
-        <Modal
-          open={confirmRestore.open}
-          onClose={() => setConfirmRestore({ open: false, id: null })}
-        >
-          <div className="p-4 ">
-            <h2 className="text-lg font-semibold mb-4">
-              Xác nhận khôi phục loại vé
-            </h2>
-            <p>Bạn có chắc chắn muốn khôi phục loại vé này không?</p>
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                onClick={() => setConfirmRestore({ open: false, id: null })}
-                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleConfirmRestore}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer"
-              >
-                Khôi phục
-              </button>
-            </div>
-          </div>
-        </Modal>
       </div>
     </div>
   );

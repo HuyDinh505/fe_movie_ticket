@@ -165,7 +165,7 @@ const PromotionManagement = () => {
               Lỗi khi tải dữ liệu khuyến mãi!
             </div>
           ) : (
-            <div className="max-w-[1255px]">
+            <div className="">
               <PromotionTable
                 promotions={paginatedPromotions}
                 onEdit={handleEditPromotion}
