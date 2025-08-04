@@ -1,25 +1,54 @@
 import React from "react";
+import { FaEdit, FaTrash, FaCheck, FaTable } from "react-icons/fa";
 
+// Hàm ánh xạ trạng thái sang màu sắc
 const statusColor = (status) => {
-  if (status === "Đã thanh toán" || status === "paid" || status === "active")
-    return "bg-green-50 text-green-600 border border-green-200";
-  if (
-    status === "Đã hủy" ||
-    status === "cancelled" ||
-    status === "cancelled_by_room"
-  )
-    return "bg-red-50 text-red-600 border border-red-200";
-  if (
-    status === "Chờ thanh toán" ||
-    status === "pending" ||
-    status === "Thanh toán tại quầy"
-  )
-    return "bg-yellow-50 text-yellow-600 border border-yellow-200";
-  return "bg-gray-100 text-gray-600";
+  switch (status) {
+    case "paid":
+    case "active":
+      return "bg-green-50 text-green-600 border border-green-200";
+    case "pending":
+    case "pending_counter_payment":
+      return "bg-yellow-50 text-yellow-600 border border-yellow-200";
+    case "cancelled":
+    case "failed":
+    case "refunded":
+      return "bg-red-50 text-red-600 border border-red-200";
+    case "finished":
+      return "bg-gray-50 text-gray-600 border border-gray-200";
+    default:
+      return "bg-gray-100 text-gray-600";
+  }
 };
+
+// Hàm ánh xạ trạng thái sang tên hiển thị tiếng Việt
+const getStatusDisplayName = (status) => {
+  switch (status) {
+    case "pending":
+      return "Chờ thanh toán";
+    case "paid":
+      return "Đã thanh toán";
+    case "cancelled":
+      return "Đã hủy";
+    case "active":
+      return "Đang hoạt động"; // Đơn hàng đang diễn ra (suất chiếu đã bắt đầu)
+    case "finished":
+      return "Hoàn thành"; // Đơn hàng đã hoàn thành (suất chiếu đã kết thúc)
+    case "failed":
+      return "Thanh toán thất bại";
+    case "refunded":
+      return "Đã hoàn tiền"; // Đơn hàng đã được thanh toán, nhưng sau đó được hoàn tiền
+    case "pending_counter_payment":
+      return "Thanh toán tại quầy";
+    default:
+      return "Không rõ";
+  }
+};
+
 // Component chỉ nhận dữ liệu đã được phân trang từ component cha
 const TicketTable = ({ orders, onRowClick, onEditClick, onApproveClick }) => {
   console.log("hhhhh:", orders);
+
   const handleEditClick = (e, order) => {
     e.stopPropagation(); // Ngăn không cho trigger onRowClick
     onEditClick(order);
@@ -29,7 +58,7 @@ const TicketTable = ({ orders, onRowClick, onEditClick, onApproveClick }) => {
     e.stopPropagation(); // Ngăn không cho trigger onRowClick
     onApproveClick(order);
   };
-
+  console.log("jjjjj", orders);
   return (
     <div className="overflow-x-auto bg-white rounded-xl shadow-md p-6">
       <table className="min-w-full divide-y divide-gray-200">
@@ -91,7 +120,7 @@ const TicketTable = ({ orders, onRowClick, onEditClick, onApproveClick }) => {
                     order.status
                   )}`}
                 >
-                  {order.status}
+                  {getStatusDisplayName(order.status)}
                 </span>
               </td>
               <td className="px-4 py-3 text-right font-semibold text-blue-700">
@@ -100,17 +129,15 @@ const TicketTable = ({ orders, onRowClick, onEditClick, onApproveClick }) => {
               <td className="px-4 py-3">{order.orderDate}</td>
               <td className="px-4 py-3 text-center space-x-2">
                 <button
-                  onClick={(e) => handleApproveClick(e, order)} // Cập nhật điều kiện disabled để nút duyệt hiện lên cho cả 2 trạng thái
-                  disabled={order.status !== "Thanh toán tại quầy"}
+                  onClick={(e) => handleApproveClick(e, order)}
+                  disabled={order.status !== "pending_counter_payment"}
                   className={`px-3 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
-                    // Cập nhật điều kiện màu sắc cho nút duyệt
-
-                    order.status === "Thanh toán tại quầy"
+                    order.status === "pending_counter_payment"
                       ? "bg-green-500 text-white hover:bg-green-600"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
                   title={
-                    order.status === "Thanh toán tại quầy"
+                    order.status === "pending_counter_payment"
                       ? "Duyệt đơn hàng"
                       : "Không thể duyệt"
                   }

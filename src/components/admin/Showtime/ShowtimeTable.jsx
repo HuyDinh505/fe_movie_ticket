@@ -1,14 +1,5 @@
 import React from "react";
-import { FaEdit, FaTrash, FaCheck, FaTable } from "react-icons/fa";
-
-// const showTypeColor = {
-//   "Theo lịch": "bg-green-100 text-green-600",
-// };
-
-// const translationColor = {
-//   "Phụ đề": "bg-green-100 text-green-600",
-//   "Lồng tiếng": "bg-yellow-100 text-yellow-600",
-// };
+import { FaEdit, FaTrash, FaCheck, FaTable, FaEyeSlash } from "react-icons/fa";
 
 const ShowtimeTable = ({
   showtimes,
@@ -18,27 +9,40 @@ const ShowtimeTable = ({
   loading,
   handleViewSeats,
 }) => {
-  // Xác định trạng thái suất chiếu dựa vào thời gian hiện tại
-  const getShowtimeStatus = (showtime) => {
-    const now = new Date();
-    const start = new Date(showtime.start_time);
-    const end = new Date(showtime.end_time);
-    if (now < start) return "Sắp chiếu";
-    if (now >= start && now <= end) return "Đang chiếu";
-    if (now > end) return "Đã chiếu";
-    return "N/A";
-  };
-
   const getStatusBadgeClass = (status) => {
     switch (status) {
-      case "Đang chiếu":
+      case "showing":
         return "bg-green-100 text-green-600";
-      case "Sắp chiếu":
+      case "upcoming":
         return "bg-blue-100 text-blue-600";
-      case "Đã chiếu":
+      case "finished":
         return "bg-red-100 text-red-500";
+      case "cancelled":
+        return "bg-gray-100 text-gray-500 line-through";
+      case "hidden":
+        return "bg-gray-100 text-gray-500";
+      case "full":
+        return "bg-yellow-100 text-yellow-600";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+  const getStatusDisplayName = (status) => {
+    switch (status) {
+      case "showing":
+        return "Đang chiếu";
+      case "upcoming":
+        return "Sắp chiếu";
+      case "finished":
+        return "Đã chiếu";
+      case "cancelled":
+        return "Đã hủy";
+      case "hidden":
+        return "Đã ẩn";
+      case "full":
+        return "Hết chỗ";
+      default:
+        return "N/A";
     }
   };
 
@@ -52,107 +56,103 @@ const ShowtimeTable = ({
 
   return (
     <div className="overflow-x-auto">
+      {" "}
       <table className="min-w-full divide-y divide-gray-200">
+        {" "}
         <thead className="bg-gray-50">
+          {" "}
           <tr>
+            {" "}
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Phim
-            </th>
+              Phim{" "}
+            </th>{" "}
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Phòng
-            </th>
+              Phòng{" "}
+            </th>{" "}
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Thời gian
-            </th>
-            {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Loại màn hình
-            </th>
+              Thời gian{" "}
+            </th>{" "}
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Phụ đề
-            </th> */}
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Trạng thái
-            </th>
+              Trạng thái{" "}
+            </th>{" "}
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Thao tác
-            </th>
-          </tr>
-        </thead>
+              Thao tác{" "}
+            </th>{" "}
+          </tr>{" "}
+        </thead>{" "}
         <tbody className="bg-white divide-y divide-gray-200">
+          {" "}
           {showtimes.map((showtime) => (
             <tr key={showtime.id}>
+              {" "}
               <td className="px-6 py-4 whitespace-nowrap">
+                {" "}
                 <div className="text-sm font-medium text-gray-900">
-                  {showtime.movie_name}
-                </div>
-              </td>
+                  {showtime.movie_name}{" "}
+                </div>{" "}
+              </td>{" "}
               <td className="px-6 py-4 whitespace-nowrap">
+                {" "}
                 <div className="text-sm text-gray-900">
-                  {showtime.room_name}
-                </div>
-              </td>
+                  {showtime.room_name}{" "}
+                </div>{" "}
+              </td>{" "}
               <td className="px-6 py-4 whitespace-nowrap">
+                {" "}
                 <div className="text-sm text-gray-900">
-                  {showtime.time_range}
-                </div>
-              </td>
-              {/* <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">
-                  {showtime.screen_type}
-                </div>
-              </td>
+                  {showtime.time_range}{" "}
+                </div>{" "}
+              </td>{" "}
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">
-                  {showtime.translation_type}
-                </div>
-              </td> */}
-              <td className="px-6 py-4 whitespace-nowrap">
+                {" "}
                 <span
                   className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(
-                    getShowtimeStatus(showtime)
+                    showtime.status
                   )}`}
                 >
-                  {getShowtimeStatus(showtime)}
-                </span>
-              </td>
+                  {getStatusDisplayName(showtime.status)}{" "}
+                </span>{" "}
+              </td>{" "}
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                {" "}
                 <div className="flex justify-end space-x-2">
+                  {/* Các nút chức năng */}{" "}
                   <button
                     onClick={() => onEdit(showtime)}
                     className="text-indigo-600 hover:text-indigo-900 cursor-pointer"
                   >
-                    <FaEdit className="w-5 h-5" />
-                  </button>
+                    <FaEdit className="w-5 h-5" />{" "}
+                  </button>{" "}
                   {showtime.status?.toLowerCase() === "cancelled" && (
                     <button
                       onClick={() => onReactivate(showtime.id)}
                       className="text-green-600 hover:text-green-900 cursor-pointer"
                       title="Kích hoạt lại"
                     >
-                      <FaCheck className="w-5 h-5" />
+                      <FaCheck className="w-5 h-5" />{" "}
                     </button>
-                  )}
+                  )}{" "}
                   {showtime.status?.toLowerCase() !== "cancelled" && (
                     <button
                       onClick={() => onDelete(showtime.id)}
                       className="text-red-600 hover:text-red-900 cursor-pointer"
                     >
-                      <FaTrash className="w-5 h-5" />
+                      <FaTrash className="w-5 h-5" />{" "}
                     </button>
-                  )}
+                  )}{" "}
                   <button
                     onClick={() => handleViewSeats(showtime.id)}
                     className="text-green-600 hover:text-green-900"
                     title="Xem ghế"
                   >
-                    <FaTable className="w-5 h-5" />
-                  </button>
-                </div>
-              </td>
+                    <FaTable className="w-5 h-5" />{" "}
+                  </button>{" "}
+                </div>{" "}
+              </td>{" "}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          ))}{" "}
+        </tbody>{" "}
+      </table>{" "}
     </div>
   );
 };

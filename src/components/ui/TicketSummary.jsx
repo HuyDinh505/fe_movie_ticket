@@ -22,7 +22,7 @@ const TicketSummary = ({
     tickets.some((t) => t.count > 0) &&
     seats &&
     seats.length === totalTicketsCount;
-
+  console.log("hhhh:", cinema);
   const formatTickets = () => {
     if (!tickets) return "";
     return tickets

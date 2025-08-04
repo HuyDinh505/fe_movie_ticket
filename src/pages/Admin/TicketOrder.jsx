@@ -36,24 +36,12 @@ const TicketOrder = () => {
       id: booking.booking_id,
       movie: booking.movie_name || "Không rõ",
       showTime: booking.showtime_start_end,
-      showDate: booking.showtime_date
-        ? new Date(booking.booking_date).toLocaleDateString("vi-VN")
-        : booking.booking_date,
+      showDate: booking.showtime_date || booking.booking_date,
       room: booking.room_name || "Phòng chiếu",
-      status:
-        booking.status === "paid" || booking.status === "active"
-          ? "Đã thanh toán"
-          : booking.status === "pending"
-          ? "Chờ thanh toán"
-          : booking.status === "cancelled"
-          ? "Đã hủy"
-          : booking.status === "pending_counter_payment"
-          ? "Thanh toán tại quầy"
-          : booking.status,
+      // KHÔNG chuyển đổi trạng thái ở đây, để component TicketTable xử lý
+      status: booking.status,
       total: booking.total_price?.toLocaleString() || "0",
-      orderDate: booking.booking_date
-        ? new Date(booking.booking_date).toLocaleDateString("vi-VN")
-        : booking.booking_date,
+      orderDate: booking.booking_date,
       customer: booking.user?.full_name || "Khách hàng",
       phone: booking.customer_phone || "Chưa có",
       email: booking.customer_email || "Chưa có",
@@ -85,25 +73,20 @@ const TicketOrder = () => {
       );
     }
 
+    // Cập nhật logic lọc để sử dụng trạng thái tiếng Anh
     if (statusFilter !== "Tất cả") {
       filtered = filtered.filter((order) => {
         if (statusFilter === "Chờ thanh toán") {
           return (
-            order.status === "Chờ thanh toán" || order.status === "pending"
+            order.status === "pending" ||
+            order.status === "pending_counter_payment"
           );
         } else if (statusFilter === "Đã thanh toán") {
-          return (
-            order.status === "Đã thanh toán" ||
-            order.status === "paid" ||
-            order.status === "active"
-          );
+          return order.status === "paid" || order.status === "active";
         } else if (statusFilter === "Đã hủy") {
-          return order.status === "Đã hủy" || order.status === "cancelled";
-        } else if (statusFilter === "Thanh toán tại quầy") {
-          return order.status === "Thanh toán tại quầy";
-        } else {
-          return order.status === statusFilter;
+          return order.status === "cancelled";
         }
+        return false;
       });
     }
 
@@ -115,7 +98,7 @@ const TicketOrder = () => {
   const paginatedOrders = filteredOrders.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
-  ); // const handleAddOrder = () => { //   setShowForm(true); //   setEditingOrder(null); //   setIsEditMode(false); // };
+  ); // const handleAddOrder = () => { // setShowForm(true); // setEditingOrder(null); // setIsEditMode(false); // };
 
   const handleEditOrder = (order) => {
     if (!order.canEdit) {
@@ -136,14 +119,14 @@ const TicketOrder = () => {
     Swal.fire({
       title: "Xác nhận duyệt đơn hàng",
       html: `
-        <p class="text-sm text-gray-600">Bạn có chắc chắn muốn duyệt và đánh dấu đơn hàng này là **Đã thanh toán**?</p>
-        <div class="mt-4 text-left p-4 bg-gray-100 rounded-lg">
-          <p class="font-semibold text-gray-800">Mã đơn: <span class="font-normal">${order.id}</span></p>
-          <p class="font-semibold text-gray-800">Tên phim: <span class="font-normal">${order.movie}</span></p>
-          
-          <p class="font-semibold text-gray-800">Tổng tiền: <span class="font-normal">${order.total} VND</span></p>
-        </div>
-      `,
+    <p class="text-sm text-gray-600">Bạn có chắc chắn muốn duyệt và đánh dấu đơn hàng này là **Đã thanh toán**?</p>
+    <div class="mt-4 text-left p-4 bg-gray-100 rounded-lg">
+      <p class="font-semibold text-gray-800">Mã đơn: <span class="font-normal">${order.id}</span></p>
+      <p class="font-semibold text-gray-800">Tên phim: <span class="font-normal">${order.movie}</span></p>
+    
+      <p class="font-semibold text-gray-800">Tổng tiền: <span class="font-normal">${order.total} VND</span></p>
+    </div>
+    `,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Đồng ý",
@@ -215,41 +198,36 @@ const TicketOrder = () => {
 
   return (
     <div className="ml-2 space-y-6 sm:space-y-2">
-           {" "}
+      {" "}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center sm:p-6 bg-white rounded-xl shadow-lg sticky top-0 z-30">
-               {" "}
+        {" "}
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight mb-4 sm:mb-0">
-                    Quản lý Đơn hàng        {" "}
-        </h1>
-               {" "}
+          {" "}
+          Quản lý Đơn hàng{" "}
+        </h1>{" "}
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                   {" "}
+          {" "}
           <input
             type="text"
             placeholder="Tìm kiếm theo mã đơn, tên khách, phim..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-                   {" "}
+          />{" "}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-                        <option value="Tất cả">Tất cả trạng thái</option>       
-                <option value="Chờ thanh toán">Chờ thanh toán</option>         
-              <option value="Thanh toán tại quầy">Thanh toán tại quầy</option> 
-                      <option value="Đã thanh toán">Đã thanh toán</option>     
-                  <option value="Đã hủy">Đã hủy</option>         {" "}
-          </select>
-                 {" "}
-        </div>
-             {" "}
-      </div>
-           {" "}
+            <option value="Tất cả">Tất cả trạng thái</option>
+            <option value="Chờ thanh toán">Chờ thanh toán</option>
+            <option value="Đã thanh toán">Đã thanh toán</option>
+            <option value="Đã hủy">Đã hủy</option>{" "}
+          </select>{" "}
+        </div>{" "}
+      </div>{" "}
       <div className="w-full">
-               {" "}
+        {" "}
         {showForm ? (
           <TicketForm
             order={editingOrder}
@@ -259,36 +237,33 @@ const TicketOrder = () => {
           />
         ) : !selectedOrder ? (
           <div className="bg-white rounded-xl shadow-lg overflow-auto">
-                       {" "}
+            {" "}
             {isLoading ? (
               <div className="p-8 text-center">
-                               {" "}
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                               {" "}
-                <p className="mt-4 text-gray-600">Đang tải dữ liệu...</p>       
-                     {" "}
+                {" "}
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>{" "}
+                <p className="mt-4 text-gray-600">Đang tải dữ liệu...</p>{" "}
               </div>
             ) : (
               <>
-                               {" "}
+                {" "}
                 <TicketTable
                   orders={paginatedOrders}
                   onRowClick={setSelectedOrder}
                   onEditClick={handleEditOrder}
                   onApproveClick={handleApproveOrder}
-                />
-                               {" "}
+                />{" "}
                 {totalPages > 1 && (
                   <div className="flex justify-center mt-4 mb-4">
-                                       {" "}
+                    {" "}
                     <button
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
                       className="cursor-pointer px-3 py-1 mx-1 rounded bg-gray-200 disabled:opacity-50"
                     >
-                                            Trước                    {" "}
-                    </button>
-                                       {" "}
+                      {" "}
+                      Trước{" "}
+                    </button>{" "}
                     {[...Array(totalPages)].map((_, idx) => (
                       <button
                         key={idx}
@@ -299,10 +274,10 @@ const TicketOrder = () => {
                             : "bg-gray-200"
                         }`}
                       >
-                                                {idx + 1}                     {" "}
+                        {" "}
+                        {idx + 1}{" "}
                       </button>
-                    ))}
-                                       {" "}
+                    ))}{" "}
                     <button
                       onClick={() =>
                         setCurrentPage((p) => Math.min(totalPages, p + 1))
@@ -310,22 +285,21 @@ const TicketOrder = () => {
                       disabled={currentPage === totalPages}
                       className="cursor-pointer px-3 py-1 mx-1 rounded bg-gray-200 disabled:opacity-50"
                     >
-                                            Sau                    {" "}
-                    </button>
-                                     {" "}
+                      {" "}
+                      Sau{" "}
+                    </button>{" "}
                   </div>
-                )}
-                             {" "}
+                )}{" "}
               </>
-            )}
-                     {" "}
+            )}{" "}
           </div>
         ) : (
           <div className="bg-white rounded-xl shadow-lg p-6">
-                       {" "}
+            {" "}
             {isDetailLoading ? (
               <div className="p-8 text-center">
-                                Đang tải chi tiết đơn hàng...              {" "}
+                {" "}
+                Đang tải chi tiết đơn hàng...{" "}
               </div>
             ) : (
               <TicketDetail
@@ -334,13 +308,10 @@ const TicketOrder = () => {
                 onEdit={() => handleEditOrder(selectedOrder)}
                 onApprove={() => handleApproveOrder(selectedOrder)}
               />
-            )}
-            {" "}
+            )}{" "}
           </div>
-        )}
-        {" "}
-      </div>
-      {" "}
+        )}{" "}
+      </div>{" "}
     </div>
   );
 };
