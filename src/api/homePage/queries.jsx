@@ -640,12 +640,10 @@ export const useDeleteDistrictUS = (option) => {
     ...option,
   });
 };
-export const useRestoreDistrictUS = (districtId, options = {}) => {
-  return useQuery({
-    queryKey: ["restoreDistrictAPI", districtId],
-    queryFn: () => restoreDistrictAPI(districtId),
-    enabled: !!districtId, // Chỉ chạy query khi có districtId
-    ...options,
+export const useRestoreDistrictUS = (option) => {
+  return useMutation({
+    mutationFn: (districtId) => restoreDistrictAPI(districtId),
+    ...option,
   });
 };
 // Genre hooks

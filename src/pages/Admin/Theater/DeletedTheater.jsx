@@ -43,9 +43,11 @@ const DeletedTheater = () => {
             toast.success("Khôi phục rạp chiếu thành công!");
             // Invalidate queries to refetch the data and update the UI
             queryClient.invalidateQueries({
-              queryKey: ["GetDeletedCinemasAPI"],
+              queryKey: ["getDeletedCinemasAPI"],
             });
-            queryClient.invalidateQueries({ queryKey: ["GetAllCinemasAPI"] });
+            queryClient.invalidateQueries({
+              queryKey: ["getDeletedCinemasAPI"],
+            });
           },
           onError: (error) => {
             toast.error("Khôi phục rạp chiếu thất bại: " + error.message);

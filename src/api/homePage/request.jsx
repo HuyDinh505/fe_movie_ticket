@@ -1528,6 +1528,18 @@ export const getAllPromotionsAPI = async () => {
     throw error;
   }
 };
+export const getAllPromotionsUserAPI = async () => {
+  try {
+    const response = await axios({
+      url: `${END_POINT.PROMOTION}/cilent`,
+      method: "GET",
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách khuyến mãi:", error);
+    throw error;
+  }
+};
 
 export const getPromotionByIdAPI = async (id) => {
   try {
@@ -1600,7 +1612,7 @@ export const deletePromotionAPI = async (id) => {
 export const getUserPromotionsAPI = async () => {
   try {
     const response = await axios({
-      url: `${END_POINT.PROMOTION}/user`,
+      url: `${END_POINT.PROMOTION}`,
       method: "GET",
     });
     return response;

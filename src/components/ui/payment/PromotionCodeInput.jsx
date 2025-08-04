@@ -8,7 +8,27 @@ function PromotionCodeInput({
 }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
-  const [showPromotionList, setShowPromotionList] = useState(false);
+  const [showPromotionList, setShowPromotionList] = useState(false); // Hàm tiện ích để phân tích chuỗi ngày tháng không chuẩn (DD-MM-YYYY)
+
+  const parseDate = (dateString) => {
+    // Ví dụ: "04-08-2025 00:00" -> ["04", "08", "2025", "00", "00"]
+    const parts = dateString.split(/[\s-:]/);
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1; // Tháng trong JavaScript là từ 0-11
+    const year = parseInt(parts[2], 10);
+    const hour = parseInt(parts[3], 10);
+    const minute = parseInt(parts[4], 10);
+    return new Date(year, month, day, hour, minute);
+  };
+
+  // Hàm này đã bị thiếu trong code bạn gửi, tôi đã thêm lại
+  const formatDate = (dateString) => {
+    const date = parseDate(dateString);
+    if (isNaN(date.getTime())) {
+      return dateString; // Trả về chuỗi gốc nếu không thể phân tích
+    }
+    return date.toLocaleDateString("vi-VN");
+  };
 
   const handleApply = () => {
     if (!code.trim()) {
@@ -37,30 +57,15 @@ function PromotionCodeInput({
     return "Giảm giá";
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN");
-  };
-
   const isPromotionExpired = (promotion) => {
     const now = new Date();
-    const endDate = new Date(promotion.end_date);
-    // console.log(`Checking if promotion ${promotion.name} is expired:`, {
-    //   now: now.toISOString(),
-    //   endDate: endDate.toISOString(),
-    //   isExpired: now > endDate,
-    // });
+    const endDate = parseDate(promotion.end_date);
     return now > endDate;
   };
 
   const isPromotionNotStarted = (promotion) => {
     const now = new Date();
-    const startDate = new Date(promotion.start_date);
-    // console.log(`Checking if promotion ${promotion.name} is not started:`, {
-    //   now: now.toISOString(),
-    //   startDate: startDate.toISOString(),
-    //   isNotStarted: now < startDate,
-    // });
+    const startDate = parseDate(promotion.start_date);
     return now < startDate;
   };
 
@@ -74,29 +79,14 @@ function PromotionCodeInput({
     return { text: "Đang hoạt động", color: "text-green-500" };
   };
 
-  // Debug promotions
-  //console.log("PromotionCodeInput - allPromotions:", allPromotions);
-  //console.log(
-  //  "PromotionCodeInput - allPromotions length:",
-  //  allPromotions.length
-  //);
-
   const availablePromotions = allPromotions.filter(
     (promotion) =>
       !isPromotionExpired(promotion) && !isPromotionNotStarted(promotion)
   );
 
-  //console.log("PromotionCodeInput - availablePromotions:", availablePromotions);
-  //console.log(
-  //  "PromotionCodeInput - availablePromotions length:",
-  //  availablePromotions.length
-  // );
-
   return (
     <div className="flex flex-col gap-2 w-full">
-      <label className="font-semibold mb-1">Mã khuyến mãi</label>
-
-      {/* Nút hiển thị danh sách promotion */}
+         <label className="font-semibold mb-1">Mã khuyến mãi</label>  {" "}
       <button
         type="button"
         onClick={() => setShowPromotionList(!showPromotionList)}
@@ -105,12 +95,17 @@ function PromotionCodeInput({
           borderColor: "var(--color-border)",
         }}
       >
+           {" "}
         <div className="flex justify-between items-center">
+              {" "}
           <span className="text-sm text-gray-600">
+                 {" "}
             {availablePromotions.length > 0
               ? `${availablePromotions.length} khuyến mãi có thể sử dụng`
               : "Không có khuyến mãi khả dụng"}
+                {" "}
           </span>
+              {" "}
           <svg
             className={`w-4 h-4 transition-transform ${
               showPromotionList ? "rotate-180" : ""
@@ -119,19 +114,23 @@ function PromotionCodeInput({
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
+                 {" "}
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
               d="M19 9l-7 7-7-7"
             />
+                {" "}
           </svg>
+             {" "}
         </div>
+          {" "}
       </button>
-
-      {/* Danh sách promotion */}
+        {" "}
       {showPromotionList && (
         <div className="border rounded-lg p-3 bg-gray-50 max-h-60 overflow-y-auto">
+              {" "}
           {availablePromotions.length > 0 ? (
             availablePromotions.map((promotion) => {
               const status = getPromotionStatus(promotion);
@@ -148,44 +147,58 @@ function PromotionCodeInput({
                   }`}
                   onClick={() => handleSelectPromotion(promotion)}
                 >
+                          {" "}
                   <div className="flex justify-between items-start mb-2">
+                             {" "}
                     <h4 className="font-semibold text-sm">{promotion.name}</h4>
+                            {" "}
                     <span className={`text-xs ${status.color}`}>
-                      {status.text}
+                                 {status.text}         {" "}
                     </span>
+                            {" "}
                   </div>
+                          {" "}
                   <p className="text-xs text-gray-600 mb-2">
-                    {promotion.description}
+                              {promotion.description}        {" "}
                   </p>
+                          {" "}
                   <div className="text-xs text-blue-600 font-medium mb-1">
-                    {formatDiscountValue(promotion)}
+                              {formatDiscountValue(promotion)}   
+                        {" "}
                   </div>
+                          {" "}
                   <div className="text-xs text-gray-500">
-                    Áp dụng cho đơn hàng từ{" "}
-                    {Number(promotion.min_order_amount).toLocaleString()} VND
+                              Áp dụng cho đơn hàng từ        
+                      {Number(promotion.min_order_amount).toLocaleString()}{" "}
+                    VND         {" "}
                   </div>
+                          {" "}
                   <div className="text-xs text-gray-500">
-                    Hạn sử dụng: {formatDate(promotion.start_date)} -{" "}
-                    {formatDate(promotion.end_date)}
+                              Hạn sử dụng:{" "}
+                    {formatDate(promotion.start_date)} -          {" "}
+                    {formatDate(promotion.end_date)}        {" "}
                   </div>
+                          {" "}
                   {isSelected && (
                     <div className="mt-2 text-xs text-green-600 font-medium">
-                      ✓ Đã chọn
+                                 ✓ Đã chọn          {" "}
                     </div>
                   )}
+                         {" "}
                 </div>
               );
             })
           ) : (
             <div className="text-center text-gray-500 text-sm py-4">
-              Không có khuyến mãi khả dụng
+                     Không có khuyến mãi khả dụng      {" "}
             </div>
           )}
+             {" "}
         </div>
       )}
-
-      {/* Input nhập code thủ công (tùy chọn) */}
+        {" "}
       <div className="flex gap-2">
+           {" "}
         <input
           type="text"
           className="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2"
@@ -197,6 +210,7 @@ function PromotionCodeInput({
           value={code}
           onChange={(e) => setCode(e.target.value)}
         />
+           {" "}
         <button
           onClick={handleApply}
           disabled={isLoading}
@@ -218,23 +232,29 @@ function PromotionCodeInput({
             }
           }}
         >
-          {isLoading ? "Đang xử lý..." : "Áp Dụng"}
+               {isLoading ? "Đang xử lý..." : "Áp Dụng"}   {" "}
         </button>
+          {" "}
       </div>
-
-      {error && <div className="text-red-500 text-sm mt-1">{error}</div>}
-
+         {error && <div className="text-red-500 text-sm mt-1">{error}</div>}
+       {" "}
       {appliedPromotion && (
         <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+              {" "}
           <div className="flex justify-between items-center">
+                 {" "}
             <div>
+                    {" "}
               <div className="font-medium text-green-800">
-                {appliedPromotion.name}
+                        {appliedPromotion.name}      {" "}
               </div>
+                    {" "}
               <div className="text-sm text-green-600">
-                {appliedPromotion.code}
+                        {appliedPromotion.code}      {" "}
               </div>
+                   {" "}
             </div>
+                 {" "}
             <button
               onClick={() => {
                 setCode("");
@@ -242,15 +262,19 @@ function PromotionCodeInput({
               }}
               className="text-red-500 hover:text-red-700 text-sm"
             >
-              Hủy
+                     Hủy      {" "}
             </button>
+                {" "}
           </div>
+             {" "}
         </div>
       )}
-
+        {" "}
       <div className="text-xs text-gray-500 mt-1">
-        Lưu ý: Chỉ có thể áp dụng 1 khuyến mãi cho mỗi lần thanh toán
+        Lưu ý: Chỉ có thể áp dụng 1 khuyến mãi cho mỗi lần thanh toán 
+        {" "}
       </div>
+      {" "}
     </div>
   );
 }

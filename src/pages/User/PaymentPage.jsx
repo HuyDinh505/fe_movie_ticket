@@ -115,8 +115,8 @@ function PaymentPage() {
     isLoading: isLoadingPromotions,
     error: promotionsError,
   } = useGetUserPromotionsUS();
-  const allPromotions = promotionsData || [];
-
+  const allPromotions = Array.isArray(promotionsData) ? promotionsData : [];
+  console.log("pro:", allPromotions);
   const {
     mutate: bookTicket,
     isLoading: _isBooking,

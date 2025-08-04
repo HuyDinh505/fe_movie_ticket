@@ -6,7 +6,6 @@ import "swiper/css/navigation";
 import { imagePhim } from "../../Utilities/common";
 
 import PromotionCard from "../../components/ui/PromotionCard";
-import km from "../../assets/new/km.jpg";
 import { useGetUserPromotionsUS } from "../../api/homePage/queries";
 
 function PromotionSection() {

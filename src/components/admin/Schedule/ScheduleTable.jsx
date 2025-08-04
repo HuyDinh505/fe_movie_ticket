@@ -1,5 +1,5 @@
 import React from "react";
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { FaEdit, FaTrash, FaTrashRestore } from "react-icons/fa";
 
 const ScheduleTable = ({
   schedules = [],
@@ -7,7 +7,10 @@ const ScheduleTable = ({
   cinemaList = [],
   onEdit,
   onDelete,
+  onRestore,
   loading,
+  isDeleting,
+  isDeletedView = false,
 }) => {
   // Tạo map tra cứu phim theo movie_id
   const movieMap = React.useMemo(() => {
@@ -28,8 +31,6 @@ const ScheduleTable = ({
     });
     return map;
   }, [cinemaList]);
-
-  const ITEMS_PER_PAGE = 10; // Đảm bảo đồng bộ với ScheduleManagement
 
   return (
     <div className="overflow-x-auto">
@@ -66,14 +67,15 @@ const ScheduleTable = ({
           ) : schedules.length === 0 ? (
             <tr>
               <td colSpan={6} className="py-8 text-center text-gray-400">
-                Không có lịch chiếu nào
+                {isDeletedView
+                  ? "Không có lịch chiếu đã xóa nào"
+                  : "Không có lịch chiếu nào"}
               </td>
             </tr>
           ) : (
             schedules.map((schedule, idx) => {
               const movie = movieMap[schedule.movie_id];
               const cinema = cinemaMap[schedule.cinema_id];
-              // Số thứ tự trong trang hiện tại
               const stt = idx + 1;
               return (
                 <tr
@@ -124,22 +126,39 @@ const ScheduleTable = ({
                   </td>
                   <td className="py-3 px-4 whitespace-nowrap text-center">
                     <div className="flex justify-center space-x-2">
-                      <button
-                        onClick={() => onEdit && onEdit(schedule)}
-                        className="p-2 text-blue-600 hover:text-blue-800 transition-colors cursor-pointer"
-                        title="Chỉnh sửa"
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        onClick={() =>
-                          onDelete && onDelete(schedule.movie_schedule_id)
-                        }
-                        className="p-2 text-red-600 hover:text-red-800 transition-colors cursor-pointer"
-                        title="Xóa"
-                      >
-                        <FaTrash />
-                      </button>
+                      {isDeletedView ? (
+                        <button
+                          onClick={() =>
+                            onRestore && onRestore(schedule.movie_schedule_id)
+                          }
+                          disabled={isDeleting}
+                          className={`p-2 text-green-600 hover:text-green-800 transition-colors cursor-pointer ${
+                            isDeleting ? "opacity-50 cursor-not-allowed" : ""
+                          }`}
+                          title={isDeleting ? "Đang hoàn tác..." : "Hoàn tác"}
+                        >
+                          <FaTrashRestore />
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => onEdit && onEdit(schedule)}
+                            className="p-2 text-blue-600 hover:text-blue-800 transition-colors cursor-pointer"
+                            title="Chỉnh sửa"
+                          >
+                            <FaEdit />
+                          </button>
+                          <button
+                            onClick={() =>
+                              onDelete && onDelete(schedule.movie_schedule_id)
+                            }
+                            className="p-2 text-red-600 hover:text-red-800 transition-colors cursor-pointer"
+                            title="Xóa"
+                          >
+                            <FaTrash />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
