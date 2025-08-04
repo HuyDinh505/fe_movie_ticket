@@ -19,7 +19,7 @@ const TicketSummaryPage = ({
   const containerRef = useRef(null); // Tạo ref để tham chiếu đến div cha
   const [isAboveFooter, setIsAboveFooter] = useState(false);
   const [containerHeight, setContainerHeight] = useState(0);
-
+  console.log("cinemesss:", cinema);
   const calculateTotalPrice = () => {
     let total = 0;
     if (tickets) {

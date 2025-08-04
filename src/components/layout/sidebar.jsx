@@ -47,16 +47,6 @@ const Sidebar = () => {
               path: "/manage/ticket_order",
               icon: FaTicketAlt,
             },
-            {
-              label: "Quản lý đặt vé",
-              path: "/manage/booking_management",
-              icon: FaTicketAlt,
-            },
-            {
-              label: "Báo cáo đặt vé",
-              path: "/manage/booking_reports",
-              icon: VscGraph,
-            },
           ],
         },
       ],
@@ -73,11 +63,6 @@ const Sidebar = () => {
               label: "Danh sách suất chiếu",
               path: "/manage/showtime",
               icon: FaClock,
-            },
-            {
-              label: "Danh sách đơn hàng",
-              path: "/manage/ticket_order",
-              icon: FaTicketAlt,
             },
           ],
         },
@@ -118,6 +103,11 @@ const Sidebar = () => {
             {
               label: "Lịch chiếu phim",
               path: "/manage/schedule",
+              icon: FaCalendarAlt,
+            },
+            {
+              label: "Lịch chiếu phim",
+              path: "/manage/schedule_delete",
               icon: FaCalendarAlt,
             },
           ],

@@ -124,7 +124,7 @@ function LoginPage() {
       case "showtime_manager":
         return "/manage/showtime";
       case "cinema_manager":
-        return "/manage/theater_rooms";
+        return "/manage/user";
       case "finance_manager":
         return "/finance/revenue";
       case "content_manager":

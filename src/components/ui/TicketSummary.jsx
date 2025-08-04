@@ -58,7 +58,7 @@ const TicketSummary = ({
         <p className="text-sm ">Ghế : {seatsName.join(", ")}</p>
         <p className="text-sm ">{formatTickets()}</p>
         {combos && Object.values(combos).some((q) => q > 0) && (
-          <p className="text-sm text-gray-600">{formatCombos()}</p>
+          <p className="text-sm">{formatCombos()}</p>
         )}
       </div>
       <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 px-4 w-full sm:w-auto">

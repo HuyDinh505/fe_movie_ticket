@@ -253,7 +253,7 @@ const SidebarDistrictManager = () => {
                       }
                     >
                       <FaUsers className="text-sm" />
-                      <span>Danh sách lịch chiếu</span>
+                      <span>Danh sách lịch chiếu đã xóa</span>
                     </li>
                   </ul>
                 )}

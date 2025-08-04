@@ -57,7 +57,7 @@ const DetailMoviePage = () => {
   const { data: concessionsData } = useGetDVAnUongUS();
   const allCombos = concessionsData?.data?.concessions || [];
   const movie = movieDetailData?.data || null;
-
+  console.log("movies:", movie);
   // Lấy thông tin đầy đủ của người dùng hiện tại
   // const { data: currentUserData } = useGetCurrentUserUS();
   const { data: currentUserData } = useGetCurrentUserUS({

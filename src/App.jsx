@@ -185,6 +185,7 @@ function App() {
 
             {/* Showtime Manager Routes */}
             <Route path="schedule" element={<ScheduleManagement />} />
+            <Route path="schedule_delete" element={<DeleteSchedule />} />
             <Route path="showtime" element={<ShowtimeManagement />} />
             <Route
               path="showtime_management"
@@ -227,7 +228,7 @@ function App() {
             <Route path="concession" element={<ConcessionManagement />} />
             <Route path="ticket_order" element={<TicketOrder />} />
             <Route path="schedule" element={<ScheduleManagement />} />
-            <Route path="schedule/deleted" element={<ScheduleManagement />} />
+            <Route path="schedule/deleted" element={<DeleteSchedule />} />
             <Route path="promotion" element={<PromotionManagement />} />
             <Route path="delete_cinema" element={<DeletedTheater />} />
           </Route>

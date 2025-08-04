@@ -9,7 +9,7 @@ function ShowtimeSection({ onShowtimeSelect, selectedShowtime, cinemas }) {
 
   useEffect(() => {
     if (cinemas && cinemas.length > 0) {
-      // ✅ Lấy tất cả ngày có suất chiếu (unique)
+      // Lấy tất cả ngày có suất chiếu (unique)
       const dates = new Set();
       cinemas.forEach((cinema) => {
         cinema.rooms.forEach((room) => {
@@ -25,7 +25,7 @@ function ShowtimeSection({ onShowtimeSelect, selectedShowtime, cinemas }) {
         });
       });
 
-      // ✅ Chuyển thành mảng và sort
+      // Chuyển thành mảng và sort
       const sortedDates = Array.from(dates).sort();
       const formattedDates = sortedDates.map((date) => {
         const d = new Date(date);
@@ -44,7 +44,7 @@ function ShowtimeSection({ onShowtimeSelect, selectedShowtime, cinemas }) {
         setSelectedDate(formattedDates[0]);
       }
 
-      // ✅ Mặc định mở tất cả rạp khi render lần đầu
+      // Mặc định mở tất cả rạp khi render lần đầu
       const initialOpen = {};
       cinemas.forEach((_, idx) => {
         initialOpen[idx] = true;
@@ -94,7 +94,7 @@ function ShowtimeSection({ onShowtimeSelect, selectedShowtime, cinemas }) {
 
           {cinemas &&
             cinemas.map((cinema, cinemaIdx) => {
-              // ✅ Lọc phòng nào có suất chiếu trong ngày được chọn
+              // Lọc phòng nào có suất chiếu trong ngày được chọn
               const roomsWithShowtimes = cinema.rooms
                 .map((room) => {
                   const showtimes = room.showtimes_for_this_movie
@@ -113,6 +113,12 @@ function ShowtimeSection({ onShowtimeSelect, selectedShowtime, cinemas }) {
                           minute: "2-digit",
                           hour12: false,
                         }),
+                        // THÊM THÔNG TIN RẠP VÀ NGÀY VÀO ĐỐI TƯỢNG SHOWTIME
+                        day: selectedDate.day,
+                        theater: {
+                          cinema_name: cinema.cinema_name,
+                          address: cinema.address,
+                        },
                       };
                     });
                   return { ...room, showtimes };

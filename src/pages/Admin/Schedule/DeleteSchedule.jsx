@@ -69,9 +69,7 @@ const DeleteSchedule = () => {
     data: managedMoviesData,
     isLoading: loadingManagedMovies,
     error: managedMoviesError,
-  } = useGetManagedMoviesUS({
-    enabled: role === "manager_district",
-  });
+  } = useGetManagedMoviesUS({});
 
   const [movieList, setMovieList] = useState([]);
 
