@@ -8,6 +8,7 @@ import {
   useGetDeletedCinemasUS,
   useRestoreCinemaUS,
 } from "../../../api/homePage/queries";
+import { getApiMessage, handleApiError } from "../../../Utilities/apiMessage";
 import { useAuth } from "../../../contexts/AuthContext.jsx";
 
 const ITEMS_PER_PAGE = 10;
@@ -37,7 +38,11 @@ const DeletedTheater = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         restoreCinema.mutate(cinemaId, {
-          onSuccess: () => {
+          onSuccess: (response) => {
+            if (response?.data?.status === false) {
+              handleApiError(response.data, "thêm lại rạp chiếu thất bại");
+              return;
+            }
             toast.success("Khôi phục rạp chiếu thành công!");
             queryClient.invalidateQueries({
               queryKey: ["getDeletedCinemasAPI"],
@@ -47,7 +52,7 @@ const DeletedTheater = () => {
             });
           },
           onError: (error) => {
-            toast.error("Khôi phục rạp chiếu thất bại: " + error.message);
+            toast.error(getApiMessage(error, "Khôi phục rạp chiếu thất bại!"));
           },
         });
       }
