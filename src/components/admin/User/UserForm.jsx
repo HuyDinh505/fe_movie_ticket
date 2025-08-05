@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import { toast } from "react-toastify";
 import { imagePhim } from "../../../Utilities/common";
 
-
 const UserForm = ({
   onSubmit,
   initialData,
@@ -689,14 +688,14 @@ const UserForm = ({
         <div className="flex gap-4">
           <button
             type="submit"
-            className="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition-colors"
+            className="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition-colors cursor-pointer"
           >
             {initialData ? "Cập nhật" : "Thêm mới"}
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 bg-gray-300 text-gray-800 py-2 rounded hover:bg-gray-400 transition-colors"
+            className="flex-1 bg-gray-300 text-gray-800 py-2 rounded hover:bg-gray-400 transition-colors cursor-pointer"
           >
             Hủy
           </button>

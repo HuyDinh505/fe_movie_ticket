@@ -116,7 +116,7 @@ const HeaderAdmin = () => {
                 setShowProfileModal(true);
                 setShowUserDropdown(false);
               }}
-              className="block w-full text-left px-4 py-2 hover:bg-[var(--color-button)] flex gap-2"
+              className="block w-full text-left px-4 py-2 hover:bg-[var(--color-button)] flex gap-2 cursor-pointer"
             >
               <FaUserTag /> Tài khoản
             </button>
@@ -133,7 +133,11 @@ const HeaderAdmin = () => {
           onClose={() => setShowProfileModal(false)}
           widthClass="max-w-4xl"
         >
-          <UserProfile user={user} onUpdate={handleUpdateProfile} />
+          <UserProfile
+            user={user}
+            onUpdate={handleUpdateProfile}
+            bgColorClass="white"
+          />
         </Modal>
       </div>
     </header>

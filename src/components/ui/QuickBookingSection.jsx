@@ -38,7 +38,7 @@ const QuickBookingSection = () => {
     }),
     menu: (provided) => ({
       ...provided,
-      width: "100%", // Đảm bảo menu dropdown cũng giữ chiều rộng cố định
+      width: "100%",
       zIndex: 100,
       position: "absolute",
     }),

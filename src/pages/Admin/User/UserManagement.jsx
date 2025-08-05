@@ -59,11 +59,15 @@ const UserManagement = () => {
   // Lấy danh sách rạp mà người dùng hiện tại quản lý
   // Đây là phần sửa đổi để truyền dữ liệu đúng vào UserForm
   const managedCinemas = useMemo(() => {
-    if (currenRole === "cinema_manager" && userData?.cinema) {
-      return [userData.cinema];
+    if (currenRole === "cinema_manager" && userData?.cinema_id) {
+      const foundCinema = cinemas.find(
+        (c) => c.cinema_id === userData.cinema_id
+      );
+      // Trả về một mảng chứa rạp tìm được nếu có
+      return foundCinema ? [foundCinema] : [];
     }
     return [];
-  }, [currenRole, userData]);
+  }, [currenRole, userData, cinemas]);
 
   useEffect(() => {
     if (detailedUserData?.data && editingUserId) {

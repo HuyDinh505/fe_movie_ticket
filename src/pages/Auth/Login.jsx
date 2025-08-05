@@ -134,18 +134,6 @@ function LoginPage() {
   };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-8 mb-4">
-      {/* <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      /> */}
       <div className="flex lg:w-[60%] bg-white rounded-2xl shadow-lg overflow-hidden mt-4">
         {isLoading || movies.length === 0 ? (
           <div

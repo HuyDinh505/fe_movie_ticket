@@ -30,7 +30,6 @@ const END_POINT = {
   REPORT: "report",
 };
 
-
 // Helper/Utility
 
 // Hàm helper để tạo FormData
@@ -158,7 +157,6 @@ const createFormData = (data) => {
 
   return formData;
 };
-
 
 // Movie APIs (Phim)
 
@@ -326,7 +324,6 @@ export const restoreMovieAPI = async (movieId) => {
   }
 };
 
-
 // Ticket Type APIs (Loại vé)
 
 export const getAllTicketTypesAPI = async () => {
@@ -420,7 +417,6 @@ export const restoreTicketTypeAPI = async (id) => {
   }
 };
 
-
 // Seat APIs (Ghế)
 
 export const getDSGHEAPI = async (ma_phong) => {
@@ -448,7 +444,6 @@ export const getTrangThaiGheAPI = async (ma_suat_chieu) => {
     throw error;
   }
 };
-
 
 // Cinema APIs (Rạp)
 
@@ -947,7 +942,6 @@ export const getSeatMapCheckAPI = async ({ showtimeId, seatIds }) => {
   }
 };
 
-
 // Concession APIs (Dịch vụ ăn uống)
 
 export const getAllConcessionsAPI = async () => {
@@ -1085,7 +1079,6 @@ export const restoreConcessionAPI = async (concessionId) => {
   }
 };
 
-
 // Genre APIs (Thể loại)
 
 export const getAllGenreAPI = async () => {
@@ -1192,7 +1185,6 @@ export const getDeletedGenresAPI = async () => {
   }
 };
 
-
 // User APIs (Người dùng)
 
 export const getAllUsersAPI = async () => {
@@ -1292,7 +1284,6 @@ export const getCurrentUserAPI = async () => {
   }
 };
 
-
 // Payment APIs (New)
 
 export const initiatePaymentAPI = async (bookingData) => {
@@ -1323,7 +1314,6 @@ export const checkPaymentStatusAPI = async (params = {}) => {
     throw error;
   }
 };
-
 
 // Movie Schedule APIs (Lịch chiếu)
 
@@ -1513,7 +1503,6 @@ export const getManagedMoviesAPI = async () => {
   }
 };
 
-
 // Promotion APIs (Khuyến mãi)
 
 export const getAllPromotionsAPI = async () => {
@@ -1612,7 +1601,7 @@ export const deletePromotionAPI = async (id) => {
 export const getUserPromotionsAPI = async () => {
   try {
     const response = await axios({
-      url: `${END_POINT.PROMOTION}`,
+      url: `${END_POINT.PROMOTION}/cilent`,
       method: "GET",
     });
     return response;
@@ -1649,7 +1638,6 @@ export const getScreenTypeAPI = async () => {
     throw error;
   }
 };
-
 
 // Revenue Report APIs (Doanh thu)
 

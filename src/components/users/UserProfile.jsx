@@ -3,7 +3,11 @@ import { toast } from "react-toastify";
 // Import base URL from common utilities
 import { imagePhim } from "../../Utilities/common.js";
 
-const UserProfile = ({ user = {}, onUpdate }) => {
+const UserProfile = ({
+  user = {},
+  onUpdate,
+  bgColorClass = "bg-[var(--color-header-bg)]",
+}) => {
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -109,7 +113,7 @@ const UserProfile = ({ user = {}, onUpdate }) => {
   };
 
   return (
-    <div className="bg-[var(--color-header-bg)] rounded-xl shadow-lg p-8">
+    <div className={`${bgColorClass} rounded-xl shadow-lg p-8`}>
       <h2 className="text-2xl font-bold mb-6 text-white border-b border-gray-200 pb-4">
         Thông tin cá nhân
       </h2>
@@ -138,7 +142,7 @@ const UserProfile = ({ user = {}, onUpdate }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Họ và tên */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-black mb-1">
               Họ và tên
             </label>
             <input
@@ -146,14 +150,14 @@ const UserProfile = ({ user = {}, onUpdate }) => {
               name="full_name"
               value={formData.full_name}
               onChange={handleChange}
-              className="w-full bg-white border border-gray-600 rounded-lg p-3 text-gray-400 focus:ring-blue-500 focus:outline-none focus:ring-2"
+              className="w-full bg-white border border-gray-600 rounded-lg p-3 text-black focus:ring-blue-500 focus:outline-none focus:ring-2"
               required
             />
           </div>
 
           {/* Ngày sinh */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-black mb-1">
               Ngày sinh
             </label>
             <input
@@ -161,13 +165,13 @@ const UserProfile = ({ user = {}, onUpdate }) => {
               name="birth_date"
               value={formData.birth_date}
               onChange={handleChange}
-              className="w-full bg-white border border-gray-600 rounded-lg p-3 text-gray-400 focus:ring-blue-500 focus:outline-none focus:ring-2"
+              className="w-full bg-white border text-black rounded-lg p-3 text-black focus:ring-blue-500 focus:outline-none focus:ring-2"
             />
           </div>
 
           {/* Số điện thoại */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-black mb-1">
               Số điện thoại
             </label>
             <input
@@ -175,13 +179,13 @@ const UserProfile = ({ user = {}, onUpdate }) => {
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              className="w-full bg-white border border-gray-600 rounded-lg p-3 text-gray-400 focus:ring-blue-500 focus:outline-none focus:ring-2"
+              className="w-full bg-white border border-gray-600 rounded-lg p-3 text-black focus:ring-blue-500 focus:outline-none focus:ring-2"
             />
           </div>
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-black mb-1">
               Email
             </label>
             <input
@@ -189,21 +193,21 @@ const UserProfile = ({ user = {}, onUpdate }) => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full bg-white border border-gray-600 rounded-lg p-3 text-gray-400 focus:ring-blue-500 focus:outline-none focus:ring-2"
+              className="w-full bg-white border border-gray-600 rounded-lg p-3 text-black focus:ring-blue-500 focus:outline-none focus:ring-2"
             />
           </div>
 
           {/* Giới tính (optional, not in image but kept from original) */}
           {/* If you want to strictly match the image, you can remove this block */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-black mb-1">
               Giới tính
             </label>
             <select
               name="gender"
               value={formData.gender}
               onChange={handleChange}
-              className="w-full bg-white border border-gray-600 rounded-lg p-3 text-gray-400 focus:ring-blue-500 
+              className="w-full bg-white border border-gray-600 rounded-lg p-3 text-black focus:ring-blue-500 
               focus:outline-none focus:ring-2 cursor-pointer"
             >
               <option value="">Chọn giới tính</option>
