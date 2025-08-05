@@ -1,5 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { imagePhim } from "../../../Utilities/common";
+// Giả sử imagePhim là một hằng số đã được định nghĩa ở đâu đó
+
+// Hàm tiện ích để định dạng ngày tháng
+const formatDateForInput = (dateString) => {
+  if (!dateString) return "";
+  const [datePart] = dateString.split(" ");
+  const [day, month, year] = datePart.split("-");
+  return `${year}-${month}-${day}`;
+};
+
+// Hàm tiện ích để định dạng ngày tháng cho API
+const formatInputDateForAPI = (dateString) => {
+  if (!dateString) return "";
+  const [year, month, day] = dateString.split("-");
+  return `${day}-${month}-${year} 00:00`;
+};
 
 // Định nghĩa trạng thái mặc định của form
 const defaultFields = {
@@ -31,14 +48,22 @@ const PromotionFrom = ({
   const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
+    console.log("initialData trong PromotionFrom:", initialData);
     if (initialData) {
       setFormData({
         ...defaultFields,
         ...initialData,
-        image: null, // Đảm bảo trường file ảnh luôn là null khi chỉnh sửa
+        start_date: initialData.start_date
+          ? formatDateForInput(initialData.start_date)
+          : "",
+        end_date: initialData.end_date
+          ? formatDateForInput(initialData.end_date)
+          : "",
+        image: null, // Luôn reset image file
       });
-      // Tạo preview ảnh từ URL của backend
-      setImagePreview(initialData.image_url || null);
+      setImagePreview(
+        initialData.image_url ? `${imagePhim}${initialData.image_url}` : null
+      );
     } else {
       setFormData(defaultFields);
       setImagePreview(null);
@@ -73,10 +98,16 @@ const PromotionFrom = ({
     if (isNaN(discountValue) || discountValue <= 0) {
       newErrors.discount_value = "Giá trị giảm giá phải là số lớn hơn 0.";
     }
+    if (
+      formData.type === "PERCENT_DISCOUNT" &&
+      (discountValue > 100 || discountValue < 0)
+    ) {
+      newErrors.discount_value = "Phần trăm giảm giá phải từ 0 đến 100.";
+    }
 
     const maxDiscount = parseFloat(formData.max_discount_amount);
-    if (isNaN(maxDiscount) || maxDiscount <= 0) {
-      newErrors.max_discount_amount = "Giảm tối đa phải là số lớn hơn 0.";
+    if (isNaN(maxDiscount) || maxDiscount < 0) {
+      newErrors.max_discount_amount = "Giảm tối đa không hợp lệ.";
     }
 
     const minOrder = parseFloat(formData.min_order_amount);
@@ -101,6 +132,7 @@ const PromotionFrom = ({
         "Số lần dùng/người không được lớn hơn tổng số lượt dùng.";
     }
 
+    // Kiểm tra hình ảnh chỉ khi TẠO MỚI (không phải chỉnh sửa)
     if (!isEdit && !formData.image) {
       newErrors.image = "Vui lòng chọn một hình ảnh.";
     }
@@ -129,14 +161,18 @@ const PromotionFrom = ({
         );
         e.target.value = null;
         setFormData((prev) => ({ ...prev, image: null }));
-        setImagePreview(initialData?.image_url || null);
+        setImagePreview(
+          initialData?.image_url ? `${imagePhim}${initialData.image_url}` : null
+        );
         return;
       }
       if (file.size > maxSize) {
         toast.error("Kích thước file không được vượt quá 2MB");
         e.target.value = null;
         setFormData((prev) => ({ ...prev, image: null }));
-        setImagePreview(initialData?.image_url || null);
+        setImagePreview(
+          initialData?.image_url ? `${imagePhim}${initialData.image_url}` : null
+        );
         return;
       }
 
@@ -145,7 +181,9 @@ const PromotionFrom = ({
       setErrors((prev) => ({ ...prev, image: "" }));
     } else {
       setFormData((prev) => ({ ...prev, image: null }));
-      setImagePreview(initialData?.image_url || null);
+      setImagePreview(
+        initialData?.image_url ? `${imagePhim}${initialData.image_url}` : null
+      );
     }
   };
 
@@ -154,18 +192,36 @@ const PromotionFrom = ({
 
     if (validateForm()) {
       const formDataToSend = new FormData();
-      // Gán tất cả dữ liệu từ state vào FormData
+
+      // Thêm promotion_id chỉ khi có (tức là đang chỉnh sửa)
+      if (isEdit && initialData?.promotion_id) {
+        formDataToSend.append("promotion_id", initialData.promotion_id);
+      }
+
       for (const key in formData) {
-        // Chỉ thêm trường image nếu nó là một đối tượng File hợp lệ
-        if (key === "image" && formData[key] instanceof File) {
-          formDataToSend.append("image", formData[key]);
-        } else if (key !== "image" && formData[key] !== null) {
-          formDataToSend.append(key, formData[key]);
+        if (
+          key !== "image" &&
+          formData[key] !== null &&
+          formData[key] !== undefined
+        ) {
+          if (key === "start_date" || key === "end_date") {
+            formDataToSend.append(key, formatInputDateForAPI(formData[key]));
+          } else {
+            formDataToSend.append(key, formData[key]);
+          }
         }
       }
 
+      if (formData.image) {
+        formDataToSend.append("image", formData.image);
+      } else if (isEdit && initialData?.image_url) {
+        // Nếu chỉnh sửa nhưng không chọn ảnh mới, gửi lại URL ảnh cũ
+        formDataToSend.append("image_url", initialData.image_url);
+      }
+
+      // Thêm trường _method khi chỉnh sửa để Laravel xử lý PATCH
       if (isEdit) {
-        formDataToSend.append("_method", "PUT");
+        formDataToSend.append("_method", "PATCH");
       }
 
       onSubmit(formDataToSend);
@@ -193,7 +249,6 @@ const PromotionFrom = ({
           </button>
         )}
       </div>
-
       <form className="space-y-4" onSubmit={handleSubmit}>
         {/* Trường hình ảnh */}
         <div>
@@ -212,7 +267,11 @@ const PromotionFrom = ({
           {imagePreview && (
             <div className="mt-4">
               <img
-                src={imagePreview}
+                src={
+                  imagePreview.startsWith("blob:")
+                    ? imagePreview
+                    : `${imagePhim}${initialData?.image_url}`
+                }
                 alt="Ảnh xem trước"
                 className="w-40 h-auto rounded-md object-cover border border-gray-300"
               />
@@ -222,7 +281,6 @@ const PromotionFrom = ({
             <p className="text-red-500 text-sm mt-1">{errors.image}</p>
           )}
         </div>
-
         {/* Các trường còn lại giữ nguyên, thêm logic hiển thị lỗi */}
         <div>
           <label className="block text-sm font-medium mb-1">
@@ -242,7 +300,6 @@ const PromotionFrom = ({
             <p className="text-red-500 text-sm mt-1">{errors.name}</p>
           )}
         </div>
-
         <div>
           <label className="block text-sm font-medium mb-1">
             Mã khuyến mãi
@@ -261,7 +318,6 @@ const PromotionFrom = ({
             <p className="text-red-500 text-sm mt-1">{errors.code}</p>
           )}
         </div>
-
         <div>
           <label className="block text-sm font-medium mb-1">Mô tả</label>
           <textarea
@@ -273,7 +329,6 @@ const PromotionFrom = ({
             rows={2}
           />
         </div>
-
         <div className="flex gap-2">
           <div className="flex-1">
             <label className="block text-sm font-medium mb-1">
@@ -310,7 +365,6 @@ const PromotionFrom = ({
             )}
           </div>
         </div>
-
         <div>
           <label className="block text-sm font-medium mb-1">
             Loại khuyến mãi
@@ -325,7 +379,6 @@ const PromotionFrom = ({
             <option value="FIXED_DISCOUNT">Giảm giá cố định (VNĐ)</option>
           </select>
         </div>
-
         <div className="flex gap-2">
           <div className="flex-1">
             <label className="block text-sm font-medium mb-1">
@@ -371,7 +424,6 @@ const PromotionFrom = ({
             )}
           </div>
         </div>
-
         <div className="flex gap-2">
           <div className="flex-1">
             <label className="block text-sm font-medium mb-1">
@@ -436,7 +488,6 @@ const PromotionFrom = ({
             )}
           </div>
         </div>
-
         <div>
           <label className="block text-sm font-medium mb-1">Áp dụng cho</label>
           <select
@@ -450,7 +501,6 @@ const PromotionFrom = ({
             <option value="ALL">Tất cả</option>
           </select>
         </div>
-
         <div>
           <label className="block text-sm font-medium mb-1">Trạng thái</label>
           <select
@@ -463,7 +513,6 @@ const PromotionFrom = ({
             <option value="inactive">Ẩn</option>
           </select>
         </div>
-
         <div className="flex gap-2">
           <button
             type="submit"

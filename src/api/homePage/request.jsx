@@ -1575,12 +1575,10 @@ export const createPromotionAPI = async (formData) => {
 
 export const updatePromotionAPI = async (id, data) => {
   try {
-    const formData = createFormData(data);
-    formData.append("_method", "PATCH");
     const response = await axios({
       url: `${END_POINT.PROMOTION}/${id}`,
       method: "POST",
-      data: formData,
+      data: data,
       headers: {
         "Content-Type": "multipart/form-data",
       },
