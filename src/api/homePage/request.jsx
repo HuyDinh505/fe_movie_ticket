@@ -172,6 +172,18 @@ export const getPhimAPI = async () => {
     throw error;
   }
 };
+export const getPhimClientAPI = async () => {
+  try {
+    const response = await axios({
+      url: `${END_POINT.PHIM}/movies/client`,
+      method: "GET",
+    });
+    return response;
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách phim:", error);
+    throw error;
+  }
+};
 
 export const searchMoviesAPI = async (params = {}) => {
   try {
@@ -985,11 +997,11 @@ export const getConcessionByIdAPI = async (concessionId) => {
 
 export const createConcessionAPI = async (concessionData) => {
   try {
-    const formData = createFormData(concessionData);
+    // Nhận FormData trực tiếp từ component
     const response = await axios({
       url: END_POINT.CONCESSION,
       method: "POST",
-      data: formData,
+      data: concessionData, // Dùng formData trực tiếp
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -1543,12 +1555,8 @@ export const getPromotionByIdAPI = async (id) => {
   }
 };
 
-export const createPromotionAPI = async (data) => {
+export const createPromotionAPI = async (formData) => {
   try {
-    const formData = new FormData();
-    Object.keys(data).forEach((key) => {
-      formData.append(key, data[key]);
-    });
     const response = await axios({
       url: END_POINT.PROMOTION,
       method: "POST",
@@ -1598,11 +1606,14 @@ export const deletePromotionAPI = async (id) => {
   }
 };
 
-export const getUserPromotionsAPI = async () => {
+export const getUserPromotionsAPI = async (userId) => {
   try {
     const response = await axios({
       url: `${END_POINT.PROMOTION}/cilent`,
       method: "GET",
+      params: {
+        user_id: userId,
+      },
     });
     return response;
   } catch (error) {

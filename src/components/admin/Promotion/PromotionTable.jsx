@@ -1,7 +1,7 @@
 import React from "react";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { FaTicketAlt, FaUtensils, FaStar } from "react-icons/fa";
-
+import { imagePhim } from "../../../Utilities/common";
 const statusStyle = (status) =>
   status === "Kích hoạt"
     ? "bg-green-100 text-green-700 border border-green-300 px-3 py-1 rounded-full text-xs font-semibold"
@@ -15,6 +15,10 @@ const PromotionTable = ({ promotions = [], onEdit, onDelete }) => {
           <tr>
             <th className="py-3 px-4 text-left text-xs font-bold text-blue-700 uppercase tracking-wider">
               ID
+            </th>
+            {/* Thêm cột Hình ảnh */}
+            <th className="py-3 px-4 text-left text-xs font-bold text-blue-700 uppercase tracking-wider">
+              Hình ảnh
             </th>
             <th className="py-3 px-4 text-left text-xs font-bold text-blue-700 uppercase tracking-wider">
               Tên khuyến mãi
@@ -68,6 +72,24 @@ const PromotionTable = ({ promotions = [], onEdit, onDelete }) => {
             >
               <td className="py-3 px-4 whitespace-nowrap">
                 {promo.promotion_id}
+              </td>
+              {/* Thêm ô dữ liệu cho hình ảnh */}
+              <td className="py-3 px-4">
+                {promo.image_url ? (
+                  <img
+                    src={
+                      promo.image_url
+                        ? `${imagePhim}${promo.image_url}`
+                        : "/placeholder.jpg"
+                    }
+                    alt={promo.name}
+                    className="w-20 h-auto rounded-md shadow-sm object-cover"
+                  />
+                ) : (
+                  <div className="w-20 h-12 bg-gray-200 flex items-center justify-center rounded-md text-xs text-gray-500">
+                    Không có ảnh
+                  </div>
+                )}
               </td>
               <td className="py-3 px-4 whitespace-nowrap font-semibold text-gray-900">
                 {promo.name}
@@ -145,7 +167,7 @@ const PromotionTable = ({ promotions = [], onEdit, onDelete }) => {
                   <button
                     className="p-2 text-red-600 hover:text-red-800 transition-colors cursor-pointer"
                     title="Xóa"
-                    onClick={() => onDelete && onDelete(promo)}
+                    onClick={() => onDelete && onDelete(promo.promotion_id)}
                   >
                     <FaTrash />
                   </button>

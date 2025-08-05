@@ -110,7 +110,6 @@ const ConcessionManagement = () => {
     setIsFormVisible(true);
   };
 
-  
   const handleSaveConcession = async (concessionId, concessionData) => {
     try {
       if (concessionId) {

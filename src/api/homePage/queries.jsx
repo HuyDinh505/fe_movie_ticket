@@ -6,6 +6,7 @@ import {
   getDVAnUongAPI,
   // getLoaiVeAPI,
   getPhimAPI,
+  getPhimClientAPI,
   searchMoviesAPI,
   searchMoviesPublicAPI,
   getPhimTheoRapAPI,
@@ -118,6 +119,14 @@ export const useGetPhimUS = (option) => {
   return useQuery({
     queryKey: ["GetPhimAPI"],
     queryFn: getPhimAPI,
+    ...optionsUseQuery,
+    ...option,
+  });
+};
+export const useGetPhimClientUS = (option) => {
+  return useQuery({
+    queryKey: ["getPhimClientAPI"],
+    queryFn: getPhimClientAPI,
     ...optionsUseQuery,
     ...option,
   });
@@ -943,12 +952,11 @@ export const useDeletePromotionUS = (option) => {
   });
 };
 
-export const useGetUserPromotionsUS = (option) => {
+export const useGetUserPromotionsUS = (option, userId) => {
   return useQuery({
-    queryKey: ["GetUserPromotionsAPI"],
+    queryKey: ["GetUserPromotionsAPI", userId],
     queryFn: async () => {
-      const response = await getUserPromotionsAPI();
-      // Trả về trực tiếp mảng promotion từ response.data
+      const response = await getUserPromotionsAPI(userId);
       return response.data;
     },
     ...optionsUseQuery,

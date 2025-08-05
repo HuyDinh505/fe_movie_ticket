@@ -247,8 +247,8 @@ const MovieTable = ({
                           disabled={isDeleting}
                           className={`p-2 text-red-600 hover:text-red-800 transition-colors 
                             cursor-pointer${
-                            isDeleting ? "opacity-50 cursor-not-allowed" : ""
-                          }`}
+                              isDeleting ? "opacity-50 cursor-not-allowed" : ""
+                            }`}
                           title={isDeleting ? "Đang xóa..." : "Xóa"}
                         >
                           <FaTrash />

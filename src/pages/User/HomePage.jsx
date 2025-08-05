@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useGetPhimUS } from "../../api/homePage/queries";
+import { useGetPhimClientUS } from "../../api/homePage/queries";
 import Banner from "../../components/layout/banner";
 import QuickBookingSection from "../../components/ui/QuickBookingSection";
 import MovieList from "../../layouts/Home/MovieList";
@@ -13,7 +13,7 @@ import SearchModal from "../../components/ui/SearchModal";
 import { useMediaQuery } from "react-responsive";
 
 function HomePage() {
-  const { data: moviesData, isLoading, error } = useGetPhimUS();
+  const { data: moviesData, isLoading, error } = useGetPhimClientUS();
   const navigate = useNavigate();
   const location = useLocation();
   const [showSearchModal, setShowSearchModal] = useState(false);

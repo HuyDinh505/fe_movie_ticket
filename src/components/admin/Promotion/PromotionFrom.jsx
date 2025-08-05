@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 
+// Định nghĩa trạng thái mặc định của form
 const defaultFields = {
   name: "",
   code: "",
@@ -14,29 +16,162 @@ const defaultFields = {
   total_usage_limit: "",
   apply_to_product_type: "TICKET",
   status: "active",
+  image: null,
 };
 
 const PromotionFrom = ({
-  initialData = defaultFields,
+  initialData = null,
   onSubmit,
   onCancel,
   isEdit = false,
   loading = false,
 }) => {
-  const [form, setForm] = useState(defaultFields);
+  const [formData, setFormData] = useState(defaultFields);
+  const [errors, setErrors] = useState({});
+  const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
-    setForm({ ...defaultFields, ...initialData });
+    if (initialData) {
+      setFormData({
+        ...defaultFields,
+        ...initialData,
+        image: null, // Đảm bảo trường file ảnh luôn là null khi chỉnh sửa
+      });
+      // Tạo preview ảnh từ URL của backend
+      setImagePreview(initialData.image_url || null);
+    } else {
+      setFormData(defaultFields);
+      setImagePreview(null);
+    }
+    setErrors({});
   }, [initialData]);
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = "Vui lòng nhập tên khuyến mãi.";
+    }
+    if (!formData.code.trim()) {
+      newErrors.code = "Vui lòng nhập mã khuyến mãi.";
+    }
+    if (!formData.start_date) {
+      newErrors.start_date = "Vui lòng chọn ngày bắt đầu.";
+    }
+    if (!formData.end_date) {
+      newErrors.end_date = "Vui lòng chọn ngày kết thúc.";
+    }
+    if (
+      formData.start_date &&
+      formData.end_date &&
+      new Date(formData.end_date) < new Date(formData.start_date)
+    ) {
+      newErrors.end_date = "Ngày kết thúc phải sau ngày bắt đầu.";
+    }
+
+    const discountValue = parseFloat(formData.discount_value);
+    if (isNaN(discountValue) || discountValue <= 0) {
+      newErrors.discount_value = "Giá trị giảm giá phải là số lớn hơn 0.";
+    }
+
+    const maxDiscount = parseFloat(formData.max_discount_amount);
+    if (isNaN(maxDiscount) || maxDiscount <= 0) {
+      newErrors.max_discount_amount = "Giảm tối đa phải là số lớn hơn 0.";
+    }
+
+    const minOrder = parseFloat(formData.min_order_amount);
+    if (isNaN(minOrder) || minOrder < 0) {
+      newErrors.min_order_amount = "Đơn hàng tối thiểu không hợp lệ.";
+    }
+
+    const usagePerUser = parseInt(formData.usage_limit_per_user);
+    if (isNaN(usagePerUser) || usagePerUser < 1) {
+      newErrors.usage_limit_per_user =
+        "Số lần dùng/người phải lớn hơn hoặc bằng 1.";
+    }
+
+    const totalUsage = parseInt(formData.total_usage_limit);
+    if (isNaN(totalUsage) || totalUsage < 1) {
+      newErrors.total_usage_limit =
+        "Tổng số lượt dùng phải lớn hơn hoặc bằng 1.";
+    }
+
+    if (usagePerUser > totalUsage) {
+      newErrors.usage_limit_per_user =
+        "Số lần dùng/người không được lớn hơn tổng số lượt dùng.";
+    }
+
+    if (!isEdit && !formData.image) {
+      newErrors.image = "Vui lòng chọn một hình ảnh.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+      const maxSize = 2 * 1024 * 1024; // 2MB
+
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(
+          "Chỉ chấp nhận file ảnh có định dạng: PNG, JPG, JPEG, WEBP"
+        );
+        e.target.value = null;
+        setFormData((prev) => ({ ...prev, image: null }));
+        setImagePreview(initialData?.image_url || null);
+        return;
+      }
+      if (file.size > maxSize) {
+        toast.error("Kích thước file không được vượt quá 2MB");
+        e.target.value = null;
+        setFormData((prev) => ({ ...prev, image: null }));
+        setImagePreview(initialData?.image_url || null);
+        return;
+      }
+
+      setFormData((prev) => ({ ...prev, image: file }));
+      setImagePreview(URL.createObjectURL(file));
+      setErrors((prev) => ({ ...prev, image: "" }));
+    } else {
+      setFormData((prev) => ({ ...prev, image: null }));
+      setImagePreview(initialData?.image_url || null);
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (onSubmit) onSubmit(form);
+
+    if (validateForm()) {
+      const formDataToSend = new FormData();
+      // Gán tất cả dữ liệu từ state vào FormData
+      for (const key in formData) {
+        // Chỉ thêm trường image nếu nó là một đối tượng File hợp lệ
+        if (key === "image" && formData[key] instanceof File) {
+          formDataToSend.append("image", formData[key]);
+        } else if (key !== "image" && formData[key] !== null) {
+          formDataToSend.append(key, formData[key]);
+        }
+      }
+
+      if (isEdit) {
+        formDataToSend.append("_method", "PUT");
+      }
+
+      onSubmit(formDataToSend);
+    } else {
+      toast.error("Vui lòng kiểm tra lại thông tin.");
+    }
   };
 
   return (
@@ -58,7 +193,37 @@ const PromotionFrom = ({
           </button>
         )}
       </div>
+
       <form className="space-y-4" onSubmit={handleSubmit}>
+        {/* Trường hình ảnh */}
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Hình ảnh khuyến mãi
+          </label>
+          <input
+            type="file"
+            name="image"
+            accept="image/*"
+            onChange={handleImageChange}
+            className={`w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 ${
+              errors.image ? "border-red-500" : ""
+            }`}
+          />
+          {imagePreview && (
+            <div className="mt-4">
+              <img
+                src={imagePreview}
+                alt="Ảnh xem trước"
+                className="w-40 h-auto rounded-md object-cover border border-gray-300"
+              />
+            </div>
+          )}
+          {errors.image && (
+            <p className="text-red-500 text-sm mt-1">{errors.image}</p>
+          )}
+        </div>
+
+        {/* Các trường còn lại giữ nguyên, thêm logic hiển thị lỗi */}
         <div>
           <label className="block text-sm font-medium mb-1">
             Tên khuyến mãi
@@ -66,13 +231,18 @@ const PromotionFrom = ({
           <input
             type="text"
             name="name"
-            value={form.name}
+            value={formData.name}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className={`w-full border rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+              errors.name ? "border-red-500" : "border-gray-300"
+            }`}
             placeholder="Nhập tên khuyến mãi"
-            required
           />
+          {errors.name && (
+            <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+          )}
         </div>
+
         <div>
           <label className="block text-sm font-medium mb-1">
             Mã khuyến mãi
@@ -80,24 +250,30 @@ const PromotionFrom = ({
           <input
             type="text"
             name="code"
-            value={form.code}
+            value={formData.code}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className={`w-full border rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+              errors.code ? "border-red-500" : "border-gray-300"
+            }`}
             placeholder="Nhập mã khuyến mãi"
-            required
           />
+          {errors.code && (
+            <p className="text-red-500 text-sm mt-1">{errors.code}</p>
+          )}
         </div>
+
         <div>
           <label className="block text-sm font-medium mb-1">Mô tả</label>
           <textarea
             name="description"
-            value={form.description}
+            value={formData.description}
             onChange={handleChange}
             className="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
             placeholder="Nhập mô tả"
             rows={2}
           />
         </div>
+
         <div className="flex gap-2">
           <div className="flex-1">
             <label className="block text-sm font-medium mb-1">
@@ -106,11 +282,15 @@ const PromotionFrom = ({
             <input
               type="date"
               name="start_date"
-              value={form.start_date || ""}
+              value={formData.start_date || ""}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
+              className={`w-full border rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                errors.start_date ? "border-red-500" : "border-gray-300"
+              }`}
             />
+            {errors.start_date && (
+              <p className="text-red-500 text-sm mt-1">{errors.start_date}</p>
+            )}
           </div>
           <div className="flex-1">
             <label className="block text-sm font-medium mb-1">
@@ -119,43 +299,54 @@ const PromotionFrom = ({
             <input
               type="date"
               name="end_date"
-              value={form.end_date || ""}
+              value={formData.end_date || ""}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
+              className={`w-full border rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                errors.end_date ? "border-red-500" : "border-gray-300"
+              }`}
             />
+            {errors.end_date && (
+              <p className="text-red-500 text-sm mt-1">{errors.end_date}</p>
+            )}
           </div>
         </div>
+
         <div>
           <label className="block text-sm font-medium mb-1">
             Loại khuyến mãi
           </label>
           <select
             name="type"
-            value={form.type}
+            value={formData.type}
             onChange={handleChange}
             className="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
           >
             <option value="PERCENT_DISCOUNT">Phần trăm (%)</option>
             <option value="FIXED_DISCOUNT">Giảm giá cố định (VNĐ)</option>
           </select>
         </div>
+
         <div className="flex gap-2">
           <div className="flex-1">
             <label className="block text-sm font-medium mb-1">
-              Giá trị giảm
-              {form.type === "PERCENT_DISCOUNT" ? " (%)" : " (VNĐ)"}
+              Giá trị giảm{" "}
+              {formData.type === "PERCENT_DISCOUNT" ? " (%)" : " (VNĐ)"}
             </label>
             <input
               type="number"
               name="discount_value"
-              value={form.discount_value}
+              value={formData.discount_value}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
+              className={`w-full border rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                errors.discount_value ? "border-red-500" : "border-gray-300"
+              }`}
               min={0}
             />
+            {errors.discount_value && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.discount_value}
+              </p>
+            )}
           </div>
           <div className="flex-1">
             <label className="block text-sm font-medium mb-1">
@@ -164,14 +355,23 @@ const PromotionFrom = ({
             <input
               type="number"
               name="max_discount_amount"
-              value={form.max_discount_amount}
+              value={formData.max_discount_amount}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
+              className={`w-full border rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                errors.max_discount_amount
+                  ? "border-red-500"
+                  : "border-gray-300"
+              }`}
               min={0}
             />
+            {errors.max_discount_amount && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.max_discount_amount}
+              </p>
+            )}
           </div>
         </div>
+
         <div className="flex gap-2">
           <div className="flex-1">
             <label className="block text-sm font-medium mb-1">
@@ -180,12 +380,18 @@ const PromotionFrom = ({
             <input
               type="number"
               name="min_order_amount"
-              value={form.min_order_amount}
+              value={formData.min_order_amount}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
+              className={`w-full border rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                errors.min_order_amount ? "border-red-500" : "border-gray-300"
+              }`}
               min={0}
             />
+            {errors.min_order_amount && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.min_order_amount}
+              </p>
+            )}
           </div>
           <div className="flex-1">
             <label className="block text-sm font-medium mb-1">
@@ -194,12 +400,20 @@ const PromotionFrom = ({
             <input
               type="number"
               name="usage_limit_per_user"
-              value={form.usage_limit_per_user}
+              value={formData.usage_limit_per_user}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
+              className={`w-full border rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                errors.usage_limit_per_user
+                  ? "border-red-500"
+                  : "border-gray-300"
+              }`}
               min={1}
             />
+            {errors.usage_limit_per_user && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.usage_limit_per_user}
+              </p>
+            )}
           </div>
           <div className="flex-1">
             <label className="block text-sm font-medium mb-1">
@@ -208,41 +422,48 @@ const PromotionFrom = ({
             <input
               type="number"
               name="total_usage_limit"
-              value={form.total_usage_limit}
+              value={formData.total_usage_limit}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
+              className={`w-full border rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                errors.total_usage_limit ? "border-red-500" : "border-gray-300"
+              }`}
               min={1}
             />
+            {errors.total_usage_limit && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.total_usage_limit}
+              </p>
+            )}
           </div>
         </div>
+
         <div>
           <label className="block text-sm font-medium mb-1">Áp dụng cho</label>
           <select
             name="apply_to_product_type"
-            value={form.apply_to_product_type}
+            value={formData.apply_to_product_type}
             onChange={handleChange}
             className="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
           >
             <option value="TICKET">Vé xem phim</option>
             <option value="CONCESSION">Đồ ăn/uống</option>
             <option value="ALL">Tất cả</option>
           </select>
         </div>
+
         <div>
           <label className="block text-sm font-medium mb-1">Trạng thái</label>
           <select
             name="status"
-            value={form.status}
+            value={formData.status}
             onChange={handleChange}
             className="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
           >
             <option value="active">Kích hoạt</option>
             <option value="inactive">Ẩn</option>
           </select>
         </div>
+
         <div className="flex gap-2">
           <button
             type="submit"

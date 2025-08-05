@@ -46,6 +46,9 @@ function calculateTotalPrice(bookingData) {
 }
 
 function PaymentPage() {
+  const { userData, isLoading: authLoading } = useAuth();
+  const userId = userData?.user_id;
+
   const location = useLocation();
   const navigate = useNavigate();
   const bookingData = location.state || {};
@@ -114,7 +117,12 @@ function PaymentPage() {
     data: promotionsData,
     isLoading: isLoadingPromotions,
     error: promotionsError,
-  } = useGetUserPromotionsUS();
+  } = useGetUserPromotionsUS(
+    {
+      enabled: !!userId,
+    },
+    userId
+  );
   const allPromotions = Array.isArray(promotionsData) ? promotionsData : [];
   console.log("pro:", allPromotions);
   const {
@@ -135,7 +143,7 @@ function PaymentPage() {
     error: paymentError,
   } = useInitiatePaymentUS();
 
-  const { isLoggedIn, userData } = useAuth();
+  const { isLoggedIn } = useAuth();
   const seatMapRef = useRef();
 
   // Thêm một ref để kiểm soát việc hiển thị thông báo lỗi

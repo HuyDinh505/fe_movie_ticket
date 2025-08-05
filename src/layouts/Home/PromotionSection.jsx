@@ -4,21 +4,42 @@ import { Navigation, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import { imagePhim } from "../../Utilities/common";
+import { useAuth } from "../../contexts/AuthContext";
 
 import PromotionCard from "../../components/ui/PromotionCard";
 import { useGetUserPromotionsUS } from "../../api/homePage/queries";
 
 function PromotionSection() {
-  const { data, isLoading, isError } = useGetUserPromotionsUS();
+  // Lấy user_id từ AuthContext
+  const { userData, isLoading: authLoading } = useAuth();
+  const userId = userData?.user_id;
+
+  // Sử dụng hook useQuery, truyền userId vào
+  const {
+    data,
+    isLoading: promotionsLoading,
+    isError,
+  } = useGetUserPromotionsUS(
+    {
+      // Chỉ bật query khi userId đã có
+      // enabled: !!userId,
+    },
+    userId
+  );
+
   const promotions = Array.isArray(data) ? data : [];
   console.log("Khuyến mãi: ", promotions);
+
+  // Hiển thị trạng thái loading tổng thể
+  const combinedLoading = authLoading || promotionsLoading;
+
   return (
     <section className="max-w-screen-xl w-full mx-auto py-10 px-4 sm:px-6 lg:px-8">
       <h2 className="text-xl font-bold mb-6 border-l-4 border-orange-500 pl-3">
         KHUYẾN MÃI
       </h2>
 
-      {isLoading ? (
+      {combinedLoading ? (
         <div className="text-center text-blue-600 font-semibold py-8">
           Đang tải khuyến mãi...
         </div>
@@ -66,7 +87,7 @@ function PromotionSection() {
                 title={promo.name}
                 image={
                   promo.image_url ? `${imagePhim}${promo.image_url}` : imagePhim
-                } // Nếu có trường ảnh thì thay promo.image
+                }
                 description={promo.description}
                 discount={
                   promo.type === "PERCENT_DISCOUNT"

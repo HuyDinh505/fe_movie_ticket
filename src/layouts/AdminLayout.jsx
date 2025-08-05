@@ -5,7 +5,7 @@ import HeaderAdmin from "../components/layout/headerAdmin"; // Import HeaderAdmi
 
 const AdminLayout = () => {
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-white">
       {/* Sidebar cố định */}
       <SidebarAdmin />
       <div className="flex flex-col flex-1 md:ml-64">
