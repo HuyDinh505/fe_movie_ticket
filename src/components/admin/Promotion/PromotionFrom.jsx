@@ -48,11 +48,11 @@ const PromotionFrom = ({
   const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
-    console.log("initialData trong PromotionFrom:", initialData);
     if (initialData) {
       setFormData({
         ...defaultFields,
         ...initialData,
+        // Chuyển đổi định dạng ngày tháng khi nhận dữ liệu từ prop
         start_date: initialData.start_date
           ? formatDateForInput(initialData.start_date)
           : "",
@@ -205,6 +205,7 @@ const PromotionFrom = ({
           formData[key] !== undefined
         ) {
           if (key === "start_date" || key === "end_date") {
+            // Chuyển đổi định dạng ngày tháng về lại định dạng API yêu cầu
             formDataToSend.append(key, formatInputDateForAPI(formData[key]));
           } else {
             formDataToSend.append(key, formData[key]);
@@ -267,11 +268,7 @@ const PromotionFrom = ({
           {imagePreview && (
             <div className="mt-4">
               <img
-                src={
-                  imagePreview.startsWith("blob:")
-                    ? imagePreview
-                    : `${imagePhim}${initialData?.image_url}`
-                }
+                src={imagePreview}
                 alt="Ảnh xem trước"
                 className="w-40 h-auto rounded-md object-cover border border-gray-300"
               />

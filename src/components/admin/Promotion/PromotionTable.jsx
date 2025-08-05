@@ -2,10 +2,21 @@ import React from "react";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { FaTicketAlt, FaUtensils, FaStar } from "react-icons/fa";
 import { imagePhim } from "../../../Utilities/common";
+
 const statusStyle = (status) =>
-  status === "Kích hoạt"
+  status === "active"
     ? "bg-green-100 text-green-700 border border-green-300 px-3 py-1 rounded-full text-xs font-semibold"
     : "bg-gray-200 text-gray-500 border border-gray-300 px-3 py-1 rounded-full text-xs font-semibold";
+
+// Hàm tiện ích để chuyển đổi chuỗi ngày tháng từ API sang định dạng hiển thị
+const formatApiDate = (dateString) => {
+  if (!dateString) return "";
+  // Tách ngày, tháng, năm từ chuỗi "DD-MM-YYYY HH:mm"
+  const [datePart] = dateString.split(" ");
+  const [day, month, year] = datePart.split("-");
+  // Tạo đối tượng Date mới với định dạng "YYYY-MM-DD" để tránh lỗi không tương thích
+  return new Date(`${year}-${month}-${day}`).toLocaleDateString("vi-VN");
+};
 
 const PromotionTable = ({ promotions = [], onEdit, onDelete }) => {
   return (
@@ -73,7 +84,6 @@ const PromotionTable = ({ promotions = [], onEdit, onDelete }) => {
               <td className="py-3 px-4 whitespace-nowrap">
                 {promo.promotion_id}
               </td>
-              {/* Thêm ô dữ liệu cho hình ảnh */}
               <td className="py-3 px-4">
                 {promo.image_url ? (
                   <img
@@ -101,14 +111,10 @@ const PromotionTable = ({ promotions = [], onEdit, onDelete }) => {
                 {promo.description}
               </td>
               <td className="py-3 px-4 whitespace-nowrap">
-                {promo.start_date
-                  ? new Date(promo.start_date).toLocaleString()
-                  : ""}
+                {formatApiDate(promo.start_date)}
               </td>
               <td className="py-3 px-4 whitespace-nowrap">
-                {promo.end_date
-                  ? new Date(promo.end_date).toLocaleString()
-                  : ""}
+                {formatApiDate(promo.end_date)}
               </td>
               <td className="py-3 px-4 whitespace-nowrap">{promo.type}</td>
               <td className="py-3 px-4 whitespace-nowrap">
@@ -152,7 +158,7 @@ const PromotionTable = ({ promotions = [], onEdit, onDelete }) => {
               </td>
               <td className="py-3 px-4 whitespace-nowrap">
                 <span className={statusStyle(promo.status)}>
-                  {promo.status}
+                  {promo.status === "active" ? "Kích hoạt" : "Ẩn"}
                 </span>
               </td>
               <td className="py-3 px-4 whitespace-nowrap text-center">
