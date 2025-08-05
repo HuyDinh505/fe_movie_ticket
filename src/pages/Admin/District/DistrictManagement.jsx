@@ -182,7 +182,7 @@ const DistrictManagement = () => {
             hover:to-blue-800 font-semibold shadow-md transition-all text-sm sm:text-base
             cursor-pointer"
           >
-            + Thêm loại vé mới
+            + Thêm quận huyện mới
           </button>
         )}
       </div>

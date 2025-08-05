@@ -61,7 +61,7 @@ const PromotionManagement = () => {
         : `${parseInt(promo.discount_value).toLocaleString()}đ`,
     quantity: promo.total_usage_limit,
     used: promo.total_usage_limit - (promo.usage_left ?? 0),
-    status: promo.status === "active" ? "Kích hoạt" : "Ẩn",
+    status: promo.status === "active" ? "Kích hoạt" : "Không hoạt động",
     time: `${new Date(promo.start_date).toLocaleDateString()} - ${new Date(
       promo.end_date
     ).toLocaleDateString()}`,
